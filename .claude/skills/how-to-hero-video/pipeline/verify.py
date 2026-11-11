@@ -13,6 +13,7 @@ from PIL import Image
 ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, "out")
 FILES = {f[:-5]: json.load(open(os.path.join(ROOT, "videos", f)))["file"] for f in os.listdir(os.path.join(ROOT, "videos")) if f.endswith(".json")}
+MAXS = {f[:-5]: json.load(open(os.path.join(ROOT, "videos", f))).get("maxSeconds", 60) for f in os.listdir(os.path.join(ROOT, "videos")) if f.endswith(".json")}  # per-video length cap in seconds; 2 s tolerated
 BRIGHT = 120  # luma above this is "content"; the navy background and 7% dot texture stay well below
 
 
@@ -67,7 +68,7 @@ def main(ids):
             run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", fin, "-frames:v", "1", os.path.join(shots, f"{base}_{label}.png")])
         bad = audit(fin, info["dur"], shots)
         report[v] = {"file": FILES[v], **info, "peak_db": mx, "mean_db": mean, "safe_zone_violations": bad}
-        ok = (info["w"], info["h"]) == (1080, 1920) and abs(info["fps"] - 30) < 0.01 and info["vcodec"] == "h264" and info["acodec"] == "aac" and info["ach"] == 2 and info["dur"] <= 62 and info["mb"] < 100 and mx < -0.5 and not bad
+        ok = (info["w"], info["h"]) == (1080, 1920) and abs(info["fps"] - 30) < 0.01 and info["vcodec"] == "h264" and info["acodec"] == "aac" and info["ach"] == 2 and info["dur"] <= MAXS[v] + 2 and info["mb"] < 100 and mx < -0.5 and not bad
         print(f"{FILES[v]}: {info['w']}x{info['h']} {info['fps']}fps {info['vcodec']}/{info['pix']} + {info['acodec']} {info['ach']}ch {info['ar']}Hz | {info['dur']:.2f}s | {info['mb']:.1f} MB | peak {mx} dB mean {mean} dB | safe-zone violations: {len(bad)} {'OK' if ok else 'CHECK'}")
         for b in bad[:6]: print("   ", b)
     json.dump(report, open(os.path.join(OUT, "report.json"), "w"), indent=1)
