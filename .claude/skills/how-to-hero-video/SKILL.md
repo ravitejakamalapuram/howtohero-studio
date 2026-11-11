@@ -7,13 +7,21 @@ description: Make one vertical "How To Hero" explainer video (1080x1920, ~57-60 
 
 Pipeline lives in `pipeline/` next to this file (HyperFrames + Kokoro TTS + GSAP + ffmpeg + Chromium; all free, no signups). Work from a scratch copy so the repo stays clean.
 
-## Nightly queue run
+## Nightly queue run (orchestrator: never renders anything itself)
 
-1. Read the artifact URL from the task prompt. `ArtifactData` list collection `ideas`. Pick queued docs (`stage` = "queued") with empty `videoRef`, soonest `slot` first, at most 2 per run. None: stop, do nothing.
-2. For each, from `topic` + `angle` only, plan the story yourself, then build it (below).
-3. Upload the final MP4 with `Artifact` (`asset: true`, `url` = artifact, `file_path`). Re-read the doc, then `ArtifactData update` with `if_version`: `videoRef` = `<file> | <duration> s | ffprobe: 1080x1920, 30 fps, H.264 yuv420p + AAC stereo 48 kHz, <MB> MB | audio peak <dB> dB | safe zone: <n> violations` + newline + `Video: /_blob/<id>`.
-4. Never change `stage`, never touch posted docs, never overwrite a non-empty `videoRef`. The human reviews and sends to review.
-5. Stop at 2 videos or if a render fails twice; leave `videoRef` empty and write the reason into `note`.
+1. Read the artifact URL from the task prompt. `ArtifactData list` collection `ideas`. Candidates: `stage` = "queued", empty `videoRef`, and no `claimedAt` newer than 20 hours. Sort by `slot`, take at most 5. None: stop and say so.
+2. For each candidate: `update` the doc (with `if_version`) setting `claimedAt` = now (ISO). Skip it if the write is refused.
+3. Spawn one separate session per candidate with `mcp__claude-code-remote__create_session` (`source_url` = https://github.com/ravitejakamalapuram/howtohero-studio, same environment, `prompt` = "Use the how-to-hero-video skill, section 'Worker: one video'. Artifact: <url>. Doc id: <id>."). One video per session, so a usage limit only loses that one video. Do not wait for them.
+4. Reply with one line per spawned session (doc id, session id).
+
+## Worker: one video
+
+Make exactly the one doc named in the prompt (read it; use only `topic` + `angle`), using "Build one video" below. Then:
+- Upload the MP4 with `Artifact` (`asset: true`, `url` = artifact, `file_path`).
+- Re-read the doc, `ArtifactData update` with `if_version`: `videoRef` = `<file> | <duration> s | ffprobe: 1080x1920, 30 fps, H.264 yuv420p + AAC stereo 48 kHz, <MB> MB | audio peak <dB> dB | safe zone: <n> violations` + newline + `Video: /_blob/<id>`, and `claimedAt` = `{"__delete__": true}`.
+- On failure after two render attempts: leave `videoRef` empty, remove `claimedAt`, write the reason into `note`.
+- Never change `stage`, never touch other docs, never overwrite a non-empty `videoRef`. The human reviews and sends to review.
+- Final reply: file name, duration, verification result.
 
 ## Build one video (id vN: use the next unused number in `videos/`; existing files there are worked examples)
 
