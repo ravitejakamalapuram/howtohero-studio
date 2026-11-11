@@ -7,13 +7,15 @@ description: Make one vertical "How To Hero" explainer video (1080x1920, 60 s by
 
 Pipeline lives in `pipeline/` next to this file (HyperFrames + Kokoro TTS + GSAP + ffmpeg + Chromium; all free, no signups). Work from a scratch copy so the repo stays clean.
 
-## Nightly run: one video per session
+## Nightly run: one routine, parallel at the start
 
-Five scheduled tasks fire a few minutes apart; each session makes ONE video, so a usage limit loses at most one. No session spawns other sessions.
-
-1. Read the artifact URL from the task prompt. `ArtifactData list` collection `ideas`. Candidates: `stage` = "queued", empty `videoRef`, and no `claimedAt` newer than 20 hours. Take the one with the earliest `slot`. None: stop and say so.
-2. Claim it: `update` with `if_version` setting `claimedAt` = now (ISO). If refused, re-read and take the next candidate.
-3. Make that video with the worker steps below.
+A single scheduled routine runs this. How many videos it makes:
+1. Read the artifact URL from the task prompt. `ArtifactData get` collection `meta`, doc `videoBurst`. Missing = this is the first run: make up to 5 videos in parallel. Present = make 1 video.
+2. `ArtifactData list` collection `ideas`. Candidates: `stage` = "queued", empty `videoRef`, and no `claimedAt` newer than 20 hours, ordered by earliest `slot`. None: stop and say so (still write `videoBurst` if it was missing and the first run).
+3. For 1 video: claim the first candidate (`update` with `if_version` setting `claimedAt` = now ISO; if refused, re-read and take the next) and do the Worker steps yourself.
+4. For a burst: claim up to 5 candidates one after another the same way, then in ONE message start one subagent per claimed idea (Agent tool, general-purpose), each told: its doc id, the artifact URL, "follow the Worker steps and Build one video sections of this SKILL.md, use scratch dir /tmp/hth-<id>, render with -w 2 if available, do not touch other docs". If the Agent tool is unavailable, build them one after another. Renders are CPU-heavy, so if renders fail from load, retry that one alone.
+5. After claiming, `ArtifactData set` `meta/videoBurst` = {"done": true, "at": <ISO>} (only on the first run).
+6. Reply with one line per video: doc id, file name, duration, verification result.
 
 ## Worker steps
 
