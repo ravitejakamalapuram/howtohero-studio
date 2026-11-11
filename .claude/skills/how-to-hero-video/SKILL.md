@@ -11,8 +11,8 @@ Pipeline lives in `pipeline/` next to this file (HyperFrames + Kokoro TTS + GSAP
 
 Two scheduled tasks start a few minutes apart, so two sessions work in parallel. Each session repeats this loop and makes ONE video at a time, uploading it before starting the next, so a usage limit only loses the video in progress.
 
-1. Read the artifact URL from the task prompt. `ArtifactData query` collection `ideas`, `stage` == "queued". Candidates: empty `videoRef` and no `claimedAt` newer than 20 hours. Take the earliest `slot`. None: stop and say "queue empty".
-2. Claim it: `update` with `if_version` setting `claimedAt` = now (ISO). If refused (the other session took it), re-query and take the next.
+1. Read the artifact URL from the task prompt. `ArtifactData query` collection `ideas`, `stage` == "queued". Candidates: empty `videoRef` and no `claimedAt` newer than 20 hours. Worker A takes the EARLIEST `slot`, worker B takes the LATEST `slot` (the task prompt says which you are), so the two start at opposite ends of the queue. None: stop and say "queue empty".
+2. Claim it: `update` with `if_version` setting `claimedAt` = now (ISO). The `if_version` pin makes the claim atomic: if it is refused, the other worker took it, so re-query and pick again. Never build a card whose claim you did not win.
 3. Make that video with the worker steps below, then go back to step 1.
 4. Stop the session if a video fails twice, or after 8 videos. Say how many were made.
 
