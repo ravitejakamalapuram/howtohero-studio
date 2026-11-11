@@ -20,10 +20,10 @@ Worker id: your letter from the task prompt plus 4 random characters, e.g. `A-7f
 
 ## Worker steps
 
-Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if present), using "Build one video" below. Length cap: the doc's `maxSeconds`, else by `series` (A 120, B 120, C 150, D 120), else 60. Fact check: if the doc's `fact` is K (to check), look up a named source for every number and date before writing; if you cannot, leave `videoRef` empty, remove `claimedAt` and write why into `note`. If `fact` is C (contested), the narration says "scientists think" and names the evidence. Then:
+Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if present), using "Build one video" below. Length cap: the doc's `maxSeconds`, else by `series` (A 120, B 120, C 150, D 120), else 60. Fact check: if the doc's `fact` is K (to check), look up a named source for every number and date before writing; if you cannot, leave `videoRef` empty, remove `claimedBy` and `claimedAt` and write why into `note`. If `fact` is C (contested), the narration says "scientists think" and names the evidence. Then:
 - Upload the MP4 with `Artifact` (`asset: true`, `url` = artifact, `file_path`).
 - Re-read the doc, `ArtifactData update` with `if_version`: `videoRef` = `<file> | <duration> s | ffprobe: 1080x1920, 30 fps, H.264 yuv420p + AAC stereo 48 kHz, <MB> MB | audio peak <dB> dB | safe zone: <n> violations` + newline + `Video: /_blob/<id>`, `claimedBy` and `claimedAt` = `{"__delete__": true}`.
-- On failure after two render attempts: leave `videoRef` empty, remove `claimedAt`, write the reason into `note`.
+- On failure after two render attempts: leave `videoRef` empty, remove `claimedBy` and `claimedAt`, write the reason into `note`.
 - Never change `stage`, never touch other docs, never overwrite a non-empty `videoRef`. The human reviews and sends to review.
 - Final reply: file name, duration, verification result.
 
