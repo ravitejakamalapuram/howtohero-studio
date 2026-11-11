@@ -7,15 +7,14 @@ description: Make one vertical "How To Hero" explainer video (1080x1920, 60 s by
 
 Pipeline lives in `pipeline/` next to this file (HyperFrames + Kokoro TTS + GSAP + ffmpeg + Chromium; all free, no signups). Work from a scratch copy so the repo stays clean.
 
-## Nightly run: one routine, parallel at the start
+## Nightly run: loop, one video at a time
 
-A single scheduled routine runs this. How many videos it makes:
-1. Read the artifact URL from the task prompt. `ArtifactData get` collection `meta`, doc `videoBurst`. Missing = this is the first run: make up to 2 videos in parallel. Present = make 1 video.
-2. `ArtifactData list` collection `ideas`. Candidates: `stage` = "queued", empty `videoRef`, and no `claimedAt` newer than 20 hours, ordered by earliest `slot`. None: stop and say so (still write `videoBurst` if it was missing and the first run).
-3. For 1 video: claim the first candidate (`update` with `if_version` setting `claimedAt` = now ISO; if refused, re-read and take the next) and do the Worker steps yourself.
-4. For a burst: claim up to 2 candidates one after another the same way, then in ONE message start one subagent per claimed idea (Agent tool, general-purpose), each told: its doc id, the artifact URL, "follow the Worker steps and Build one video sections of this SKILL.md, use scratch dir /tmp/hth-<id>, render with -w 2 if available, do not touch other docs". If the Agent tool is unavailable, build them one after another. Renders are CPU-heavy, so if renders fail from load, retry that one alone.
-5. After claiming, `ArtifactData set` `meta/videoBurst` = {"done": true, "at": <ISO>} (only on the first run).
-6. Reply with one line per video: doc id, file name, duration, verification result.
+Two scheduled tasks start a few minutes apart, so two sessions work in parallel. Each session repeats this loop and makes ONE video at a time, uploading it before starting the next, so a usage limit only loses the video in progress.
+
+1. Read the artifact URL from the task prompt. `ArtifactData query` collection `ideas`, `stage` == "queued". Candidates: empty `videoRef` and no `claimedAt` newer than 20 hours. Take the earliest `slot`. None: stop and say "queue empty".
+2. Claim it: `update` with `if_version` setting `claimedAt` = now (ISO). If refused (the other session took it), re-query and take the next.
+3. Make that video with the worker steps below, then go back to step 1.
+4. Stop the session if a video fails twice, or after 8 videos. Say how many were made.
 
 ## Worker steps
 
@@ -33,7 +32,7 @@ Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if presen
 3. Write `videos/vN.scenes.js`: one diagram block per narration line (8-9 beats) in the style of `videos/v1.scenes.js` using helpers from `lib/lib.js`. Every beat is drawn in the 880x760 box inside the safe zone. Anton has no ₹ or ✓ glyph: draw them as shapes.
 4. `node build.mjs vN`, then in `work/vN`: `npx hyperframes check` (0 errors) and `npx hyperframes snapshot` per beat; look at every beat for clipped or invisible elements; fix.
 4b. Cover rule: the headline and key visual must be fully visible from frame 0 (no fade-in, no blank intro); the Instagram grid and Shorts shelf show an early frame. After rendering, also save `out/vN.cover.png` = a 1080x1920 frame at t=0.5 s (`ffmpeg -ss 0.5 -i vN.mp4 -frames:v 1 out/vN.cover.png`) and check the headline is readable in it.
-5. `npx hyperframes render -q high -o ../../out/vN.raw.mp4` (~2-5 min; renders are CPU-heavy, run one at a time), then `python3 verify.py vN` (remux, ffprobe, peak, screenshots at 2 s/30 s/last 5 s, safe-zone audit). Required: 1080x1920, 30 fps, H.264 + AAC stereo 48 kHz, < 100 MB, within the cap plus 2 s (verify.py reads `maxSeconds`), 0 violations, no clipping. Otherwise fix and re-render.
+5. `npx hyperframes render -q high -o ../../out/vN.raw.mp4` (~2-5 min; renders are CPU-heavy, run one at a time), then `python3 verify.py vN` (remux, ffprobe, peak, screenshots at 2 s/30 s/last 5 s, safe-zone audit). Duration must be ≤ 62 s: if `build.mjs` reports end > 62 s or the render is longer, shorten the narration lines and rebuild before rendering. Required: 1080x1920, 30 fps, H.264 + AAC stereo 48 kHz, < 100 MB, within the cap plus 2 s (verify.py reads `maxSeconds`), 0 violations, no clipping. Otherwise fix and re-render.
 
 ## Rules
 
