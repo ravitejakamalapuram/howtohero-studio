@@ -1,0 +1,52 @@
+{
+  "id": "v3",
+  "file": "how-wifi-works.mp4",
+  "target": 58,
+  "hook": {
+    "lines": [
+      "YOUR WI-FI IS",
+      "A WALKIE-TALKIE."
+    ],
+    "yellow": "WALKIE-TALKIE",
+    "yellowLine": 1
+  },
+  "beats": [
+    {
+      "say": "Your Wi-Fi works a lot like a walkie-talkie. Your router broadcasts radio, and every device nearby is listening."
+    },
+    {
+      "say": "When you open a page, your request becomes radio waves, flies to the router, and the answer comes back the same way."
+    },
+    {
+      "say": "Here's the catch. All of those devices share one channel, and in general only one can talk at a time."
+    },
+    {
+      "say": "So they take turns, in tiny slices of time, so quick that you never notice the gaps."
+    },
+    {
+      "say": "Add more devices, and the line gets longer. Everyone waits a little more, so everything feels slower."
+    },
+    {
+      "say": "Wi-Fi comes in two main bands. The lower one, two point four gigahertz, travels further and passes through walls better."
+    },
+    {
+      "say": "The higher one, five gigahertz, is usually faster, but its signal fades quickly, especially through walls."
+    },
+    {
+      "say": "So if your Wi-Fi crawls, move closer to the router, or switch your device to the five gigahertz band."
+    },
+    {
+      "say": "That's why a quiet house feels fast, and a crowded one does not."
+    },
+    {
+      "say": "Follow for how things work, in a minute."
+    }
+  ],
+  "card": {
+    "lines": [
+      "FOLLOW FOR HOW THINGS WORK,",
+      "IN A MINUTE."
+    ],
+    "size": 72
+  }
+}

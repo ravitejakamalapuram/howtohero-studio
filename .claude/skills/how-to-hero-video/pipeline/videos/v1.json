@@ -1,0 +1,52 @@
+{
+  "id": "v1",
+  "file": "how-face-unlock-works.mp4",
+  "target": 58,
+  "hook": {
+    "lines": [
+      "30,000 INVISIBLE",
+      "DOTS. ON YOUR FACE."
+    ],
+    "yellow": "DOTS",
+    "yellowLine": 1
+  },
+  "beats": [
+    {
+      "say": "Your phone just threw about thirty thousand invisible dots at your face, and you never saw a thing."
+    },
+    {
+      "say": "A tiny projector fires infrared dots. You can't see them, but a special camera can."
+    },
+    {
+      "say": "Infrared works in total darkness, so your phone can read your face even with the lights off."
+    },
+    {
+      "say": "The dot pattern bends over your nose and cheeks. How far each dot shifts tells the camera how deep that spot is."
+    },
+    {
+      "say": "From thousands of those shifts, it builds a depth map of your face. A 3D shape, not a flat picture."
+    },
+    {
+      "say": "That map is turned into a pattern of numbers and kept in a secure chip inside the phone. Not a photo."
+    },
+    {
+      "say": "Next time, it scans again and compares the new pattern with the stored one. Close enough, and it unlocks."
+    },
+    {
+      "say": "It even adapts a little over time, as your face changes, with glasses, a beard, or a new haircut."
+    },
+    {
+      "say": "A flat photo has no depth, so a simple picture of you fails."
+    },
+    {
+      "say": "Follow for how things work, in a minute."
+    }
+  ],
+  "card": {
+    "lines": [
+      "FOLLOW FOR HOW THINGS WORK,",
+      "IN A MINUTE."
+    ],
+    "size": 72
+  }
+}

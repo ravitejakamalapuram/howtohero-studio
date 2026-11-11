@@ -1,0 +1,52 @@
+{
+  "id": "v2",
+  "file": "how-upi-works.mp4",
+  "hook": {
+    "lines": [
+      "MONEY MOVED.",
+      "NO CASH MOVED."
+    ],
+    "yellow": "NO CASH",
+    "yellowLine": 1
+  },
+  "beats": [
+    {
+      "say": "You scan a code, type a PIN, and money moves in seconds. But no cash moved at all."
+    },
+    {
+      "say": "That code is just a payment address, like name at bank. Your app reads it and prepares a request."
+    },
+    {
+      "say": "The request goes to a central hub run by NPCI. Think of it as a traffic controller for payments."
+    },
+    {
+      "say": "The hub asks your bank one question: should this go through? Nothing moves until your bank answers."
+    },
+    {
+      "say": "Your UPI PIN is scrambled and goes only to your bank. It checks the PIN, and checks you have enough money."
+    },
+    {
+      "say": "Your bank says yes. The hub then tells the shop's bank to expect the money."
+    },
+    {
+      "say": "Now two records change. Your account goes down, and the shop's account goes up."
+    },
+    {
+      "say": "The banks settle up between themselves later, in bulk. No cash ever travels from one hand to another."
+    },
+    {
+      "say": "A moment later, both phones show a green tick. The whole trip usually takes just a few seconds."
+    },
+    {
+      "say": "Follow for how things work, in a minute."
+    }
+  ],
+  "card": {
+    "lines": [
+      "FOLLOW FOR HOW THINGS WORK,",
+      "IN A MINUTE."
+    ],
+    "size": 72
+  },
+  "target": 58
+}

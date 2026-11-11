@@ -1,0 +1,18 @@
+{
+  "id": "v9",
+  "file": "how-qr-codes-work.mp4",
+  "target": 58,
+  "hook": { "lines": ["THIS SQUARE IS", "JUST AN ADDRESS."], "yellow": "ADDRESS", "yellowLine": 1 },
+  "beats": [
+    { "say": "That black and white square on a poster is not a picture. It's a web address, written in tiny squares." },
+    { "say": "Each square is either dark or light. Dark means one, light means zero. Together they spell out letters." },
+    { "say": "Your camera first looks for three big squares in the corners. They tell it which way is up, and how big the code is." },
+    { "say": "That is why you can scan from any angle, even upside down. The corners tell the phone how to turn the picture." },
+    { "say": "Then it straightens the grid, and reads the squares one by one, turning them into ones and zeros." },
+    { "say": "Those bits spell out text, usually a web address, and your phone opens the link." },
+    { "say": "Part of the code is extra backup data. So even if it's scratched, dirty or partly covered, it can still be read." },
+    { "say": "That backup has limits, so cover too much and it fails. The code is only a printed address; your phone opens it." },
+    { "say": "Follow for how things work, in a minute." }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."], "size": 72 }
+}

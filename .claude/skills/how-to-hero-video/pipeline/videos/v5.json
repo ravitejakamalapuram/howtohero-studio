@@ -1,0 +1,52 @@
+{
+  "id": "v5",
+  "file": "how-noise-cancelling-headphones-work.mp4",
+  "target": 58,
+  "hook": {
+    "lines": [
+      "THEY FIGHT SOUND",
+      "WITH SOUND."
+    ],
+    "yellow": "SOUND",
+    "yellowLine": 1
+  },
+  "beats": [
+    {
+      "say": "Noise-cancelling headphones don't just block noise. They fight sound with more sound, and the two cancel each other out."
+    },
+    {
+      "say": "Sound is a wave in the air. Its peaks push, and its dips pull, and that pattern is what reaches your ear."
+    },
+    {
+      "say": "Tiny microphones on the outside of each ear cup listen to the noise around you, all the time."
+    },
+    {
+      "say": "A chip instantly flips that wave upside down. Every peak becomes a dip, and every dip becomes a peak."
+    },
+    {
+      "say": "The speaker plays that flipped wave right into your ear, at the very same moment, along with your music."
+    },
+    {
+      "say": "The noise and its opposite meet, and they cancel out. A flat line. All that is left is quiet."
+    },
+    {
+      "say": "It works best on steady hums, like an engine, because they repeat and are easy to predict."
+    },
+    {
+      "say": "Sudden sounds, like a voice, change too fast to flip in time, so they still sneak through."
+    },
+    {
+      "say": "On a plane, the drone fades away, but someone saying your name doesn't."
+    },
+    {
+      "say": "Follow for how things work, in a minute."
+    }
+  ],
+  "card": {
+    "lines": [
+      "FOLLOW FOR HOW THINGS WORK,",
+      "IN A MINUTE."
+    ],
+    "size": 72
+  }
+}

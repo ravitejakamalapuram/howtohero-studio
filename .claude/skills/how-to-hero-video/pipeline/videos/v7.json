@@ -1,0 +1,19 @@
+{
+  "id": "v7",
+  "file": "how-fingerprint-sensors-work.mp4",
+  "target": 58,
+  "hook": { "lines": ["YOUR FINGERPRINT", "IS JUST A MAP."], "yellow": "MAP", "yellowLine": 1 },
+  "beats": [
+    { "say": "Your fingertip is covered in tiny ridges and valleys, and your phone can read them in a blink." },
+    { "say": "Every finger has its own pattern of ridges. Even identical twins don't match." },
+    { "say": "Many phone sensors are a grid of tiny electrical pads, hidden right under the glass." },
+    { "say": "A ridge sits close to a pad, and a valley sits farther away. So each pad feels a slightly different signal." },
+    { "say": "Put all those readings together, and you get a detailed picture of your ridges." },
+    { "say": "The phone doesn't keep that picture. It picks out key points, like where a ridge ends or splits, and saves them as numbers in a secure area." },
+    { "say": "Next touch, it scans again and compares the new key points with the saved ones. Close enough, and it unlocks." },
+    { "say": "It never needs a perfect match, because no two touches are identical. Pressure and angle always change the picture a little." },
+    { "say": "That's why a wet finger can fail. Wipe it dry, and try again." },
+    { "say": "Follow for how things work, in a minute." }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."], "size": 72 }
+}

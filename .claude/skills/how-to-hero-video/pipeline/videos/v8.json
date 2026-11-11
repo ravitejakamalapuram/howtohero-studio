@@ -1,0 +1,19 @@
+{
+  "id": "v8",
+  "file": "how-jet-engines-work.mp4",
+  "target": 58,
+  "hook": { "lines": ["SUCK. SQUEEZE.", "BURN. BLAST."], "yellow": "BLAST", "yellowLine": 1 },
+  "beats": [
+    { "say": "A jet engine is basically a tube that swallows air and turns it into a huge push." },
+    { "say": "First, a giant fan at the front sucks in air. A lot of it flows around the outside, and the rest goes into the core." },
+    { "say": "Inside, rows of spinning blades squeeze that air into a much smaller space. Squeezed air is packed tight and hot." },
+    { "say": "Then fuel is sprayed in and lit. The burning gas expands fiercely, with nowhere to go but backward." },
+    { "say": "On its way out, the hot gas spins a turbine, like a windmill. A shaft links it to the fan and the blades, so the engine powers itself." },
+    { "say": "Then the gas blasts out the back, much faster than it came in." },
+    { "say": "This is Newton's third law. Push gas backward, and the gas pushes the engine forward." },
+    { "say": "That forward push is called thrust. The engine is bolted to the plane, so the whole plane moves." },
+    { "say": "Open the throttle, and more fuel burns, more gas leaves, and the push grows." },
+    { "say": "Follow for how things work, in a minute." }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."], "size": 72 }
+}

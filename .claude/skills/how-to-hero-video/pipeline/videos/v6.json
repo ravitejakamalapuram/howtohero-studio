@@ -1,0 +1,19 @@
+{
+  "id": "v6",
+  "file": "how-fiber-internet-works.mp4",
+  "target": 58,
+  "hook": { "lines": ["YOUR INTERNET IS", "FLASHES OF LIGHT."], "yellow": "LIGHT", "yellowLine": 1 },
+  "beats": [
+    { "say": "Right now, your internet is a stream of tiny flashes of light, racing through glass." },
+    { "say": "Inside the cable is a strand of glass as thin as a human hair. That is the whole road." },
+    { "say": "Your message is turned into on and off flashes. Light on is a one. Light off is a zero." },
+    { "say": "The flashes bounce along the inside of the glass, like light in a long mirrored tunnel, and they stay trapped inside." },
+    { "say": "The glass is so clear that the light can travel a very long way before it fades." },
+    { "say": "On really long routes, boosters give the light a fresh push along the way." },
+    { "say": "Different colours of light can share the same strand at once, so one hair of glass carries many streams." },
+    { "say": "And why so fast? Nothing travels faster than light, and these flashes can switch on and off incredibly quickly." },
+    { "say": "At the far end, a receiver turns the flashes back into your video, your page, your message." },
+    { "say": "Follow for how things work, in a minute." }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."], "size": 72 }
+}

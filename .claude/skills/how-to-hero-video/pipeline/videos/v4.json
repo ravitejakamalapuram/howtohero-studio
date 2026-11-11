@@ -1,0 +1,49 @@
+{
+ "id": "v4",
+ "file": "how-gps-works.mp4",
+ "hook": {
+  "lines": [
+   "GPS NEVER SENDS",
+   "ANYTHING. IT ONLY LISTENS."
+  ],
+  "yellow": "LISTENS",
+  "yellowLine": 1
+ },
+ "beats": [
+  {
+   "say": "Your phone never sends a signal to GPS. It only listens, like a radio, to signals from space."
+  },
+  {
+   "say": "About thirty satellites orbit roughly twenty thousand kilometres up. Each one keeps broadcasting the exact time."
+  },
+  {
+   "say": "They carry extremely precise clocks, so every signal says exactly when it was sent."
+  },
+  {
+   "say": "Your phone checks how late each signal arrives. That delay, times the speed of light, gives the distance."
+  },
+  {
+   "say": "One satellite alone puts you somewhere on a huge sphere around it. That's a lot of places."
+  },
+  {
+   "say": "A second sphere crosses the first in a circle, and a third cuts that circle at two points. One is out in space, so the other, near Earth, is you."
+  },
+  {
+   "say": "But your phone's own clock is cheap and slightly off, and a tiny timing error means a big distance error. A fourth satellite lets it fix the clock."
+  },
+  {
+   "say": "Indoors, signals get weak, so maps also use Wi-Fi and phone towers to find you faster."
+  },
+  {
+   "say": "Follow for how things work, in a minute."
+  }
+ ],
+ "card": {
+  "lines": [
+   "FOLLOW FOR HOW THINGS WORK,",
+   "IN A MINUTE."
+  ],
+  "size": 72
+ },
+ "target": 58
+}

@@ -1,0 +1,19 @@
+{
+  "id": "v10",
+  "file": "how-wireless-charging-works.mp4",
+  "target": 58,
+  "hook": { "lines": ["CHARGING WITH", "NO CABLE?"], "yellow": "NO CABLE", "yellowLine": 1 },
+  "beats": [
+    { "say": "Your phone is charging on a pad, and there is no cable. So how does the power cross the gap?" },
+    { "say": "Inside the pad is a flat coil of wire. Electricity flows through it, and that makes a magnetic field." },
+    { "say": "But the current isn't steady. It flips back and forth, over and over, so the field keeps growing, shrinking and flipping too." },
+    { "say": "Inside your phone is a second coil. The changing field passes straight through the glass and the case." },
+    { "say": "And a changing magnetic field pushes the electrons along a wire. That creates an electric current, with no contact at all." },
+    { "say": "The phone's charging chip turns that current into steady power, and fills the battery." },
+    { "say": "Alignment matters. Slide the phone off centre, and the coils miss each other, so less power gets through." },
+    { "say": "Some energy also leaks away as heat, so wireless charging is a bit less efficient than a cable." },
+    { "say": "That's the whole trick: one coil makes a changing field, and another coil catches it." },
+    { "say": "Follow for how things work, in a minute." }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."], "size": 72 }
+}
