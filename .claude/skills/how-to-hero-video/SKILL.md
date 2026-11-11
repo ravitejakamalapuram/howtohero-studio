@@ -1,6 +1,6 @@
 ---
 name: how-to-hero-video
-description: Make one vertical "How To Hero" explainer video (1080x1920, ~57-60 s, voiceover, captions, mascot end card) for a queued idea in the How To Hero artifact, verify it, upload it and fill the card's reply. Use for the nightly queue run or when asked to make a How To Hero video.
+description: Make one vertical "How To Hero" explainer video (1080x1920, 60 s by default, up to 120-150 s for deeper ideas, voiceover, captions, mascot end card) for a queued idea in the How To Hero artifact, verify it, upload it and fill the card's reply. Use for the nightly queue run or when asked to make a How To Hero video.
 ---
 
 # How To Hero video
@@ -17,7 +17,7 @@ Five scheduled tasks fire a few minutes apart; each session makes ONE video, so 
 
 ## Worker steps
 
-Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if present), using "Build one video" below. Then:
+Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if present), using "Build one video" below. Length cap: the doc's `maxSeconds`, else by `series` (A 120, B 120, C 150, D 120), else 60. Fact check: if the doc's `fact` is K (to check), look up a named source for every number and date before writing; if you cannot, leave `videoRef` empty, remove `claimedAt` and write why into `note`. If `fact` is C (contested), the narration says "scientists think" and names the evidence. Then:
 - Upload the MP4 with `Artifact` (`asset: true`, `url` = artifact, `file_path`).
 - Re-read the doc, `ArtifactData update` with `if_version`: `videoRef` = `<file> | <duration> s | ffprobe: 1080x1920, 30 fps, H.264 yuv420p + AAC stereo 48 kHz, <MB> MB | audio peak <dB> dB | safe zone: <n> violations` + newline + `Video: /_blob/<id>`, and `claimedAt` = `{"__delete__": true}`.
 - On failure after two render attempts: leave `videoRef` empty, remove `claimedAt`, write the reason into `note`.
@@ -27,10 +27,10 @@ Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if presen
 ## Build one video (id vN: use the next unused number in `videos/`; existing files there are worked examples)
 
 1. `cp -r pipeline /tmp/hth && cd /tmp/hth && mkdir -p work out && cp -r base-skeleton work/_base`. First run needs `npm i hyperframes@0.9.30` available to `npx`; telemetry off.
-2. Write `videos/vN.json` (see `videos/v1.json`): `file` = `how-<topic>-works.mp4`, a 2-line `hook` (≤ 22 chars/line, ONE yellow word), 10 `beats` lines (~155-170 words total, plain present tense, last line "Follow for how things work, in a minute."), `card` lines. Accurate and conceptual: invent no numbers, show no real logos/brands.
+2. Write `videos/vN.json` (see `videos/v1.json`): `file` = `how-<topic>-works.mp4`, a 2-line `hook` (≤ 22 chars/line, ONE yellow word), `maxSeconds` (the cap above), and `beats` lines (10 for a 60 s video, about 2.7 words per second of cap minus the end card, so a 120 s video is about 20 beats; plain present tense, last line "Follow for how things work, in a minute."), `card` lines. Accurate and conceptual: invent no numbers, show no real logos/brands.
 3. Write `videos/vN.scenes.js`: one diagram block per narration line (8-9 beats) in the style of `videos/v1.scenes.js` using helpers from `lib/lib.js`. Every beat is drawn in the 880x760 box inside the safe zone. Anton has no ₹ or ✓ glyph: draw them as shapes.
 4. `node build.mjs vN`, then in `work/vN`: `npx hyperframes check` (0 errors) and `npx hyperframes snapshot` per beat; look at every beat for clipped or invisible elements; fix.
-5. `npx hyperframes render -q high -o ../../out/vN.raw.mp4` (~2-5 min; renders are CPU-heavy, run one at a time), then `python3 verify.py vN` (remux, ffprobe, peak, screenshots at 2 s/30 s/last 5 s, safe-zone audit). Required: 1080x1920, 30 fps, H.264 + AAC stereo 48 kHz, < 100 MB, ≤ 62 s, 0 violations, no clipping. Otherwise fix and re-render.
+5. `npx hyperframes render -q high -o ../../out/vN.raw.mp4` (~2-5 min; renders are CPU-heavy, run one at a time), then `python3 verify.py vN` (remux, ffprobe, peak, screenshots at 2 s/30 s/last 5 s, safe-zone audit). Required: 1080x1920, 30 fps, H.264 + AAC stereo 48 kHz, < 100 MB, within the cap plus 2 s (verify.py reads `maxSeconds`), 0 violations, no clipping. Otherwise fix and re-render.
 
 ## Rules
 
