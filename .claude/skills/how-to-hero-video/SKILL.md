@@ -9,18 +9,20 @@ Pipeline lives in `pipeline/` next to this file (HyperFrames + Kokoro TTS + GSAP
 
 ## Nightly run: loop, one video at a time
 
-Two scheduled tasks start a few minutes apart, so two sessions work in parallel. Each session repeats this loop and makes ONE video at a time, uploading it before starting the next, so a usage limit only loses the video in progress.
+Two scheduled workers run in parallel and never share a card, because every card is claimed with the worker's id before work starts. Each worker makes ONE video at a time and uploads it before starting the next, so a usage limit only loses the video in progress.
 
-1. Read the artifact URL from the task prompt. `ArtifactData query` collection `ideas`, `stage` == "queued". Candidates: empty `videoRef` and no `claimedAt` newer than 20 hours. Worker A takes the EARLIEST `slot`, worker B takes the LATEST `slot` (the task prompt says which you are), so the two start at opposite ends of the queue. None: stop and say "queue empty".
-2. Claim it: `update` with `if_version` setting `claimedAt` = now (ISO). The `if_version` pin makes the claim atomic: if it is refused, the other worker took it, so re-query and pick again. Never build a card whose claim you did not win.
-3. Make that video with the worker steps below, then go back to step 1.
-4. Stop the session if a video fails twice, or after 8 videos. Say how many were made.
+Worker id: your letter from the task prompt plus 4 random characters, e.g. `A-7f3k`. Pick it once at the start.
+
+1. Read the artifact URL from the task prompt. `ArtifactData query` collection `ideas`, `stage` == "queued". Candidates: empty `videoRef` and not in progress. A card is in progress if it has `claimedBy` set and `claimedAt` is less than 3 hours old; an older claim is stale and the card is free again. Take the earliest `slot` (worker A) or the latest `slot` (worker B). None: stop and say "queue empty".
+2. Claim it: `update` with `if_version` setting `claimedBy` = your worker id and `claimedAt` = now (ISO). The pin makes this atomic: if it is refused, the other worker got there first, so re-query and pick again. Then re-read the card and confirm `claimedBy` is your id. Never build a card you did not win.
+3. Make that video with the worker steps below. On success clear both fields (`{"__delete__": true}`) in the same update that sets `videoRef`; on failure clear them and write the reason into `note`.
+4. Go back to step 1. Stop the session if a video fails twice, or after 8 videos. Say how many were made.
 
 ## Worker steps
 
 Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if present), using "Build one video" below. Length cap: the doc's `maxSeconds`, else by `series` (A 120, B 120, C 150, D 120), else 60. Fact check: if the doc's `fact` is K (to check), look up a named source for every number and date before writing; if you cannot, leave `videoRef` empty, remove `claimedAt` and write why into `note`. If `fact` is C (contested), the narration says "scientists think" and names the evidence. Then:
 - Upload the MP4 with `Artifact` (`asset: true`, `url` = artifact, `file_path`).
-- Re-read the doc, `ArtifactData update` with `if_version`: `videoRef` = `<file> | <duration> s | ffprobe: 1080x1920, 30 fps, H.264 yuv420p + AAC stereo 48 kHz, <MB> MB | audio peak <dB> dB | safe zone: <n> violations` + newline + `Video: /_blob/<id>`, and `claimedAt` = `{"__delete__": true}`.
+- Re-read the doc, `ArtifactData update` with `if_version`: `videoRef` = `<file> | <duration> s | ffprobe: 1080x1920, 30 fps, H.264 yuv420p + AAC stereo 48 kHz, <MB> MB | audio peak <dB> dB | safe zone: <n> violations` + newline + `Video: /_blob/<id>`, `claimedBy` and `claimedAt` = `{"__delete__": true}`.
 - On failure after two render attempts: leave `videoRef` empty, remove `claimedAt`, write the reason into `note`.
 - Never change `stage`, never touch other docs, never overwrite a non-empty `videoRef`. The human reviews and sends to review.
 - Final reply: file name, duration, verification result.
