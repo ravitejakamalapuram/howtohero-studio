@@ -42,7 +42,9 @@ while (size > 90 && V.hook.lines.some((l) => tw(l, size) > 868)) size -= 2;
 const widest = V.hook.lines.reduce((m, l) => (tw(l, size) > tw(m, size) ? l : m), V.hook.lines[0]);
 if (tw(widest, size) > 868) track = -((tw(widest, size) - 866) / widest.length);
 const hook = { ...V.hook, size, track: +track.toFixed(2) };
-const CFG = { hook, beats, lines, end, card: V.card };
+// topic label shown with the hook from frame 0, so the cover says what the video is about (override with "topic" in vN.json)
+const topic = (V.topic || V.file.replace(/\.mp4$/, "").replace(/-/g, " ")).toUpperCase();
+const CFG = { hook, beats, lines, end, card: V.card, topic };
 fs.writeFileSync("timing.json", JSON.stringify(CFG, null, 1));
 
 // quiet sound bed: soft pad + gentle pops on every beat, a small chime on the end card
