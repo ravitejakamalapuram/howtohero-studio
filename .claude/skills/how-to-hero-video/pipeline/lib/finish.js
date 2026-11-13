@@ -11,8 +11,8 @@
           void w;
           // no entry animation: the headline is fully visible at t=0 (cover frame); a scale settle would push wide lines past x 60..940
         });
-        // topic label above the hook: names the subject from frame 0 even when the hook is a teaser
-        if (CFG.topic) { let ts = 56; while (ts > 40 && tw(CFG.topic, ts) > 868) ts -= 2; T(hg, CFG.topic, SAFE.cx, hy - Math.round(hs * 1.06), ts, C.yellow); }
+        // topic label above the hook: names the subject from frame 0 even when the hook is a teaser (never above y 474, or a 112 px hook pushes it out of the safe zone)
+        if (CFG.topic) { let ts = 56; while (ts > 40 && tw(CFG.topic, ts) > 868) ts -= 2; T(hg, CFG.topic, SAFE.cx, Math.max(474, hy - Math.round(hs * 1.06)), ts, C.yellow); }
         fadeOut(hg, BT[1].a - 0.35, 0.3);
         // mascot card
         const g = beat(N - 1), a = BT[N - 1].a;
