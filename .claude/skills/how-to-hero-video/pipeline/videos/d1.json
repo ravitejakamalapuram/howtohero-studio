@@ -1,0 +1,229 @@
+{
+ "id": "d1",
+ "format": "doc",
+ "file": "voyager-1-one-light-day-away.mp4",
+ "target": 480,
+ "maxSeconds": 540,
+ "topic": "VOYAGER 1",
+ "hook": {
+  "lines": [
+   "A 1977 PROBE IS NOW",
+   "ONE LIGHT-DAY AWAY"
+  ],
+  "yellow": "LIGHT-DAY",
+  "yellowLine": 1
+ },
+ "beats": [
+  {
+   "say": "Right now, a machine built in 1977 is about to become the first human-made object one full light-day from Earth."
+  },
+  {
+   "say": "A radio message sent to it today travels for about twenty-four hours, at the speed of light, before it arrives."
+  },
+  {
+   "say": "And the strangest part is not the distance. It is that the machine is still alive, still listening, and still answering."
+  },
+  {
+   "say": "It runs on a fading nuclear heat source, computers with less memory than one photo on your phone, and a radio about as strong as a fridge light bulb."
+  },
+  {
+   "say": "This is Voyager 1. So how is it still alive?"
+  },
+  {
+   "say": "To find out, we have to go back to the summer of 1977."
+  },
+  {
+   "say": "In the 1960s, mission designers at NASA's Jet Propulsion Laboratory noticed something rare. In the late 1970s, the outer planets would line up."
+  },
+  {
+   "say": "That alignment comes around about once every hundred and seventy-five years. A probe could swing from one giant planet to the next, stealing speed from each."
+  },
+  {
+   "say": "NASA built two identical probes. Voyager 2 launched first. Voyager 1 followed sixteen days later, on September 5th, 1977."
+  },
+  {
+   "say": "Voyager 1 took a faster path, and by December it had overtaken its twin."
+  },
+  {
+   "say": "In March 1979 it swept past Jupiter, about two hundred and eighty thousand kilometers away."
+  },
+  {
+   "say": "It found a faint ring around the giant planet, and two small moons no one had ever seen."
+  },
+  {
+   "say": "Jupiter's gravity bent its path and flung it on toward Saturn, faster than before."
+  },
+  {
+   "say": "In November 1980 it reached Saturn, and the team made a choice that sealed its fate."
+  },
+  {
+   "say": "They steered it close past Titan, Saturn's largest moon, and the only moon with a thick atmosphere."
+  },
+  {
+   "say": "It passed about six and a half thousand kilometers from Titan's center, and saw an orange haze over air that is mostly nitrogen."
+  },
+  {
+   "say": "But that swing past Titan threw Voyager 1 up and out of the plane of the planets."
+  },
+  {
+   "say": "There would be no more worlds to visit. Voyager 2 carried on the grand tour. Voyager 1 headed for the edge."
+  },
+  {
+   "say": "For nine more years it coasted outward. Then, on Valentine's Day 1990, it turned around for one last look."
+  },
+  {
+   "say": "From about six billion kilometers away, it shot a mosaic of dozens of frames, a family portrait of the planets."
+  },
+  {
+   "say": "In one frame, Earth is a speck smaller than a single pixel, caught in a beam of scattered sunlight."
+  },
+  {
+   "say": "The astronomer Carl Sagan called it a pale blue dot. Everyone who has ever lived, lived on that speck."
+  },
+  {
+   "say": "Soon after, the cameras were switched off for good, to save power for the long road ahead."
+  },
+  {
+   "say": "Our Sun blows a constant wind of charged particles. That wind inflates a giant bubble around the planets, called the heliosphere."
+  },
+  {
+   "say": "Outside the bubble is interstellar space, the thin gas between the stars."
+  },
+  {
+   "say": "On August 25th, 2012, Voyager 1 crossed that boundary. It was the first human-made object ever to do it."
+  },
+  {
+   "say": "But nobody could tell right away. Its plasma sensor, built to measure that gas, had stopped working long before."
+  },
+  {
+   "say": "Then in 2013, an outburst from the Sun made the gas around the probe ring like a bell."
+  },
+  {
+   "say": "The plasma wave instrument heard the tone. Its pitch revealed gas about forty times denser than inside the bubble."
+  },
+  {
+   "say": "Working backward, the team placed the crossing in August 2012. Voyager 1 had left the Sun's bubble behind."
+  },
+  {
+   "say": "Out here, sunlight is far too weak for solar panels. So Voyager runs on heat."
+  },
+  {
+   "say": "Three radioisotope generators sit on a long boom. Inside, plutonium slowly decays and stays hot."
+  },
+  {
+   "say": "Thermocouples turn that heat straight into electricity. No moving parts, nothing to wear out except time."
+  },
+  {
+   "say": "At launch, the three generators made about four hundred and seventy watts together."
+  },
+  {
+   "say": "But plutonium decays, and the converters age. Every year, Voyager loses about four watts of power."
+  },
+  {
+   "say": "So every year, the team must decide what to switch off next."
+  },
+  {
+   "say": "Heaters were turned down. The cameras went dark long ago. Then, one by one, the science instruments."
+  },
+  {
+   "say": "In February 2025, they switched off the cosmic ray experiment. In April 2026, the low energy particle instrument."
+  },
+  {
+   "say": "Today Voyager 1 runs just two science instruments, a magnetometer and the plasma wave instrument."
+  },
+  {
+   "say": "And its brains are pure 1970s. All its computers together hold about sixty-eight kilobytes of memory."
+  },
+  {
+   "say": "They run about eight thousand instructions per second. Yet this hardware has flown for almost fifty years."
+  },
+  {
+   "say": "Then, on November 14th, 2023, Voyager 1 started talking nonsense."
+  },
+  {
+   "say": "It still received commands, and it still seemed healthy. But the data coming home was a repeating pattern that meant nothing."
+  },
+  {
+   "say": "The trouble was in the flight data system, the computer that packages the probe's data before sending it home."
+  },
+  {
+   "say": "Voyager was about twenty-four billion kilometers away. Every command took about twenty-two and a half hours to arrive, and the reply took just as long."
+  },
+  {
+   "say": "In March 2024, the team coaxed the computer into sending back a readout of its own memory."
+  },
+  {
+   "say": "They found the culprit. A single memory chip had failed, wiping out a small slice of the computer's code."
+  },
+  {
+   "say": "You cannot swap a chip twenty-four billion kilometers away. So the team decided to move the code instead."
+  },
+  {
+   "say": "No single free spot was big enough. So they cut the code into pieces, tucked each piece somewhere else, and rewired every link between them."
+  },
+  {
+   "say": "On April 18th, 2024, they sent the first patch. Then they waited almost two days for an answer."
+  },
+  {
+   "say": "On April 20th, it came back. Readable engineering data, for the first time in five months."
+  },
+  {
+   "say": "By June, every working science instrument was sending usable data again. A 1977 computer had been rewired by remote control."
+  },
+  {
+   "say": "All of this depends on a whisper. Voyager's transmitter is only about as powerful as a refrigerator light bulb."
+  },
+  {
+   "say": "By the time that signal reaches Earth, NASA says it is one tenth of a billionth of a trillionth of a watt."
+  },
+  {
+   "say": "To catch it, NASA uses the Deep Space Network, giant dishes in California, Spain and Australia, spread around the globe."
+  },
+  {
+   "say": "The biggest dishes are seventy meters across. Their receivers are cooled to cut electronic noise."
+  },
+  {
+   "say": "Day after day, they pull Voyager's faint voice out of the hiss of the universe."
+  },
+  {
+   "say": "But the power keeps falling. So engineers came up with a bold move they call the Big Bang."
+  },
+  {
+   "say": "Switch several power-hungry systems to lower-power options, all at once. In 2026 it freed nearly ten watts on Voyager 2, and Voyager 1 is next."
+  },
+  {
+   "say": "Still, the end is coming. NASA thinks the probes could stay within reach until about 2036, if the power holds."
+  },
+  {
+   "say": "One day there will not be enough power to run the transmitter. The last signal will arrive, and then silence."
+  },
+  {
+   "say": "But Voyager will keep flying. Bolted to its side is a gold-plated copper record."
+  },
+  {
+   "say": "It carries greetings in fifty-five languages, sounds of Earth, and ninety minutes of music, for anyone who might find it."
+  },
+  {
+   "say": "In about forty thousand years, Voyager 1 will drift within about one point seven light-years of another star."
+  },
+  {
+   "say": "And right about now, Voyager 1 is crossing one light-day from home. A message sent today, at the speed of light, arrives tomorrow."
+  },
+  {
+   "say": "It took nearly forty-nine years to cover the distance light crosses in a single day. That is how big the dark is."
+  },
+  {
+   "say": "Still out there. Still listening. One light-day from home."
+  },
+  {
+   "say": "Subscribe for more stories of how things work."
+  }
+ ],
+ "card": {
+  "lines": [
+   "SUBSCRIBE FOR MORE",
+   "HOW THINGS WORK"
+  ],
+  "size": 72
+ }
+}
