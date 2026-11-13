@@ -14,6 +14,9 @@ ROOT = os.path.dirname(os.path.abspath(__file__))
 OUT = os.path.join(ROOT, "out")
 FILES = {f[:-5]: json.load(open(os.path.join(ROOT, "videos", f)))["file"] for f in os.listdir(os.path.join(ROOT, "videos")) if f.endswith(".json")}
 MAXS = {f[:-5]: json.load(open(os.path.join(ROOT, "videos", f))).get("maxSeconds", 60) for f in os.listdir(os.path.join(ROOT, "videos")) if f.endswith(".json")}  # per-video length cap in seconds; 2 s tolerated
+DOCS = {f[:-5] for f in os.listdir(os.path.join(ROOT, "videos")) if f.endswith(".json") and json.load(open(os.path.join(ROOT, "videos", f))).get("format") == "doc"}
+# frame size and safe zone (x0, x1, y0, y1, progress-bar y) for vertical shorts and 16:9 documentaries
+GEO = {False: (1080, 1920, 60, 940, 420, 1500, 1900), True: (1920, 1080, 100, 1820, 50, 1040, 1062)}
 BRIGHT = 120  # luma above this is "content"; the navy background and 7% dot texture stay well below
 
 
@@ -34,22 +37,24 @@ def peak_db(path):
     return float(mx.group(1)), float(mean.group(1))
 
 
-def audit(path, dur, shotdir):
+def audit(path, dur, shotdir, doc=False):
+    FW, FH, X0, X1, Y0, Y1, BAR = GEO[doc]
     bad = []
-    n = int(dur / 0.5)
+    step = 1.0 if doc else 0.5  # documentaries are long: sample once a second
+    n = int(dur / step)
     for i in range(n):
-        t = i * 0.5 + 0.25
+        t = i * step + step / 2
         png = os.path.join(shotdir, "_tmp.png")
-        run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", path, "-frames:v", "1", "-vf", "scale=540:960", png])
-        im = Image.open(png).convert("L"); W, H = im.size; px = im.load(); sx, sy = 1080 / W, 1920 / H
+        run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", path, "-frames:v", "1", "-vf", f"scale={FW // 2}:{FH // 2}", png])
+        im = Image.open(png).convert("L"); W, H = im.size; px = im.load(); sx, sy = FW / W, FH / H
         hits = {}
         for y in range(H):
             Y = y * sy
             for x in range(W):
                 if px[x, y] > BRIGHT:
                     X = x * sx
-                    if Y >= 1900: continue  # progress bar
-                    z = "top" if Y < 420 else "bottom" if Y > 1500 else "left" if X < 60 else "right" if X > 940 else None
+                    if Y >= BAR: continue  # progress bar
+                    z = "top" if Y < Y0 else "bottom" if Y > Y1 else "left" if X < X0 else "right" if X > X1 else None
                     if z: hits[z] = hits.get(z, 0) + 1
         if hits: bad.append((round(t, 2), hits))
     return bad
@@ -66,9 +71,9 @@ def main(ids):
         base = FILES[v].replace(".mp4", ""); shots = os.path.join(OUT, "shots")
         for label, t in [("2s", 2), ("30s", 30), ("last5", max(0, info["dur"] - 5))]:
             run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", fin, "-frames:v", "1", os.path.join(shots, f"{base}_{label}.png")])
-        bad = audit(fin, info["dur"], shots)
+        bad = audit(fin, info["dur"], shots, v in DOCS)
         report[v] = {"file": FILES[v], **info, "peak_db": mx, "mean_db": mean, "safe_zone_violations": bad}
-        ok = (info["w"], info["h"]) == (1080, 1920) and abs(info["fps"] - 30) < 0.01 and info["vcodec"] == "h264" and info["acodec"] == "aac" and info["ach"] == 2 and info["dur"] <= MAXS[v] + 2 and info["mb"] < 100 and mx < -0.5 and not bad
+        ok = (info["w"], info["h"]) == GEO[v in DOCS][:2] and abs(info["fps"] - 30) < 0.01 and info["vcodec"] == "h264" and info["acodec"] == "aac" and info["ach"] == 2 and info["dur"] <= MAXS[v] + 2 and info["mb"] < (500 if v in DOCS else 100) and mx < -0.5 and not bad
         print(f"{FILES[v]}: {info['w']}x{info['h']} {info['fps']}fps {info['vcodec']}/{info['pix']} + {info['acodec']} {info['ach']}ch {info['ar']}Hz | {info['dur']:.2f}s | {info['mb']:.1f} MB | peak {mx} dB mean {mean} dB | safe-zone violations: {len(bad)} {'OK' if ok else 'CHECK'}")
         for b in bad[:6]: print("   ", b)
     json.dump(report, open(os.path.join(OUT, "report.json"), "w"), indent=1)

@@ -39,3 +39,7 @@ Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if presen
 ## Rules
 
 Brand: navy 1F2A6B, yellow FFC531, red E5384F, white, Anton caps, dark navy gradient, progress bar at bottom edge, stick-man hero end card. Safe zone: all key content inside x 60-940, y 420-1500; headline ≥ 90 px; captions ≥ 56 px, ≤ 2 lines around y 1250-1450. Hook text on screen in the first 2 s. Known pitfalls: never `gsap.set(opacity)` on elements later driven by `setAttribute`; use `fadeTo` for translucent elements; end-card text is 72 px (known deviation, mention it).
+
+## Documentaries (16:9, long form)
+
+Cards with `series` = "DOC" are YouTube documentaries, not shorts. The nightly shorts workers must skip them (also skip any card whose `slug` starts with `doc-`). To build one, set `"format": "doc"` in `videos/dN.json` (ids `d1`, `d2`, ...): `build.mjs` then makes a 1920x1080 frame, lifts the 62 s cap to `maxSeconds` (default 360), and `verify.py` checks 1920x1080, a < 500 MB file and the 16:9 safe zone (x 100-1820, y 50-1040, sampled once a second). Scenes draw in a 1680x780 box (frame offset 120,70); captions sit below it; beat 0 stays empty under the headline; the last beat is the "Subscribe for more" mascot card. About 2.6 words per second; an 8-minute doc is about 1,250 words in 55-75 beats, with chapter title cards. Rendering runs at about 2.6x real time on 4 cores, so an 8-minute doc takes about 20 minutes; run renders one at a time (`flock` a lock file when several agents share the machine).
