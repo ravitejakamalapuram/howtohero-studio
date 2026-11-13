@@ -1,0 +1,223 @@
+{
+ "id": "d5",
+ "format": "doc",
+ "file": "why-chernobyl-actually-exploded.mp4",
+ "target": 505,
+ "maxSeconds": 540,
+ "topic": "CHERNOBYL, 1986",
+ "hook": {
+  "lines": [
+   "WHY CHERNOBYL",
+   "ACTUALLY EXPLODED"
+  ],
+  "yellow": "EXPLODED",
+  "yellowLine": 1
+ },
+ "beats": [
+  {
+   "say": "At twenty-three minutes past one in the morning, an operator presses the button meant to shut a reactor down. Seconds later, it explodes."
+  },
+  {
+   "say": "How can the off switch make things worse? The answer is hidden in the physics of one unusual reactor."
+  },
+  {
+   "say": "This is Chernobyl Unit Four, in Soviet Ukraine, on the twenty-sixth of April, nineteen eighty-six."
+  },
+  {
+   "say": "To see why it failed, we first need to see how a reactor makes heat. Then we follow its last day, minute by minute."
+  },
+  {
+   "say": "Chapter one. A reactor is a machine for splitting atoms. Its fuel is uranium, and one kind, uranium two thirty-five, splits easily."
+  },
+  {
+   "say": "When a neutron hits a uranium two thirty-five nucleus, it splits in two. The pieces fly apart, and that motion becomes heat."
+  },
+  {
+   "say": "Each split also throws out two or three new neutrons. If one of them splits another atom, the reaction keeps itself going."
+  },
+  {
+   "say": "That is a chain reaction. The art of running a reactor is keeping it balanced, so each split causes exactly one more."
+  },
+  {
+   "say": "But the new neutrons are fast, and fast neutrons are bad at splitting uranium. They need to be slowed down first."
+  },
+  {
+   "say": "So the fuel sits inside a moderator, made of light atoms. Neutrons bounce off them again and again, and slow down."
+  },
+  {
+   "say": "To turn the power down, operators lower control rods. They contain boron, which swallows neutrons."
+  },
+  {
+   "say": "Rods in, less power. Rods out, more power. The rods are the reactor's steering wheel."
+  },
+  {
+   "say": "Finally, a coolant, usually water, carries the heat away. The steam spins a turbine, which makes electricity."
+  },
+  {
+   "say": "Fuel, moderator, control rods and coolant. Every reactor has them. In one Soviet design, they could work against each other."
+  },
+  {
+   "say": "Chapter two. Chernobyl's reactors were a Soviet type called the R B M K. Each made thirty-two hundred megawatts of heat."
+  },
+  {
+   "say": "Its core is a huge stack of graphite blocks, about seven metres tall and nearly twelve across. The graphite is the moderator."
+  },
+  {
+   "say": "Through the graphite run metal tubes holding the fuel. Water is pumped up through them, and boils as it goes."
+  },
+  {
+   "say": "Here is the key. The water does two jobs. It cools the fuel, and it also absorbs some neutrons."
+  },
+  {
+   "say": "When water boils into steam, less liquid is left in the tube. Less water absorbs fewer neutrons, so more of them split uranium."
+  },
+  {
+   "say": "And the graphite keeps slowing neutrons, steam or no steam. So in this reactor, more steam means more power."
+  },
+  {
+   "say": "Engineers call this a positive void coefficient. The voids are steam bubbles, and they push power up."
+  },
+  {
+   "say": "More power boils more water, which makes more steam, which makes more power. It is a loop that can feed itself."
+  },
+  {
+   "say": "At full power, other effects keep this in check. But below about twenty percent power, the steam effect dominates, and the reactor turns unstable."
+  },
+  {
+   "say": "There was one more flaw, hidden inside the control rods. It decides everything at the end."
+  },
+  {
+   "say": "Chapter three. On the twenty-fifth of April, Unit Four is due to shut down for maintenance. First, the crew will run a safety test."
+  },
+  {
+   "say": "If the plant loses outside power, can the spinning turbine keep the cooling pumps running until the backup generators start?"
+  },
+  {
+   "say": "At one in the morning, the crew starts lowering power. By a quarter to four, the reactor is at half power, sixteen hundred megawatts."
+  },
+  {
+   "say": "Then, at two in the afternoon, the grid controller in Kyiv asks them to wait. The region still needs the electricity."
+  },
+  {
+   "say": "So the reactor runs at half power for hours, with its emergency core cooling switched off. Investigators later call this a lack of safety culture."
+  },
+  {
+   "say": "Only at ten past eleven at night does the power reduction continue. The test has slipped into the middle of the night."
+  },
+  {
+   "say": "And while the reactor waited, something invisible had been building up inside it: xenon."
+  },
+  {
+   "say": "Xenon one thirty-five forms from the decay of fission products, and it is one of the strongest neutron absorbers there is."
+  },
+  {
+   "say": "At full power, neutrons burn xenon away as fast as it forms. But when power drops, xenon piles up and chokes the chain reaction."
+  },
+  {
+   "say": "Chapter four. Just after midnight, power is about seven hundred megawatts. At twenty-eight minutes past, during a switch of control systems, it plunges."
+  },
+  {
+   "say": "Power falls to about thirty megawatts. The reactor is almost asleep, and the xenon keeps growing."
+  },
+  {
+   "say": "The test plan calls for seven hundred to one thousand megawatts. To claw power back, the operators pull out rod after rod."
+  },
+  {
+   "say": "By one o'clock, they hold the reactor at about two hundred megawatts. Far below the plan, and deep in the unstable zone."
+  },
+  {
+   "say": "The rules said that if the reserve of rods fell to fifteen, the reactor must be shut down. Most rods are now almost fully out."
+  },
+  {
+   "say": "Calculations after the accident put the reserve at just eight rods. Investigators think the operator probably did not know."
+  },
+  {
+   "say": "The reactor is on a knife edge. Low power, little control, lots of xenon, and a strong steam effect."
+  },
+  {
+   "say": "At one twenty-three and four seconds, the test begins. Steam to the turbine is shut off, and it starts to slow down."
+  },
+  {
+   "say": "Four of the main cooling pumps run on that slowing turbine, so the water flow through the core begins to drop."
+  },
+  {
+   "say": "Less flow means more boiling. More steam, more power. For about half a minute, nothing looks wrong."
+  },
+  {
+   "say": "Then, at one twenty-three and forty seconds, the operator presses the emergency shutdown button, A Z five. The rods start moving down."
+  },
+  {
+   "say": "Chapter five. To understand what happens next, look closely at a single control rod."
+  },
+  {
+   "say": "Below the boron hangs a graphite section about four and a half metres long, called a displacer. It keeps water out, to make the rod stronger."
+  },
+  {
+   "say": "But when a rod is fully withdrawn, a column of water one and a quarter metres tall sits below the graphite, at the bottom of the core."
+  },
+  {
+   "say": "So when the rods start to fall, the first thing to enter the bottom of the core is not boron. It is graphite, pushing that water out."
+  },
+  {
+   "say": "Water absorbs neutrons, and graphite barely does. So for the first few seconds, the shutdown rods add power at the bottom of the core."
+  },
+  {
+   "say": "This is the positive scram effect. It had been seen at another plant, Ignalina, in nineteen eighty-three, but the Chernobyl operators did not know."
+  },
+  {
+   "say": "And the rods are slow. Going all the way in takes about eighteen seconds."
+  },
+  {
+   "say": "Three seconds after the button, power passes five hundred and thirty megawatts. More heat makes more steam, and the steam pushes power higher."
+  },
+  {
+   "say": "Fuel channels rupture. The log records severe shocks, and the control rods stop before they reach the bottom."
+  },
+  {
+   "say": "One assessment puts the surge at about a hundred times full power. Hot fuel meets water, and a steam explosion tears the core apart."
+  },
+  {
+   "say": "Two or three seconds later, a second explosion follows. The thousand-tonne plate on top of the reactor is thrown partly aside."
+  },
+  {
+   "say": "Hot graphite meets air and catches fire. The fire burns for about ten days, lifting radioactive material high into the sky."
+  },
+  {
+   "say": "Chapter six. So what really caused it? The first international report, in nineteen eighty-six, put most of the weight on the operators."
+  },
+  {
+   "say": "In nineteen ninety-two, the I A E A's safety advisory group looked again, with new evidence, in a report called INSAG seven."
+  },
+  {
+   "say": "It found a combination: the reactor's physics, the faulty control rods, and a reactor pushed into a state no procedure covered."
+  },
+  {
+   "say": "Most importantly, it said, the physics made the unstable behaviour possible. But it still called the operators' critical actions most ill judged."
+  },
+  {
+   "say": "So the R B M K reactors still running were changed. Extra fixed absorbers and richer fuel tame the steam effect."
+  },
+  {
+   "say": "Operators now keep a reserve of forty-three to forty-eight rods. And new rods no longer leave water at the bottom."
+  },
+  {
+   "say": "Full insertion went from eighteen seconds to twelve, and a new fast system drives twenty-four extra rods in under two and a half seconds."
+  },
+  {
+   "say": "A few of these modified reactors still run in Russia today."
+  },
+  {
+   "say": "Chernobyl did not explode because of one mistake. A hidden design flaw met a night of risky decisions, and the off switch became the trigger."
+  },
+  {
+   "say": "Subscribe for more stories of how things work."
+  }
+ ],
+ "card": {
+  "lines": [
+   "SUBSCRIBE FOR MORE",
+   "HOW THINGS WORK"
+  ],
+  "size": 72
+ }
+}

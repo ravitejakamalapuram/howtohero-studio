@@ -32,19 +32,24 @@ if (Math.abs(want - speed) > 0.02) { speed = +want.toFixed(3); ds = run(speed); 
 
 let t = LEAD;
 const lines = V.beats.map((b, i) => { const o = { start: +t.toFixed(3), dur: +ds[i].toFixed(3), end: +(t + ds[i]).toFixed(3), cap: b.say, words: b.say.split(/\s+/).length }; t += ds[i] + GAP; return o; });
-const end = +Math.min(61.9, Math.max(55, lines[N - 1].end + TAIL)).toFixed(2);
+// documentaries ("format": "doc" in vN.json) are 16:9 and may run up to maxSeconds; shorts stay vertical and under 62 s
+const DOC = V.format === "doc", CAP = DOC ? (V.maxSeconds || 360) - 0.1 : 61.9;
+const fmt = DOC ? { doc: true, W: 1920, H: 1080, SAFE: { x0: 100, x1: 1820, y0: 50, y1: 1040, cx: 960 }, BX: 120, BY: 70, BW: 1680, BH: 780 }
+  : { doc: false, W: 1080, H: 1920, SAFE: { x0: 60, x1: 940, y0: 420, y1: 1500, cx: 500 }, BX: 60, BY: 440, BW: 880, BH: 760 };
+const end = +Math.min(CAP, Math.max(DOC ? 30 : 55, lines[N - 1].end + TAIL)).toFixed(2);
 const beats = lines.map((l, i) => ({ a: i ? +(l.start - 0.15).toFixed(3) : 0, b: i < N - 1 ? +(lines[i + 1].start - 0.15).toFixed(3) : end }));
 
 // hook size: as large as fits 2 lines inside x 60..940 (max 112), never below 90 (tighten tracking slightly if needed)
 const tw = (s, size, track = 0) => [...s].reduce((n, ch) => n + (WID[ch] ?? 50), 0) * size / 100 + track * s.length;
-let size = 112, track = 0;
-while (size > 90 && V.hook.lines.some((l) => tw(l, size) > 868)) size -= 2;
+const HW = fmt.SAFE.x1 - fmt.SAFE.x0 - 12;
+let size = DOC ? 140 : 112, track = 0;
+while (size > 90 && V.hook.lines.some((l) => tw(l, size) > HW)) size -= 2;
 const widest = V.hook.lines.reduce((m, l) => (tw(l, size) > tw(m, size) ? l : m), V.hook.lines[0]);
-if (tw(widest, size) > 868) track = -((tw(widest, size) - 866) / widest.length);
+if (tw(widest, size) > HW) track = -((tw(widest, size) - HW + 2) / widest.length);
 const hook = { ...V.hook, size, track: +track.toFixed(2) };
 // topic label shown with the hook from frame 0, so the cover says what the video is about (override with "topic" in vN.json)
 const topic = (V.topic || V.file.replace(/\.mp4$/, "").replace(/-/g, " ")).toUpperCase();
-const CFG = { hook, beats, lines, end, card: V.card, topic };
+const CFG = { hook, beats, lines, end, card: V.card, topic, fmt };
 fs.writeFileSync("timing.json", JSON.stringify(CFG, null, 1));
 
 // quiet sound bed: soft pad + gentle pops on every beat, a small chime on the end card
@@ -68,7 +73,7 @@ fs.writeFileSync("timing.json", JSON.stringify(CFG, null, 1));
 const audio = [`<audio id="bed" class="clip" src="assets/bed.wav" data-start="0" data-duration="${end}" data-track-index="1" data-volume="0.35"></audio>`]
   .concat(lines.map((l, i) => `<audio id="vo${i + 1}" class="clip" src="assets/v${i + 1}.wav" data-start="${l.start}" data-duration="${l.dur}" data-track-index="2" data-volume="1"></audio>`)).join("\n      ");
 const rd = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
-const html = rd("lib/head.html").replace("__DUR__", end).replace("__CFG__", JSON.stringify(CFG)).replace("__WIDTHS__", JSON.stringify(WID)).replace("__AUDIO__", audio)
+const html = rd("lib/head.html").replaceAll("__W__", fmt.W).replaceAll("__H__", fmt.H).replace("__DUR__", end).replace("__CFG__", JSON.stringify(CFG)).replace("__WIDTHS__", JSON.stringify(WID)).replace("__AUDIO__", audio)
   .replace("__LIB__", () => rd("lib/lib.js")).replace("__SCENES__", () => rd(`videos/${id}.scenes.js`)).replace("__FINISH__", () => rd("lib/finish.js"));
 fs.writeFileSync("index.html", html);
 console.log(id, "end", end, "s | beats", N, "| words", lines.reduce((n, l) => n + l.words, 0), "| speed", speed, "| line durations", lines.map((l) => l.dur.toFixed(1)).join(" "), "| hook", size + "px");
