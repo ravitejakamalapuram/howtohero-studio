@@ -13,6 +13,7 @@ Two scheduled workers run in parallel and never share a card, because every card
 
 Worker id: your letter from the task prompt plus 4 random characters, e.g. `A-7f3k`. Pick it once at the start.
 
+0. Free storage first. The artifact's asset storage is capped at 1 GB, so clean up posted videos before building. Query `ideas` with `stage` == "posted". For each card whose `videoRef` has a `Video: /_blob/<id>` line, delete that asset (`Artifact` action `delete`, `url` = artifact, `path` = `<id>`). Then re-read the card and `update` it with `if_version`, replacing that line with `Video: deleted after posting`. This is the one exception to "never touch other docs". Skip a card if its blob id also appears on a card that is not posted.
 1. Read the artifact URL from the task prompt. `ArtifactData query` collection `ideas`, `stage` == "queued". Candidates: empty `videoRef` and not in progress. A card is in progress if it has `claimedBy` set and `claimedAt` is less than 3 hours old; an older claim is stale and the card is free again. Take the earliest `slot` (worker A) or the latest `slot` (worker B). None: stop and say "queue empty".
 2. Claim it: `update` with `if_version` setting `claimedBy` = your worker id and `claimedAt` = now (ISO). The pin makes this atomic: if it is refused, the other worker got there first, so re-query and pick again. Then re-read the card and confirm `claimedBy` is your id. Never build a card you did not win.
 3. Make that video with the worker steps below. On success clear both fields (`{"__delete__": true}`) in the same update that sets `videoRef`; on failure clear them and write the reason into `note`.
@@ -21,7 +22,7 @@ Worker id: your letter from the task prompt plus 4 random characters, e.g. `A-7f
 ## Worker steps
 
 Make exactly the claimed doc (use `topic` + `angle`, plus `hook`/`aha` if present), using "Build one video" below. Length cap: the doc's `maxSeconds`, else by `series` (A 120, B 120, C 150, D 120), else 60. Fact check: if the doc's `fact` is K (to check), look up a named source for every number and date before writing; if you cannot, leave `videoRef` empty, remove `claimedBy` and `claimedAt` and write why into `note`. If `fact` is C (contested), the narration says "scientists think" and names the evidence. Then:
-- Upload the MP4 with `Artifact` (`asset: true`, `url` = artifact, `file_path`).
+- Upload the MP4 with `Artifact` (`asset: true`, `url` = artifact, `file_path`). If that fails because storage is full, upload it to the overflow artifact https://claude.ai/artifact/D9BnfryykRwnS8LpymNpPA instead. In that case write the videoRef's second line as `Video: https://claude.ai/artifact/D9BnfryykRwnS8LpymNpPA /_blob/<id>`.
 - Re-read the doc, `ArtifactData update` with `if_version`: `videoRef` = `<file> | <duration> s | ffprobe: 1080x1920, 30 fps, H.264 yuv420p + AAC stereo 48 kHz, <MB> MB | audio peak <dB> dB | safe zone: <n> violations` + newline + `Video: /_blob/<id>`, `claimedBy` and `claimedAt` = `{"__delete__": true}`.
 - On failure after two render attempts: leave `videoRef` empty, remove `claimedBy` and `claimedAt`, write the reason into `note`.
 - Never change `stage`, never touch other docs, never overwrite a non-empty `videoRef`. The human reviews and sends to review.
