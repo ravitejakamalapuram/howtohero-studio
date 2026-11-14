@@ -1,0 +1,19 @@
+{
+  "id": "v17",
+  "file": "rajasaurus-indias-horned-predator.mp4",
+  "topic": "RAJASAURUS",
+  "maxSeconds": 60,
+  "hook": { "lines": ["INDIA HAD A HORNED", "KILLER DINOSAUR"], "yellow": "HORNED", "yellowLine": 0 },
+  "beats": [
+    { "say": "India had its own killer dinosaur, with a horn on its head." },
+    { "say": "Its name is Rajasaurus, the king lizard, and it hunted in what is now Gujarat." },
+    { "say": "That was about sixty-seven million years ago, when India was an island drifting north." },
+    { "say": "In the early nineteen-eighties, a government geologist dug its bones out of a hill near the village of Rahioli." },
+    { "say": "Then the bones waited nearly twenty years." },
+    { "say": "In two thousand three, scientists pieced the skull together and named a new meat-eater, somewhere between six and eleven metres long." },
+    { "say": "Its closest known cousin lived far away, on Madagascar. A clue that the two lands were once joined." },
+    { "say": "So when someone says the great dinosaurs were all American, tell them about the king from the Narmada." },
+    { "hold": 1.6 }
+  ],
+  "card": { "lines": ["FOLLOW FOR MORE", "HOW TO HERO"], "size": 72 }
+}

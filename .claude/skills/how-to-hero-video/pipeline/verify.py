@@ -55,6 +55,21 @@ def audit(path, dur, shotdir):
     return bad
 
 
+def band(path, t, shotdir):
+    """bright pixels of the diagram band (y 700..1240) of the frame at t, as a set of (x, y) at 270x480"""
+    png = os.path.join(shotdir, "_tmp.png")
+    run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", path, "-frames:v", "1", "-vf", "scale=270:480", png])
+    im = Image.open(png).convert("L"); px = im.load()
+    return {(x, y) for y in range(175, 310) for x in range(270) if px[x, y] > BRIGHT}
+
+def opening(path, shotdir):
+    """the first seconds decide whether a viewer stays: the cover frame must show a drawing, and the picture must change early"""
+    f0, f1, f2 = band(path, 0.1, shotdir), band(path, 1.5, shotdir), band(path, 3.0, shotdir)
+    bad = []
+    if len(f0) < 400: bad.append(f"cover: only {len(f0)} bright px under the headline at 0.1 s (need 400): beat 1 must be drawn at frame 0")
+    if len(f0 ^ f1) < 150 and len(f1 ^ f2) < 150: bad.append("opening: the picture barely changes in the first 3 s")
+    return bad
+
 def main(ids):
     os.makedirs(os.path.join(OUT, "shots"), exist_ok=True)
     report = {}
@@ -66,11 +81,11 @@ def main(ids):
         base = FILES[v].replace(".mp4", ""); shots = os.path.join(OUT, "shots")
         for label, t in [("2s", 2), ("30s", 30), ("last5", max(0, info["dur"] - 5))]:
             run(["ffmpeg", "-v", "error", "-y", "-ss", f"{t:.2f}", "-i", fin, "-frames:v", "1", os.path.join(shots, f"{base}_{label}.png")])
-        bad = audit(fin, info["dur"], shots)
-        report[v] = {"file": FILES[v], **info, "peak_db": mx, "mean_db": mean, "safe_zone_violations": bad}
-        ok = (info["w"], info["h"]) == (1080, 1920) and abs(info["fps"] - 30) < 0.01 and info["vcodec"] == "h264" and info["acodec"] == "aac" and info["ach"] == 2 and info["dur"] <= MAXS[v] + 2 and info["mb"] < 100 and mx < -0.5 and not bad
+        bad = audit(fin, info["dur"], shots); op = opening(fin, shots)
+        report[v] = {"file": FILES[v], **info, "peak_db": mx, "mean_db": mean, "safe_zone_violations": bad, "opening": op}
+        ok = (info["w"], info["h"]) == (1080, 1920) and abs(info["fps"] - 30) < 0.01 and info["vcodec"] == "h264" and info["acodec"] == "aac" and info["ach"] == 2 and info["dur"] <= MAXS[v] + 2 and info["mb"] < 100 and mx < -0.5 and not bad and not op
         print(f"{FILES[v]}: {info['w']}x{info['h']} {info['fps']}fps {info['vcodec']}/{info['pix']} + {info['acodec']} {info['ach']}ch {info['ar']}Hz | {info['dur']:.2f}s | {info['mb']:.1f} MB | peak {mx} dB mean {mean} dB | safe-zone violations: {len(bad)} {'OK' if ok else 'CHECK'}")
-        for b in bad[:6]: print("   ", b)
+        for b in bad[:6] + op: print("   ", b)
     json.dump(report, open(os.path.join(OUT, "report.json"), "w"), indent=1)
 
 

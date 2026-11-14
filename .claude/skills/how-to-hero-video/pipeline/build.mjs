@@ -24,15 +24,17 @@ function speak(text, file, speed) {
   fs.writeFileSync(key, k);
 }
 const N = V.beats.length, file = (i) => `assets/v${i + 1}.wav`;
-const run = (speed) => V.beats.map((b, i) => { speak(b.say, file(i), speed); return dur(file(i)); });
+// a beat with no "say" is silent (the end card): it holds for "hold" seconds and gets no voice clip
+const run = (speed) => V.beats.map((b, i) => { if (!b.say) return b.hold || 1.6; speak(b.say, file(i), speed); return dur(file(i)); });
 let speed = 1.0, ds = run(speed);
 const avail = TARGET - LEAD - (N - 1) * GAP - TAIL;
 const want = Math.min(1.1, Math.max(0.92, (ds.reduce((a, b) => a + b, 0) * speed) / avail));
-if (Math.abs(want - speed) > 0.02) { speed = +want.toFixed(3); ds = run(speed); }
+// the voice is only stretched to a length when the video sets "target"; without it the video is as long as its story
+if (V.target && Math.abs(want - speed) > 0.02) { speed = +want.toFixed(3); ds = run(speed); }
 
 let t = LEAD;
-const lines = V.beats.map((b, i) => { const o = { start: +t.toFixed(3), dur: +ds[i].toFixed(3), end: +(t + ds[i]).toFixed(3), cap: b.say, words: b.say.split(/\s+/).length }; t += ds[i] + GAP; return o; });
-const end = +Math.min(61.9, Math.max(55, lines[N - 1].end + TAIL)).toFixed(2);
+const lines = V.beats.map((b, i) => { const o = { start: +t.toFixed(3), dur: +ds[i].toFixed(3), end: +(t + ds[i]).toFixed(3), cap: b.say || "", words: b.say ? b.say.split(/\s+/).length : 0 }; t += ds[i] + GAP; return o; });
+const end = +Math.min((V.maxSeconds || 60) + 1.9, Math.max(V.target ? 55 : 0, lines[N - 1].end + TAIL)).toFixed(2);
 const beats = lines.map((l, i) => ({ a: i ? +(l.start - 0.15).toFixed(3) : 0, b: i < N - 1 ? +(lines[i + 1].start - 0.15).toFixed(3) : end }));
 
 // hook size: as large as fits 2 lines inside x 60..940 (max 112), never below 90 (tighten tracking slightly if needed)
@@ -66,7 +68,7 @@ fs.writeFileSync("timing.json", JSON.stringify(CFG, null, 1));
 }
 
 const audio = [`<audio id="bed" class="clip" src="assets/bed.wav" data-start="0" data-duration="${end}" data-track-index="1" data-volume="0.35"></audio>`]
-  .concat(lines.map((l, i) => `<audio id="vo${i + 1}" class="clip" src="assets/v${i + 1}.wav" data-start="${l.start}" data-duration="${l.dur}" data-track-index="2" data-volume="1"></audio>`)).join("\n      ");
+  .concat(lines.map((l, i) => !V.beats[i].say ? "" : `<audio id="vo${i + 1}" class="clip" src="assets/v${i + 1}.wav" data-start="${l.start}" data-duration="${l.dur}" data-track-index="2" data-volume="1"></audio>`)).filter(Boolean).join("\n      ");
 const rd = (p) => fs.readFileSync(path.join(ROOT, p), "utf8");
 const html = rd("lib/head.html").replace("__DUR__", end).replace("__CFG__", JSON.stringify(CFG)).replace("__WIDTHS__", JSON.stringify(WID)).replace("__AUDIO__", audio)
   .replace("__LIB__", () => rd("lib/lib.js")).replace("__SCENES__", () => rd(`videos/${id}.scenes.js`)).replace("__FINISH__", () => rd("lib/finish.js"));

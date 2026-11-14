@@ -46,10 +46,11 @@
       // a beat = one clipped, fading group in the local box
       function beat(i) {
         const g = E("g", { transform: `translate(${BX},${BY})`, "clip-path": "url(#boxClip)" });
-        gsap.set(g, { visibility: "hidden" });
         const last = i === BT.length - 1, s0 = i ? BT[i].a - 0.12 : BT[i].a;
+        // the first beat is on screen from frame 0 with no fade, so the cover frame shows the key visual under the headline
+        gsap.set(g, { visibility: "hidden" });
         tl.set(g, { visibility: "visible" }, s0); if (!last) tl.set(g, { visibility: "hidden" }, BT[i].b + 0.12);
-        tl.fromTo(g, { opacity: 0 }, { opacity: 1, duration: i ? 0.22 : 0.25, ease: "none" }, s0);
+        if (i) tl.fromTo(g, { opacity: 0 }, { opacity: 1, duration: 0.22, ease: "none" }, s0);
         if (!last) tl.fromTo(g, { opacity: 1 }, { opacity: 0, duration: 0.22, ease: "none", immediateRender: false }, BT[i].b - 0.1);
         return g;
       }
