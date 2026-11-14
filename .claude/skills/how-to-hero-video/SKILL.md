@@ -1,6 +1,6 @@
 ---
 name: how-to-hero-video
-description: Make one vertical "How To Hero" explainer video (1080x1920, 40-60 s by default, up to 120-150 s for deeper ideas, voiceover, captions, mascot end card) for a queued idea in the How To Hero artifact, verify it, upload it and fill the card's reply. Use for the nightly queue run or when asked to make a How To Hero video.
+description: Make one vertical "How To Hero" explainer video (1080x1920, 40-60 s by default, up to 120-150 s for deeper ideas, voiceover, captions, mascot end card) for an approved idea in the Inbox (or a queued card in the How To Hero artifact), verify it, upload it and hand it back for review. Use for the nightly queue run or when asked to make a How To Hero video.
 ---
 
 # How To Hero video
@@ -19,6 +19,20 @@ Worker id: your letter from the task prompt plus 4 random characters, e.g. `A-7f
 2. Claim it: `update` with `if_version` setting `claimedBy` = your worker id and `claimedAt` = now (ISO). The pin makes this atomic: if it is refused, the other worker got there first, so re-query and pick again. Then re-read the card and confirm `claimedBy` is your id. Never build a card you did not win.
 3. Make that video with the worker steps below. On success clear both fields (`{"__delete__": true}`) in the same update that sets `videoRef`; on failure clear them and write the reason into `note`.
 4. Go back to step 1. Stop the session if a video fails twice, or after 8 videos. Say how many were made.
+
+## Inbox mode (use it when `INBOX_URL` and `INBOX_TOKEN` are both set)
+
+The Inbox is the user's approvals app (Google Sheet + API + Telegram buttons). When both variables are set, it replaces the artifact queue: skip steps 0 to 4 above and every artifact write in "Worker steps", and do this instead. Call it only through `inbox.sh` (next to this file); never print, log or commit the URL, the token or an upload link. If any Inbox call fails twice, stop and say which call failed; do not fall back to the artifact in the same run. The artifact queue stays untouched, so unsetting the variables returns to the old flow.
+
+Item lifecycle: idea `pending` (the user approves or rejects on Telegram) → `approved` → you claim it, `building` → same item becomes type `video`, `pending`, with the MP4 attached → the user approves (the file moves to Drive "ready") or rejects with a `note`. Posting stays manual. Never run `cleanupPosted`: deleting old posted videos is the user's button only.
+
+1. Import once (idempotent). `ArtifactData query` collection `ideas`, `stage` == "queued", empty `videoRef`. For each, `inbox.sh call '{"action":"add","id":"<doc id>","type":"idea","status":"approved","title":"<topic>","summary":"<angle>","source":"queue","data":{<the doc's topic, angle, hook, aha, series, fact, maxSeconds>}}'`. A `conflict` error means it is already imported: skip it. These were queued by the user already, so they go in as `approved` and send no Telegram message. Skip this step if the task prompt says the import is done.
+2. Claim: `inbox.sh call '{"action":"claimNext","by":"<worker id>","type":"idea","status":"approved","set":{"status":"building"}}'`. `"item": null` means nothing is approved: go to step 5. Read `title`, `summary`, `note` (the user's feedback, follow it) and `data` as the doc fields in "Worker steps".
+3. Build it with "Worker steps" and "Build one video". Upload with `inbox.sh up out/<file>.mp4 <item id>` (no `drive.sh`, no card thumbnail). It attaches the Drive file and sets `link`.
+4. Hand it to the user: `inbox.sh call '{"action":"release","id":"<id>","by":"<worker id>","set":{"type":"video","status":"pending","title":"<yt title>","summary":"<duration> s, <one-line verification result>","data":{<the old data plus videoRef, yt, ig, pin>}}}'`. On failure (render, fact check or upload twice): release with `"set":{"status":"approved","note":"<why>"}` only if it is worth another try, else `"status":"rejected"`, and write why into `note`. Go back to step 2. Stop after 8 videos or two failures.
+5. Ideas: when fewer than 5 items are `approved` type `idea` (`list` with `status`, `type`), add up to 5 new ones as `pending` type `idea` (they reach the user on Telegram). Each needs `title` (the topic), `summary` (the angle, one sentence: the surprising claim), and `data` with `topic`, `angle`, `hook`, `series`, `fact` (K when a number or date needs checking). First `list` all `idea` and `video` items and do not repeat a topic. At most 5 per run, so Telegram never floods.
+
+Final reply in Inbox mode: one line per video (item id, file, duration, verification result), how many ideas were imported and proposed, and "nothing approved" when step 2 found nothing.
 
 ## Worker steps
 
