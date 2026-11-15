@@ -8,7 +8,7 @@ with the post links in data.posted. One video per run, so a backlog goes out one
 Safe to run again at any time: each post uses the key "<item id>-<platform>", so Social Manager returns
 the first job instead of posting twice.
 
-Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. PLATFORMS defaults to "instagram,facebook,linkedin".
+Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. PLATFORMS defaults to "instagram,facebook". LinkedIn is left out: the connected account is a personal profile.
 YouTube is left out until the API audit passes: before that, API uploads stay private for good.
 Run with --dry-run to see what it would post.
 """
@@ -58,7 +58,7 @@ def due_items():
 
 
 def live_platforms():
-    wanted = [p.strip() for p in os.environ.get('PLATFORMS', 'instagram,facebook,linkedin').split(',') if p.strip()]
+    wanted = [p.strip() for p in os.environ.get('PLATFORMS', 'instagram,facebook').split(',') if p.strip()]
     live = []
     for p in wanted:
         try:
