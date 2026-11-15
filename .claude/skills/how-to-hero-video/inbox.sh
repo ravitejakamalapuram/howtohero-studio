@@ -14,7 +14,8 @@ call() {
   # -L follows Apps Script's redirect; don't add -X POST, it breaks the redirect.
   out=$(curl -sSL --retry 3 -m 120 --data-binary "$body" "$INBOX_URL")
   printf '%s\n' "$out"
-  python3 -c 'import json,sys; sys.exit(0 if json.loads(sys.argv[1]).get("ok") else 1)' "$out"
+  # stdin, not argv: a 1000-item list reply is too long for one argument.
+  printf '%s' "$out" | python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("ok") else 1)'
 }
 
 up() {
