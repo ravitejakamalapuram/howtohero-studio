@@ -2,19 +2,19 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=1080, height=1920" />
+    <meta name="viewport" content="width=__W__, height=__H__" />
     <script src="https://cdn.jsdelivr.net/npm/gsap@3.15.0/dist/gsap.min.js"></script>
     <style>
       @font-face { font-family: Anton; src: url("assets/anton.woff2") format("woff2"); }
       * { margin: 0; padding: 0; box-sizing: border-box; }
-      html, body { width: 1080px; height: 1920px; overflow: hidden; background: #0B1138; }
-      #root { position: relative; width: 1080px; height: 1920px; }
-      #stage { position: absolute; left: 0; top: 0; width: 1080px; height: 1920px; }
+      html, body { width: __W__px; height: __H__px; overflow: hidden; background: #0B1138; }
+      #root { position: relative; width: __W__px; height: __H__px; }
+      #stage { position: absolute; left: 0; top: 0; width: __W__px; height: __H__px; }
     </style>
   </head>
   <body>
-    <div id="root" data-composition-id="main" data-start="0" data-duration="__DUR__" data-width="1080" data-height="1920">
-      <svg id="stage" viewBox="0 0 1080 1920" xmlns="http://www.w3.org/2000/svg"></svg>
+    <div id="root" data-composition-id="main" data-start="0" data-duration="__DUR__" data-width="__W__" data-height="__H__">
+      <svg id="stage" viewBox="0 0 __W__ __H__" xmlns="http://www.w3.org/2000/svg"></svg>
       __AUDIO__
     </div>
     <script>

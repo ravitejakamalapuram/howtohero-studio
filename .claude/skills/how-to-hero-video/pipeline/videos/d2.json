@@ -1,0 +1,229 @@
+{
+ "id": "d2",
+ "format": "doc",
+ "file": "the-2000-year-old-computer.mp4",
+ "target": 480,
+ "maxSeconds": 540,
+ "topic": "THE ANTIKYTHERA MECHANISM",
+ "hook": {
+  "lines": [
+   "A 2,000-YEAR-OLD",
+   "COMPUTER?"
+  ],
+  "yellow": "COMPUTER",
+  "yellowLine": 1
+ },
+ "beats": [
+  {
+   "say": "In 1901, divers pulled a lump of green, corroded bronze from a shipwreck. For decades, nobody could explain what was inside it."
+  },
+  {
+   "say": "It turned out to be a machine of gears, precise enough to predict eclipses years ahead."
+  },
+  {
+   "say": "It is more than two thousand years old. And nothing as complex is known for at least a thousand years after it."
+  },
+  {
+   "say": "So who built a computer in the ancient world? And how did it work?"
+  },
+  {
+   "say": "This is the story of the Antikythera mechanism, gear by gear."
+  },
+  {
+   "say": "Chapter one. The wreck. In early 1900, sponge divers from the Greek island of Symi are working off a tiny island called Antikythera."
+  },
+  {
+   "say": "About forty-five metres down, they find the sea floor scattered with bronze and marble statues."
+  },
+  {
+   "say": "It is a shipwreck from the Roman era. Scientists think it sank around 70 to 60 BC."
+  },
+  {
+   "say": "With help from the Greek navy, the divers haul up treasure through 1900 and 1901. It is one of the first underwater excavations in history."
+  },
+  {
+   "say": "Among the haul is something nobody pays much attention to: a shapeless lump of corroded bronze and wood, about the size of a large dictionary."
+  },
+  {
+   "say": "It goes to the National Archaeological Museum in Athens, while the experts focus on the statues."
+  },
+  {
+   "say": "Then, in May 1902, archaeologist Valerios Stais notices something in one of the broken pieces. A gear wheel, embedded in the rock."
+  },
+  {
+   "say": "Gears, from an ancient wreck? Many scholars decide it is simply too complex to belong to the ancient world."
+  },
+  {
+   "say": "And for half a century, the mystery mostly sits in the museum."
+  },
+  {
+   "say": "Chapter two. The obsession. In 1951, a historian of science named Derek de Solla Price takes an interest."
+  },
+  {
+   "say": "In 1959, he writes about it in Scientific American, and calls it an ancient Greek computer."
+  },
+  {
+   "say": "In 1971, he teams up with Greek nuclear physicist Charalampos Karakalos to X-ray the fragments."
+  },
+  {
+   "say": "For the first time, people can see gears hidden inside the crust. Price counts their teeth, one by one."
+  },
+  {
+   "say": "In 1974 he publishes Gears from the Greeks. His big find is a gear train, driven by a main wheel that turns once a year."
+  },
+  {
+   "say": "One gear in that train has 38 teeth. That is two times nineteen. Another has 127 teeth. That is half of 254."
+  },
+  {
+   "say": "Why those numbers? Because the Moon goes around the sky 254 times in 19 years. The gears are built from astronomy."
+  },
+  {
+   "say": "But the images are blurry, and the machine is broken into 82 fragments. Much of it stays a riddle."
+  },
+  {
+   "say": "To read it properly, someone would need to see straight through solid bronze."
+  },
+  {
+   "say": "Chapter three. X-ray vision. In 2005, the Antikythera Mechanism Research Project brings new tools to Athens."
+  },
+  {
+   "say": "A British company builds a prototype X-ray machine, just to take 3D scans of the fragments."
+  },
+  {
+   "say": "Another team uses clever lighting to make faint letters on the surface stand out."
+  },
+  {
+   "say": "The scans slice through the fragments layer by layer. Gears appear that no one has seen in two thousand years."
+  },
+  {
+   "say": "So do words. Thousands of tiny Greek letters, hidden under the corrosion, can finally be read."
+  },
+  {
+   "say": "In 2006, Tony Freeth and colleagues publish the results in the journal Nature. One line of text reads, spiral divided into 235 sections."
+  },
+  {
+   "say": "The team counts 30 surviving bronze gears, and shows the machine predicted eclipses of the Sun and the Moon."
+  },
+  {
+   "say": "The style of the lettering points to a machine built in the second half of the second century BC."
+  },
+  {
+   "say": "So how does a box of bronze gears predict the sky? Let's open it up."
+  },
+  {
+   "say": "Chapter four. Gear by gear. It all starts with a hand crank on the side. The crank is lost, but its socket survives."
+  },
+  {
+   "say": "The crank turns the biggest gear, a four-spoked wheel about thirteen centimetres across, designed to turn once a year."
+  },
+  {
+   "say": "One full turn of the crank moves the date about 78 days. You are winding time forward."
+  },
+  {
+   "say": "On the front, a pointer runs around a calendar of 365 days. Twelve months of thirty days, plus five extra."
+  },
+  {
+   "say": "Inside it, a ring shows the zodiac, the band of stars the Sun and Moon travel along, divided into 360 degrees."
+  },
+  {
+   "say": "The Sun pointer creeps around once a year. The Moon pointer races ahead, going around more than thirteen times."
+  },
+  {
+   "say": "A little ball on the Moon pointer, half white and half black, turns to show the phase of the Moon."
+  },
+  {
+   "say": "Now turn the machine around. The back has two big spiral dials, like the grooves on a record."
+  },
+  {
+   "say": "The top spiral is a calendar. It winds around five times, through 235 months. That is the Metonic cycle, nineteen years."
+  },
+  {
+   "say": "A pin rides in the groove like a needle, so the pointer follows the spiral outward, month by month."
+  },
+  {
+   "say": "The bottom spiral is the eclipse predictor. It winds four times, through 223 months. That is the Saros cycle."
+  },
+  {
+   "say": "After an eclipse, a very similar eclipse comes back 223 months later. That is about eighteen years and eleven days."
+  },
+  {
+   "say": "Next to certain months sit tiny symbols called glyphs. The 2005 scans found sixteen of them, each one marking an eclipse."
+  },
+  {
+   "say": "A small dial inside counts three Saros cycles, about 54 years, to correct the hours an eclipse shifts each time."
+  },
+  {
+   "say": "But the cleverest trick is hidden deeper inside. The Moon does not move at a steady speed."
+  },
+  {
+   "say": "Its orbit is an ellipse. Near Earth it speeds up, and far away it slows down. The astronomer Hipparchus had a theory for this."
+  },
+  {
+   "say": "The mechanism builds that theory in bronze. Two gears sit face to face, on slightly different centres."
+  },
+  {
+   "say": "A pin on one gear pokes into a slot on the other. As they turn, the pin slides in and out along the slot."
+  },
+  {
+   "say": "So the second gear runs a little fast for half a turn, and a little slow for the other half. The Moon pointer speeds up and slows down, like the real Moon."
+  },
+  {
+   "say": "And both gears ride on a big gear that turns about once every nine years, tracking how the Moon's orbit slowly swings around."
+  },
+  {
+   "say": "That is a working model of an astronomical theory, built more than two thousand years ago."
+  },
+  {
+   "say": "But the inscriptions mention something even more ambitious. The planets. And those gears are gone."
+  },
+  {
+   "say": "Chapter five. A model of the cosmos. Only about a third of the machine survives, and most of the planet gearing is lost."
+  },
+  {
+   "say": "In 2021, a team at University College London, led by Tony Freeth, publishes a new reconstruction in Scientific Reports."
+  },
+  {
+   "say": "Their key clue is an inscription on the front cover. It lists cycles for the planets, including 462 years for Venus, and 442 years for Saturn."
+  },
+  {
+   "say": "To turn those cycles into gear teeth, the team uses an ancient Greek method described by the philosopher Parmenides."
+  },
+  {
+   "say": "The result is a display of rings, one inside another, for the Sun, the Moon and the five planets known then, each marked by a little bead."
+  },
+  {
+   "say": "All of that gearing has to squeeze into a tight space behind the front dial."
+  },
+  {
+   "say": "Freeth calls it the first model that fits all the physical evidence. Next, the team wants to build it using ancient techniques."
+  },
+  {
+   "say": "Chapter six. The lost centuries. Here is the strangest part. After this machine, the trail goes cold."
+  },
+  {
+   "say": "Its makers understood gear trains, astronomical cycles and the theories of Hipparchus. Yet nothing else like it survives from the ancient world."
+  },
+  {
+   "say": "The closest thing from the centuries after is a much simpler Byzantine geared sundial, from around the year 600."
+  },
+  {
+   "say": "Machines of similar complexity only appear again in the fourteenth century, in the astronomical clocks of medieval Europe."
+  },
+  {
+   "say": "That is a gap of well over a thousand years. Whoever built this, their know-how vanished with them."
+  },
+  {
+   "say": "One corroded lump from a shipwreck proves that the ancient Greeks built a computer of bronze gears to predict the sky."
+  },
+  {
+   "say": "Subscribe for more stories of how things work."
+  }
+ ],
+ "card": {
+  "lines": [
+   "SUBSCRIBE FOR MORE",
+   "HOW THINGS WORK"
+  ],
+  "size": 72
+ }
+}

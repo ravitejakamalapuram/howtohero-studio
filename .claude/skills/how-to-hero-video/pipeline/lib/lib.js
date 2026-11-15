@@ -12,7 +12,9 @@
       const clamp = (v, a = 0, b = 1) => Math.min(b, Math.max(a, v)), lerp = (a, b, u) => a + (b - a) * u, ease = (u) => u * u * (3 - 2 * u);
       const TAU = Math.PI * 2;
       const C = { navy: "#1F2A6B", navyD: "#0F1642", navyL: "#2E3C8F", yellow: "#FFC531", red: "#E5384F", white: "#FFFFFF", green: "#3DDC84", sky: "#9FB0FF", ink: "#080C2E", mute: "#8FA0E8" };
-      const SAFE = { x0: 60, x1: 940, y0: 420, y1: 1500, cx: 500 }, BX = 60, BY = 440, BW = 880, BH = 760;
+      // Frame geometry comes from build.mjs (CFG.fmt): vertical short 1080x1920, or 16:9 documentary 1920x1080 (box 1680x780 at 120,70).
+      const F = CFG.fmt, FW = F.W, FH = F.H, DOC = !!F.doc;
+      const SAFE = F.SAFE, BX = F.BX, BY = F.BY, BW = F.BW, BH = F.BH;
       const tw = (s, size, track = 0) => [...s].reduce((n, ch) => n + (WID[ch] ?? 50), 0) * size / 100 + track * s.length;
       function rng(seed) { return () => { seed |= 0; seed = (seed + 0x6d2b79f5) | 0; let x = Math.imul(seed ^ (seed >>> 15), 1 | seed); x = (x + Math.imul(x ^ (x >>> 7), 61 | x)) ^ x; return ((x ^ (x >>> 14)) >>> 0) / 4294967296; }; }
 
@@ -24,9 +26,9 @@
       const pat = E("pattern", { id: "dots", width: 46, height: 46, patternUnits: "userSpaceOnUse" }, defs);
       E("circle", { cx: 23, cy: 23, r: 2.2, fill: "#fff", opacity: 0.07 }, pat);
       E("rect", { x: 0, y: 0, width: BW, height: BH }, E("clipPath", { id: "boxClip" }, defs));
-      E("rect", { width: 1080, height: 1920, fill: "url(#bgG)" });
-      E("ellipse", { cx: 500, cy: 900, rx: 700, ry: 620, fill: "url(#glowW)", opacity: 0.22 });
-      E("rect", { width: 1080, height: 1920, fill: "url(#dots)" });
+      E("rect", { width: FW, height: FH, fill: "url(#bgG)" });
+      E("ellipse", { cx: DOC ? 960 : 500, cy: DOC ? 480 : 900, rx: DOC ? 1100 : 700, ry: DOC ? 560 : 620, fill: "url(#glowW)", opacity: 0.22 });
+      E("rect", { width: FW, height: FH, fill: "url(#dots)" });
 
       const tl = gsap.timeline({ paused: true });
       const U = [];
