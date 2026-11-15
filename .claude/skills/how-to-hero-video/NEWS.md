@@ -5,7 +5,7 @@ One run a day. Never post anything. Uses `inbox.sh` (next to this file); never p
 Approval flow:
 - **Lane B (science, space, tech research):** the run proposes the story as an Inbox item of type `story`. The person approves it on Telegram during the day, and the next run builds it.
 - **Lane A (trending tech or infrastructure event):** no story approval. It goes stale within hours, so the run builds it straight away.
-- Every finished video goes to the person as type `video`, `pending`, with a `slot`. Once they approve it, the Inbox sends a Telegram reminder at the slot time with the captions in `data.reminder`. Posting stays manual.
+- Every finished video goes to the person as type `video`, `pending`, with a `slot`. Once they approve it, it stays `approved` in the queue until the automatic publisher posts it (the slot says when). Never set `data.remind`: the user wants no manual posting reminders. Keep the captions in `data.reminder` for the publisher.
 
 ## Steps, in this order
 
