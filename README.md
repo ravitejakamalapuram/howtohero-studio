@@ -18,6 +18,7 @@ The old How To Hero artifact queue is retired. Its unposted cards moved to the I
 - `.claude/skills/how-to-hero-video/SKILL.md`: the nightly build procedure and the video rules.
 - `.claude/skills/how-to-hero-video/NEWS.md`: the daily news procedure.
 - `.claude/skills/how-to-hero-video/inbox.sh`: the only way the jobs call the Inbox.
+- `.claude/skills/how-to-hero-video/dupcheck.py`: checks a topic against every Inbox item before a job builds or proposes it, so no video is made twice.
 - `.claude/skills/how-to-hero-video/pipeline/`: HyperFrames + Kokoro TTS + ffmpeg renderer, `verify.py`, and worked examples in `videos/` (`v*` shorts, `n*` news, `d*` 16:9 documentaries).
 - `publisher/publish.py`: the auto-publisher.
 
