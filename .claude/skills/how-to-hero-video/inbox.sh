@@ -3,7 +3,7 @@
 # Needs INBOX_URL and INBOX_TOKEN in the environment. Never print, log or commit them,
 # and never print an upload link (anyone holding it can write the file).
 #   inbox.sh call '<json without token>'  -> the API reply; exits 1 when "ok" is false
-#   inbox.sh up <file> <itemId> [folder]   -> uploads to Drive (default folder review), attaches it to the item,
+#   inbox.sh up <file> <itemId>   -> uploads to the Inbox's Drive folder, attaches it to the item,
 #                                             prints the attach reply ({"item":{...,"driveId","link"}})
 set -euo pipefail
 : "${INBOX_URL:?set INBOX_URL}" "${INBOX_TOKEN:?set INBOX_TOKEN}"
@@ -18,8 +18,8 @@ call() {
 }
 
 up() {
-  local file=$1 id=$2 folder=${3:-review} req session put fid
-  req=$(python3 -c 'import json,os,sys; print(json.dumps({"action":"uploadUrl","id":sys.argv[2],"folder":sys.argv[3],"name":os.path.basename(sys.argv[1]),"size":os.path.getsize(sys.argv[1]),"replaceExisting":True}))' "$file" "$id" "$folder")
+  local file=$1 id=$2 req session put fid
+  req=$(python3 -c 'import json,os,sys; print(json.dumps({"action":"uploadUrl","id":sys.argv[2],"name":os.path.basename(sys.argv[1]),"size":os.path.getsize(sys.argv[1]),"replaceExisting":True}))' "$file" "$id")
   session=$(call "$req" 2>/dev/null) || { echo "uploadUrl failed" >&2; exit 1; }
   put=$(curl -sS --fail --retry 3 -m 900 -X PUT --data-binary @"$file" \
     "$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["uploadUrl"])' "$session")")
@@ -29,6 +29,6 @@ up() {
 
 case "${1:-}" in
   call) call "$2" ;;
-  up) up "$2" "$3" "${4:-review}" ;;
-  *) echo "usage: inbox.sh call '<json>' | up <file> <itemId> [folder]" >&2; exit 2 ;;
+  up) up "$2" "$3" ;;
+  *) echo "usage: inbox.sh call '<json>' | up <file> <itemId>" >&2; exit 2 ;;
 esac
