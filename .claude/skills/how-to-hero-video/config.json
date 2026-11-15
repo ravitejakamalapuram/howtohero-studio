@@ -1,0 +1,12 @@
+{
+  "scout": {
+    "newsMin": 3,
+    "newsMax": 10,
+    "ideas": 10,
+    "maxPendingIdeas": 40
+  },
+  "build": {
+    "maxPerRun": 10,
+    "claimTtlMinutes": 180
+  }
+}
