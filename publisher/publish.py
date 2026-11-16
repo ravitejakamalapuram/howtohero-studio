@@ -15,6 +15,8 @@ the first job instead of posting twice.
 
 Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. PLATFORMS defaults to "instagram,facebook,youtube". LinkedIn is left out: the connected account is a personal profile.
 YouTube uploads go out public (tested 16 Nov 2026: no API audit needed).
+Each run first writes data.links on pending and approved videos: the main video plus one Drive link per platform
+version, so the Inbox card and Telegram message offer every version (LINKS_ONLY=true stops after that).
 Run with --dry-run to see what it would post.
 Manual runs can set POST_NOW=true (ignore the slot, take the next approved video) or ITEM_ID=<id> (post that
 approved video now). Either way only approved videos go out, and the per-platform key still stops double posts.
@@ -36,6 +38,7 @@ MAX_RUNS = 3  # runs a platform may fail before the publisher gives up on it
 DRY = '--dry-run' in sys.argv
 ITEM_ID = os.environ.get('ITEM_ID', '').strip()
 POST_NOW = os.environ.get('POST_NOW') == 'true'
+LINKS_ONLY = os.environ.get('LINKS_ONLY') == 'true'
 # What each platform accepts (maxSeconds, versionSeconds): platforms/<name>.json, one file per platform.
 PLATFORM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'platforms')
 RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.listdir(PLATFORM_DIR) if f.endswith('.json')}
@@ -141,7 +144,33 @@ def post_for(platform, item, data, cache):
     raise ValueError(platform)
 
 
+def video_links(item, data):
+    """{label: url} for the Inbox card: the main video and each platform version (data.versions.<platform>)."""
+    links = {'Main': item['link']} if item.get('link') else {}
+    for p, file_id in sorted((data.get('versions') or {}).items()):
+        links[p.capitalize()] = f'https://drive.google.com/file/d/{file_id}/view'
+    return links
+
+
+def sync_links():
+    """Writes data.links on every pending or approved video whose links are missing or out of date."""
+    for item in inbox({'action': 'list', 'status': 'pending,approved', 'type': 'video', 'limit': 1000})['items']:
+        data = item['data'] if isinstance(item.get('data'), dict) else {}
+        links = video_links(item, data)
+        if len(links) < 2 or data.get('links') == links:
+            continue  # one link is the item's own Open button already
+        print(f"links for {item['id']}: {', '.join(links)}")
+        if not DRY:
+            inbox({'action': 'update', 'id': item['id'], 'ifVersion': item['version'], 'set': {'data': dict(data, links=links)}})
+
+
 def run():
+    try:
+        sync_links()
+    except (RuntimeError, OSError, KeyError) as e:  # never let this stop a post
+        print(f'links not synced: {e}')
+    if LINKS_ONLY:
+        return 0
     items = due_items()
     if not items:
         print('nothing due')
