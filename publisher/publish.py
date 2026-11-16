@@ -146,6 +146,8 @@ def run():
     later = {p: why for p, why in NOT_YET.items() if p not in posted and p not in still_failed}
     new_data = dict(data, posted=posted, failed=still_failed, pending=later, publishFails=fails)
     new_data.pop('publishRetries', None)
+    if posted and not data.get('postedAt'):  # the Inbox Channels page dates posts by this
+        new_data['postedAt'] = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
     fresh = inbox({'action': 'get', 'id': item['id']})['item']
     set_ = {'data': new_data}
     if not waiting and not retry_later:
