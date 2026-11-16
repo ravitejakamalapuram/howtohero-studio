@@ -1,7 +1,7 @@
 {
   "_about": "The single source of truth for this platform: what it accepts and what we have learned about it. Every skill, job and script that makes or posts videos for it reads this file; put new findings here, not anywhere else. maxSeconds is the platform's limit. A video longer than that never goes out cut: the video build makes a separate version for this platform of at most versionSeconds, with its own hook, payoff and end card (data.versions.<platform>), and the publisher posts it only when that version exists.",
   "maxSeconds": 90,
-  "versionSeconds": 37,
+  "versionSeconds": 87,
   "captionMax": 2200,
   "hashtagsMax": 30,
   "notes": [
