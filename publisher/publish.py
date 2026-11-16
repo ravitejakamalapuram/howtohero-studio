@@ -63,6 +63,13 @@ def due_items():
     return sorted(due, key=lambda i: (not is_news(i), when(i) or now))
 
 
+# Platforms not posted to yet and why, shown on the Inbox card. Drop one here when it goes live in PLATFORMS.
+NOT_YET = {
+    'youtube': 'waiting for the YouTube API audit',
+    'linkedin': 'Page posting not approved yet',
+}
+
+
 def live_platforms():
     wanted = [p.strip() for p in os.environ.get('PLATFORMS', 'instagram,facebook').split(',') if p.strip()]
     live = []
@@ -135,7 +142,9 @@ def run():
     retry_later = [p for p in failed if fails[p] < MAX_RUNS]
     # failed holds only destinations still without a post, so the Inbox card shows a cross for each.
     still_failed = {p: e for p, e in dict(data.get('failed') or {}, **failed).items() if p not in posted}
-    new_data = dict(data, posted=posted, failed=still_failed, publishFails=fails)
+    # Platforms this run did not post to: the Inbox card shows them as yellow "not posted yet" chips.
+    later = {p: why for p, why in NOT_YET.items() if p not in posted and p not in still_failed}
+    new_data = dict(data, posted=posted, failed=still_failed, pending=later, publishFails=fails)
     new_data.pop('publishRetries', None)
     fresh = inbox({'action': 'get', 'id': item['id']})['item']
     set_ = {'data': new_data}
