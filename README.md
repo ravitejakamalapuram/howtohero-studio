@@ -15,6 +15,7 @@ The old How To Hero artifact queue is retired. Its unposted cards moved to the I
 
 ## Layout
 
+- `SETUP.md`: every key the jobs use, where it lives, and how to run a job on another AI platform.
 - `.claude/skills/how-to-hero-video/SCOUT.md`: the daily scout (proposes news and ideas).
 - `.claude/skills/how-to-hero-video/SKILL.md`: the build run and the video rules.
 - `.claude/skills/how-to-hero-video/NEWS.md`: how to find, source and build news stories.
