@@ -8,6 +8,8 @@
 DUPLICATE means the words of the subject mostly match (id, title or data.topic of an item).
 CHECK means the subjects overlap: read those and decide whether the angle is really new.
 Words are compared, not meaning, so paraphrases ("phones home" vs "talks to Earth") show up as CHECK.
+CHECK also lists items that share a rare word (one used by at most RARE items, usually a name such as
+"voyager" or "hayabusa2"), because two videos about the same named thing are the likeliest repeats.
 
 It compares against EVERY Inbox item (all types, all statuses, all sources: ideas, stories,
 pending, approved, posted and rejected videos), fetched with inbox.sh next to this file.
@@ -60,6 +62,7 @@ def score(a_sets, b_sets):
 
 
 DUP, NEAR = 0.5, 0.2
+RARE = 3  # a word in at most this many items counts as a name worth a CHECK
 
 
 def fail(msg):
@@ -100,11 +103,20 @@ def main():
     if not a.topic:
         p.error("give a topic, or --audit")
     want = [words(a.topic)]
+    df = {}
+    for it in items:
+        for w in set().union(*fields(it)):
+            df[w] = df.get(w, 0) + 1
+    rare = {w for w in want[0] if df.get(w, 0) <= RARE}
+
+    def near(s, it):
+        return s >= NEAR or bool(rare & set().union(*fields(it)))
+
     ranked = sorted(((score(want, fields(it)), it) for it in items), key=lambda p: -p[0])
     hits = [it for s, it in ranked if s >= DUP]
     for it in hits:
         print(f"DUPLICATE {it['id']} ({it.get('type')}, {it.get('status')}): {it.get('title', '')}")
-    for s, it in [p for p in ranked if NEAR <= p[0] < DUP][:5]:
+    for s, it in [p for p in ranked if p[0] < DUP and near(*p)][:5]:
         print(f"CHECK {it['id']} ({it.get('type')}, {it.get('status')}): {it.get('title', '')}")
     sys.exit(1 if hits else 0)
 
