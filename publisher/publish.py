@@ -5,6 +5,11 @@ Each run takes the first approved video whose slot has passed (news first, then 
 every platform in PLATFORMS that is connected, waits for the jobs, then marks the item "posted" in the Inbox
 with the post links in data.posted. One video per run, so a backlog goes out one run apart.
 
+An item counts as posted only once every platform has succeeded. A platform that still fails after this
+run's retries leaves the item approved, so the next run tries that platform again (platforms already done
+return their first job and don't post twice). After MAX_RUNS failed runs on one platform the publisher gives
+up on it, marks the item posted (or "ready" if nothing posted) and says why in the note.
+
 Safe to run again at any time: each post uses the key "<item id>-<platform>", so Social Manager returns
 the first job instead of posting twice.
 
@@ -20,7 +25,8 @@ import time
 import urllib.request
 
 WAIT_SECONDS = 15 * 60
-MAX_RETRIES = 2
+MAX_RETRIES = 2  # retries per platform within one run
+MAX_RUNS = 3  # runs a platform may fail before the publisher gives up on it
 DRY = '--dry-run' in sys.argv
 
 
@@ -100,7 +106,7 @@ def run():
         return 0 if platforms else 1
 
     jobs = {p: social(dict(post_for(p, item, data), action='publish'))['job'] for p in platforms}
-    retries = dict(data.get('publishRetries') or {})
+    retries = {}
     deadline = time.time() + WAIT_SECONDS
     while True:
         for p, j in list(jobs.items()):
@@ -123,17 +129,23 @@ def run():
     for p, e in failed.items():
         print(f'{p} FAILED: {e}')
 
+    fails = dict(data.get('publishFails') or {})
+    for p in failed:
+        fails[p] = fails.get(p, 0) + 1
+    retry_later = [p for p in failed if fails[p] < MAX_RUNS]
     # failed holds only destinations still without a post, so the Inbox card shows a cross for each.
     still_failed = {p: e for p, e in dict(data.get('failed') or {}, **failed).items() if p not in posted}
-    new_data = dict(data, posted=posted, failed=still_failed, publishRetries=retries)
+    new_data = dict(data, posted=posted, failed=still_failed, publishFails=fails)
+    new_data.pop('publishRetries', None)
     fresh = inbox({'action': 'get', 'id': item['id']})['item']
-    done = not waiting and not any(retries.get(p, 0) < MAX_RETRIES for p in failed)
     set_ = {'data': new_data}
-    if done:
-        # Nothing posted at all: move it out of the queue so it doesn't block the videos behind it.
+    if not waiting and not retry_later:
+        # Every platform is done or given up. Nothing posted at all: move it out of the queue
+        # so it doesn't block the videos behind it.
         set_['status'] = 'posted' if posted else 'ready'
     if failed:
-        set_['note'] = 'Publisher: ' + '; '.join(f'{p} failed: {e}' for p, e in failed.items())
+        set_['note'] = 'Publisher: ' + '; '.join(
+            f'{p} failed ({fails[p]} of {MAX_RUNS} runs): {e}' for p, e in failed.items())
     inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': set_})
     print('marked posted' if set_.get('status') == 'posted' else 'left approved; the next run carries on')
     return 1 if failed else 0
