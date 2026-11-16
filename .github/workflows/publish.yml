@@ -14,6 +14,10 @@ on:
         description: 'Or post this approved video now (Inbox item id)'
         type: string
         default: ''
+      links_only:
+        description: 'Only write the per-platform video links on Inbox items; post nothing'
+        type: boolean
+        default: false
 concurrency: publish
 jobs:
   publish:
@@ -31,3 +35,4 @@ jobs:
           PLATFORMS: instagram,facebook,youtube
           POST_NOW: ${{ inputs.post_now }}
           ITEM_ID: ${{ inputs.item_id }}
+          LINKS_ONLY: ${{ inputs.links_only }}
