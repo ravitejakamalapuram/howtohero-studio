@@ -9,6 +9,15 @@ on:
     - cron: '37 7 * * *'
     - cron: '7 14 * * *'
   workflow_dispatch:
+    inputs:
+      post_now:
+        description: 'Post the next approved video now, even if its scheduled time is later'
+        type: boolean
+        default: false
+      item_id:
+        description: 'Or post this approved video now (Inbox item id)'
+        type: string
+        default: ''
 concurrency: publish
 jobs:
   publish:
@@ -23,3 +32,5 @@ jobs:
           SOCIAL_URL: ${{ secrets.SOCIAL_URL }}
           SOCIAL_TOKEN: ${{ secrets.SOCIAL_TOKEN }}
           PLATFORMS: instagram,facebook
+          POST_NOW: ${{ inputs.post_now }}
+          ITEM_ID: ${{ inputs.item_id }}

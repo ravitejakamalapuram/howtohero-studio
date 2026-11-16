@@ -16,6 +16,8 @@ the first job instead of posting twice.
 Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. PLATFORMS defaults to "instagram,facebook". LinkedIn is left out: the connected account is a personal profile.
 YouTube is left out until the API audit passes: before that, API uploads stay private for good.
 Run with --dry-run to see what it would post.
+Manual runs can set POST_NOW=true (ignore the slot, take the next approved video) or ITEM_ID=<id> (post that
+approved video now). Either way only approved videos go out, and the per-platform key still stops double posts.
 """
 import datetime as dt
 import json
@@ -28,6 +30,8 @@ WAIT_SECONDS = 15 * 60
 MAX_RETRIES = 2  # retries per platform within one run
 MAX_RUNS = 3  # runs a platform may fail before the publisher gives up on it
 DRY = '--dry-run' in sys.argv
+ITEM_ID = os.environ.get('ITEM_ID', '').strip()
+POST_NOW = os.environ.get('POST_NOW') == 'true'
 
 
 def call(url, token, body):
@@ -58,7 +62,9 @@ def when(item):
 def due_items():
     now = dt.datetime.now(dt.timezone.utc)
     items = inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 200})['items']
-    due = [i for i in items if i.get('driveId') and (when(i) is None or when(i) <= now)]
+    if ITEM_ID:  # a manual run that names one video posts it now, if it is approved
+        return [i for i in items if i['id'] == ITEM_ID and i.get('driveId')]
+    due = [i for i in items if i.get('driveId') and (POST_NOW or when(i) is None or when(i) <= now)]
     is_news = lambda i: i.get('source') == 'news' or str(i['id']).startswith('news-')
     return sorted(due, key=lambda i: (not is_news(i), when(i) or now))
 
