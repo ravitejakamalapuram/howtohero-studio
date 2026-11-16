@@ -23,6 +23,7 @@ import base64
 import datetime as dt
 import json
 import os
+import re
 import subprocess
 import sys
 import tempfile
@@ -35,7 +36,7 @@ MAX_RUNS = 3  # runs a platform may fail before the publisher gives up on it
 DRY = '--dry-run' in sys.argv
 ITEM_ID = os.environ.get('ITEM_ID', '').strip()
 POST_NOW = os.environ.get('POST_NOW') == 'true'
-# What each platform accepts (maxSeconds, cutSeconds): platforms/<name>.json, one file per platform.
+# What each platform accepts (maxSeconds, versionSeconds): platforms/<name>.json, one file per platform.
 PLATFORM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'platforms')
 RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.listdir(PLATFORM_DIR) if f.endswith('.json')}
 
@@ -93,38 +94,32 @@ def live_platforms():
     return live
 
 
+def video_seconds(item, data, cache):
+    """The video's length: from data.videoRef ("<file> | 47.3 s | ...") when the build wrote it, else measured."""
+    m = re.search(r'\|\s*([\d.]+)\s*s\s*\|', str(data.get('videoRef') or ''))
+    if m:
+        return float(m.group(1))
+    if 'seconds' not in cache:
+        with tempfile.TemporaryDirectory() as d:
+            src = os.path.join(d, 'in.mp4')
+            with open(src, 'wb') as fh:
+                fh.write(base64.b64decode(inbox({'action': 'download', 'id': item['id']})['base64']))
+            cache['seconds'] = float(subprocess.check_output(
+                ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src]).decode().strip())
+    return cache['seconds']
+
+
 def platform_file(platform, item, data, cache):
-    """The Drive id this platform gets: the video itself, or a cut of its first cutSeconds when it is longer than the
-    platform's maxSeconds (platforms/<name>.json). A cut is made once, uploaded through the Inbox and kept in data.cuts."""
-    rule = RULES.get(platform) or {}
-    cuts = data.setdefault('cuts', {})
-    if not rule.get('maxSeconds') or item['id'].startswith('doc-'):
+    """The Drive id this platform gets, or None when it needs its own version and has none yet. A video longer than
+    the platform's maxSeconds (platforms/<name>.json) is never cut here: the video build makes a separate version
+    (data.versions.<platform>) with its own hook, payoff and end card."""
+    version = (data.get('versions') or {}).get(platform)
+    if version:
+        return version
+    limit = (RULES.get(platform) or {}).get('maxSeconds')
+    if not limit or item['id'].startswith('doc-') or video_seconds(item, data, cache) <= limit:
         return item['driveId']
-    if cuts.get(platform):
-        return cuts[platform]
-    if 'src' not in cache:
-        cache['dir'] = tempfile.mkdtemp()
-        cache['src'] = os.path.join(cache['dir'], 'in.mp4')
-        with open(cache['src'], 'wb') as fh:
-            fh.write(base64.b64decode(inbox({'action': 'download', 'id': item['id']})['base64']))
-        cache['seconds'] = float(subprocess.check_output(
-            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', cache['src']]).decode().strip())
-    if cache['seconds'] <= rule['maxSeconds']:
-        return item['driveId']
-    cut = rule['cutSeconds']
-    out = os.path.join(cache['dir'], f'{platform}.mp4')
-    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', cache['src'], '-t', str(cut),
-                    '-vf', f'fade=t=out:st={cut - 1}:d=1', '-af', f'afade=t=out:st={cut - 1}:d=1',
-                    '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p',
-                    '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', out], check=True)
-    session = inbox({'action': 'uploadUrl', 'id': item['id'], 'name': f"{item['id']}-{platform}.mp4",
-                     'size': os.path.getsize(out), 'replaceExisting': True})
-    with open(out, 'rb') as fh:
-        req = urllib.request.Request(session['uploadUrl'], data=fh.read(), method='PUT', headers={'Content-Type': 'video/mp4'})
-    with urllib.request.urlopen(req, timeout=300) as r:
-        cuts[platform] = json.loads(r.read().decode())['id']
-    print(f"{platform} gets a {cut} s cut of the {cache['seconds']:.0f} s video")
-    return cuts[platform]
+    return None
 
 
 def post_for(platform, item, data, cache):
@@ -132,7 +127,7 @@ def post_for(platform, item, data, cache):
     caption = (data.get('ig') or item.get('summary') or title).strip()
     file_id = platform_file(platform, item, data, cache)
     video = {'driveFileId': file_id}
-    key = f"{item['id']}-{platform}" + ('-cut' if file_id != item['driveId'] else '')  # a cut is a new job
+    key = f"{item['id']}-{platform}" + ('-version' if file_id != item['driveId'] else '')  # its own job
     if platform == 'instagram':
         return {'platform': platform, 'key': key, 'video': video, 'caption': caption}
     if platform == 'facebook':
@@ -158,9 +153,13 @@ def run():
     if DRY or not platforms:
         return 0 if platforms else 1
 
-    jobs, cache = {}, {}
+    jobs, cache, no_version = {}, {}, {}
     for p in platforms:
         try:
+            if platform_file(p, item, data, cache) is None:
+                no_version[p] = f"needs its own {p} version of {RULES[p]['versionSeconds']} s or less (the video build makes it)"
+                print(f'skip {p}: {no_version[p]}')
+                continue
             jobs[p] = social(dict(post_for(p, item, data, cache), action='publish'))['job']
         except (RuntimeError, OSError, subprocess.CalledProcessError, ValueError, KeyError) as e:
             jobs[p] = {'id': None, 'status': 'failed', 'error': f'not started: {e}'}
@@ -194,7 +193,7 @@ def run():
     # failed holds only destinations still without a post, so the Inbox card shows a cross for each.
     still_failed = {p: e for p, e in dict(data.get('failed') or {}, **failed).items() if p not in posted}
     # Platforms this run did not post to: the Inbox card shows them as yellow "not posted yet" chips.
-    later = {p: why for p, why in NOT_YET.items() if p not in posted and p not in still_failed}
+    later = {p: why for p, why in dict(NOT_YET, **no_version).items() if p not in posted and p not in still_failed}
     new_data = dict(data, posted=posted, failed=still_failed, pending=later, publishFails=fails)
     new_data.pop('publishRetries', None)
     if posted and not data.get('postedAt'):  # the Inbox Channels page dates posts by this
