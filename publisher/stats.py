@@ -25,7 +25,7 @@ def main():
             if os.environ.get('GITHUB_REPOSITORY'):  # lets the dashboard's "Post now" start publish.yml here,
                 # and the Inbox's timer start it at the 3 daily slots (IST), since GitHub's schedule never fired
                 body['publish'] = {'repo': os.environ['GITHUB_REPOSITORY'], 'workflow': 'publish.yml',
-                                   'times': ['08:30', '13:00', '19:30']}
+                                   'times': ['08:30', '13:00', '19:30'], 'first': ['news']}
             r = inbox(body)
             print(f"{p}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
         except Exception as e:  # one platform failing should not stop the others
