@@ -24,7 +24,7 @@ Model: "What Did Ancient Humans Actually Do All Day?" (Ink Explainer, 18.9 milli
 - **It is a story with people in it.** A researcher with a notebook in the Kalahari, a 40,000-year-old bone flute, stories told around the fire. Concrete scenes beat abstract facts.
 - **Every claim has a named source.** The video lists the study, the year and the journal for each point. We do the same; it is also what keeps it trustworthy.
 
-Good curiosity questions follow the patterns "What did people actually do / eat / believe ...", "How did people ... before ...", "Why do we ...", "What happens to your body when ...", "Where did ... come from". Examples of the shape (check each with dupcheck before use): how Romans brushed their teeth, why we sleep in one block when people once slept twice, what medieval peasants did on their many holidays, why humans are the only animals that blush.
+Good curiosity questions follow the patterns "What did people actually do / eat / believe ...", "How did people ... before ...", "Why do we ...", "What happens to your body when ...", "Where did ... come from". Find your own subjects each run; never reuse an example from this file.
 
 Keep out: anything that needs footage of real people, gore, medical advice, politics or religion as a debate, and "ancient aliens" style speculation. A curiosity story is still fact-checked (`fact` "K"), and a contested finding is said as "researchers think" (`fact` "C").
 
