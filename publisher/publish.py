@@ -71,9 +71,10 @@ def when(item):
 
 def due_items():
     now = dt.datetime.now(dt.timezone.utc)
-    items = inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 200})['items']
-    if ITEM_ID:  # a manual run that names one video posts it now, if it is approved
+    if ITEM_ID:  # a manual run that names one video posts it now; a posted one gets its missing platforms
+        items = inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
         return [i for i in items if i['id'] == ITEM_ID and i.get('driveId')]
+    items = inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 200})['items']
     due = [i for i in items if i.get('driveId') and (POST_NOW or when(i) is None or when(i) <= now)]
     is_news = lambda i: i.get('source') == 'news' or str(i['id']).startswith('news-')
     return sorted(due, key=lambda i: (not is_news(i), when(i) or now))

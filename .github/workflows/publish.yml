@@ -11,7 +11,7 @@ on:
         type: boolean
         default: false
       item_id:
-        description: 'Or post this approved video now (Inbox item id)'
+        description: 'Or post this video now (Inbox item id); a posted one gets only its missing platforms'
         type: string
         default: ''
       links_only:
