@@ -87,14 +87,15 @@ NOT_YET = {
 
 def live_platforms():
     wanted = [p.strip() for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()]
-    live = []
+    live, down = [], {}
     for p in wanted:
         try:
             social({'action': 'channel', 'platform': p})
             live.append(p)
         except RuntimeError as e:
-            print(f'skip {p}: {e}')
-    return live
+            print(f'{p} is not connected: {e}')
+            down[p] = f'channel not connected: {e}'
+    return live, down
 
 
 def video_seconds(item, data, cache):
@@ -177,12 +178,15 @@ def run():
         return 0
     item = items[0]
     data = dict(item.get('data')) if isinstance(item.get('data'), dict) else {}
-    platforms = live_platforms()
+    platforms, down = live_platforms()
     print(f"posting {item['id']} (slot {item.get('slot')}) to {', '.join(platforms) or 'nothing'}; {len(items) - 1} more due")
     if DRY or not platforms:
         return 0 if platforms else 1
 
-    jobs, cache, no_version = {}, {}, {}
+    # A platform whose channel is down counts as a failed post, so the video stays approved and the
+    # next run tries it again instead of marking it posted without that platform.
+    jobs = {p: {'id': None, 'status': 'failed', 'error': e} for p, e in down.items()}
+    cache, no_version = {}, {}
     for p in platforms:
         try:
             if platform_file(p, item, data, cache) is None:
