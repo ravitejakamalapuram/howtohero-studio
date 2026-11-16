@@ -6,6 +6,7 @@
 #                                  (every "add" gets data.app/data.icon so the Inbox labels it How To Hero)
 #   inbox.sh up <file> <itemId>   -> uploads to the Inbox's Drive folder, attaches it to the item,
 #                                             prints the attach reply ({"item":{...,"driveId","link"}})
+#   inbox.sh upload <file> <itemId> -> uploads without attaching (for a platform version); prints the Drive file id
 set -euo pipefail
 : "${INBOX_URL:?set INBOX_URL}" "${INBOX_TOKEN:?set INBOX_TOKEN}"
 
@@ -21,6 +22,15 @@ print(json.dumps(d))' "$1")
   printf '%s' "$out" | python3 -c 'import json,sys; sys.exit(0 if json.load(sys.stdin).get("ok") else 1)'
 }
 
+upload() {
+  local file=$1 id=$2 req session put
+  req=$(python3 -c 'import json,os,sys; print(json.dumps({"action":"uploadUrl","id":sys.argv[2],"name":os.path.basename(sys.argv[1]),"size":os.path.getsize(sys.argv[1]),"replaceExisting":True}))' "$file" "$id")
+  session=$(call "$req" 2>/dev/null) || { echo "uploadUrl failed" >&2; exit 1; }
+  put=$(curl -sS --fail --retry 3 -m 900 -X PUT --data-binary @"$file" \
+    "$(python3 -c 'import json,sys; print(json.loads(sys.argv[1])["uploadUrl"])' "$session")")
+  python3 -c 'import json,sys; print(json.loads(sys.argv[1])["id"])' "$put"
+}
+
 up() {
   local file=$1 id=$2 req session put fid
   req=$(python3 -c 'import json,os,sys; print(json.dumps({"action":"uploadUrl","id":sys.argv[2],"name":os.path.basename(sys.argv[1]),"size":os.path.getsize(sys.argv[1]),"replaceExisting":True}))' "$file" "$id")
@@ -34,5 +44,6 @@ up() {
 case "${1:-}" in
   call) call "$2" ;;
   up) up "$2" "$3" ;;
-  *) echo "usage: inbox.sh call '<json>' | up <file> <itemId>" >&2; exit 2 ;;
+  upload) upload "$2" "$3" ;;
+  *) echo "usage: inbox.sh call '<json>' | up <file> <itemId> | upload <file> <itemId>" >&2; exit 2 ;;
 esac
