@@ -1,12 +1,12 @@
 {
   "_about": "The single source of truth for this platform: what it accepts and what we have learned about it. Every skill, job and script that makes or posts videos for it reads this file; put new findings here, not anywhere else. maxSeconds is the platform's limit. A video longer than that never goes out cut: the video build makes a separate version for this platform of at most versionSeconds, with its own hook, payoff and end card (data.versions.<platform>), and the publisher posts it only when that version exists.",
-  "maxSeconds": 40,
+  "maxSeconds": 90,
   "versionSeconds": 37,
   "captionMax": 2200,
   "hashtagsMax": 30,
   "notes": [
-    "The API refuses Reels over about 40 s on this account (rupload ProcessingFailedError, the container never finishes). Seen 2026-11-16; may lift as the account ages.",
-    "So a video over 40 s gets its own Instagram version of at most 37 s (verify allows 2 s over, so it stays under 40): the same hook, fewer beats, the payoff and the mascot end card. Never a truncated copy.",
+    "Our HyperFrames renders fail Instagram processing as they come (rupload ProcessingFailedError), at any length: a 29 s version failed on 2026-11-16 while the same file re-encoded with ffmpeg libx264 (crf 20, yuv420p, aac 128k, faststart) posted fine. The publisher re-encodes Instagram's copy (data.igDriveId). The earlier '40 s limit' was this, not a length limit.",
+    "maxSeconds is 90 until a longer re-encoded post is tested. A video over it gets its own version of at most versionSeconds, never a truncated copy.",
     "The grid and feed show an early frame: the headline must be readable from frame 0.",
     "No private or scheduled posts through the API."
   ]

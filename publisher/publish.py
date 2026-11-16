@@ -118,21 +118,43 @@ def platform_file(platform, item, data, cache):
     """The Drive id this platform gets, or None when it needs its own version and has none yet. A video longer than
     the platform's maxSeconds (platforms/<name>.json) is never cut here: the video build makes a separate version
     (data.versions.<platform>) with its own hook, payoff and end card."""
-    version = (data.get('versions') or {}).get(platform)
-    if version:
-        return version
     limit = (RULES.get(platform) or {}).get('maxSeconds')
     if not limit or item['id'].startswith('doc-') or video_seconds(item, data, cache) <= limit:
-        return item['driveId']
-    return None
+        return item['driveId']  # the full video whenever it fits
+    return (data.get('versions') or {}).get(platform)
+
+
+def instagram_copy(item, data):
+    """Instagram's processing refuses our renders as they come (rupload ProcessingFailedError, even at 29 s) but takes
+    the same video re-encoded with plain libx264 settings. The copy is made once, uploaded through the Inbox and
+    remembered in data.igDriveId."""
+    if data.get('igDriveId'):
+        return data['igDriveId']
+    with tempfile.TemporaryDirectory() as d:
+        src, out = os.path.join(d, 'in.mp4'), os.path.join(d, 'ig.mp4')
+        with open(src, 'wb') as fh:
+            fh.write(base64.b64decode(inbox({'action': 'download', 'id': item['id']})['base64']))
+        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
+                        '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', out], check=True)
+        session = inbox({'action': 'uploadUrl', 'id': item['id'], 'name': f"{item['id']}-instagram.mp4",
+                         'size': os.path.getsize(out), 'replaceExisting': True})
+        with open(out, 'rb') as fh:
+            req = urllib.request.Request(session['uploadUrl'], data=fh.read(), method='PUT',
+                                         headers={'Content-Type': 'video/mp4'})
+        with urllib.request.urlopen(req, timeout=300) as r:
+            data['igDriveId'] = json.loads(r.read().decode())['id']
+    print('instagram gets a re-encoded copy of the video')
+    return data['igDriveId']
 
 
 def post_for(platform, item, data, cache):
     title = (data.get('yt') or item.get('title') or '').strip()
     caption = (data.get('ig') or item.get('summary') or title).strip()
     file_id = platform_file(platform, item, data, cache)
-    video = {'driveFileId': file_id}
     key = f"{item['id']}-{platform}" + ('-version' if file_id != item['driveId'] else '')  # its own job
+    if platform == 'instagram' and file_id == item['driveId']:
+        file_id, key = instagram_copy(item, data), f"{item['id']}-instagram-ig"
+    video = {'driveFileId': file_id}
     if platform == 'instagram':
         return {'platform': platform, 'key': key, 'video': video, 'caption': caption}
     if platform == 'facebook':
