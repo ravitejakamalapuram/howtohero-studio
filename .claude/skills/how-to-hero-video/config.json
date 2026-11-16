@@ -2,8 +2,17 @@
   "scout": {
     "newsMin": 3,
     "newsMax": 10,
-    "ideas": 10,
-    "maxPendingIdeas": 40
+    "mix": {
+      "curiosity": 4,
+      "explainer": 3,
+      "fact": 3
+    },
+    "maxPendingIdeas": 40,
+    "maxIdeaBacklog": 60,
+    "ideasWhenBacklogged": 3,
+    "docsPerWeek": 1,
+    "maxOpenDocs": 3,
+    "docDay": "Sunday"
   },
   "build": {
     "maxPerRun": 10,
