@@ -9,7 +9,7 @@ How To Hero video pipeline: the `how-to-hero-video` skill (`.claude/skills/how-t
 3. **Daily build run** (scheduled task, after the user's morning approvals) follows `SKILL.md` "Build run": it claims approved cards (news first, trending news before science), builds up to 10 videos one at a time, uploads each to the Inbox and sets it `pending` for review. The claim marks the card `building` first, so two runs never build the same one, and a card left by a crashed run is picked up again once its 3-hour claim expires.
 4. **Auto-publisher** (GitHub Action `.github/workflows/publish.yml`, started by the Inbox at 08:30, 13:00 and 19:30 IST because GitHub's schedule never fired here, or run it by hand) runs `publisher/publish.py`: it posts the first approved video whose `slot` has passed (news first; an empty slot counts as due) through Social Manager (repo `social-manager`) and marks it `posted`. One video per run, so 3 a day. To post one now, use **Run workflow** with "post now" ticked, or give an Inbox item id; only approved videos go out and nothing posts twice. Its tokens are repo secrets.
 
-Platforms: Instagram and Facebook post live. YouTube waits for Google's API audit (until then uploads would stay private), and LinkedIn is parked; the publisher never posts to a personal profile.
+Platforms: Instagram, Facebook and YouTube post live (YouTube uploads are public), and LinkedIn is parked; the publisher never posts to a personal profile.
 
 The old How To Hero artifact queue is retired. Its unposted cards moved to the Inbox on 2026-11-15.
 

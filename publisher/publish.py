@@ -13,8 +13,8 @@ up on it, marks the item posted (or "ready" if nothing posted) and says why in t
 Safe to run again at any time: each post uses the key "<item id>-<platform>", so Social Manager returns
 the first job instead of posting twice.
 
-Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. PLATFORMS defaults to "instagram,facebook". LinkedIn is left out: the connected account is a personal profile.
-YouTube is left out until the API audit passes: before that, API uploads stay private for good.
+Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. PLATFORMS defaults to "instagram,facebook,youtube". LinkedIn is left out: the connected account is a personal profile.
+YouTube uploads go out public (tested 16 Nov 2026: no API audit needed).
 Run with --dry-run to see what it would post.
 Manual runs can set POST_NOW=true (ignore the slot, take the next approved video) or ITEM_ID=<id> (post that
 approved video now). Either way only approved videos go out, and the per-platform key still stops double posts.
@@ -71,13 +71,12 @@ def due_items():
 
 # Platforms not posted to yet and why, shown on the Inbox card. Drop one here when it goes live in PLATFORMS.
 NOT_YET = {
-    'youtube': 'waiting for the YouTube API audit',
     'linkedin': 'Page posting not approved yet',
 }
 
 
 def live_platforms():
-    wanted = [p.strip() for p in os.environ.get('PLATFORMS', 'instagram,facebook').split(',') if p.strip()]
+    wanted = [p.strip() for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()]
     live = []
     for p in wanted:
         try:
