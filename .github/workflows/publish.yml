@@ -2,12 +2,8 @@
 # Needs repository secrets INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN.
 name: publish
 on:
-  schedule:
-    # 3 posts a day at peak India times (cron is UTC): about 08:30, 13:00 and 19:30 IST.
-    # GitHub delays or drops scheduled runs at busy times like :00 and :30, so these use odd minutes.
-    - cron: '7 3 * * *'
-    - cron: '37 7 * * *'
-    - cron: '7 14 * * *'
+  # No schedule here: GitHub's never fired for this repo. The Inbox starts this workflow at
+  # 08:30, 13:00 and 19:30 IST (the times publisher/stats.py sends with channelStats).
   workflow_dispatch:
     inputs:
       post_now:

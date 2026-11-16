@@ -19,8 +19,10 @@ def main():
         try:
             s = social({'action': 'stats', 'platform': p, 'limit': 50})
             body = {'action': 'channelStats', 'app': APP, 'platform': p, 'followers': s.get('followers'), 'posts': s.get('posts', [])}
-            if os.environ.get('GITHUB_REPOSITORY'):  # lets the dashboard's "Post now" start publish.yml here
-                body['publish'] = {'repo': os.environ['GITHUB_REPOSITORY'], 'workflow': 'publish.yml'}
+            if os.environ.get('GITHUB_REPOSITORY'):  # lets the dashboard's "Post now" start publish.yml here,
+                # and the Inbox's timer start it at the 3 daily slots (IST), since GitHub's schedule never fired
+                body['publish'] = {'repo': os.environ['GITHUB_REPOSITORY'], 'workflow': 'publish.yml',
+                                   'times': ['08:30', '13:00', '19:30']}
             r = inbox(body)
             print(f"{p}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
         except Exception as e:  # one platform failing should not stop the others
