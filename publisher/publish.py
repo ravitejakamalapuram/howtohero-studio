@@ -133,7 +133,9 @@ def run():
     for p in failed:
         fails[p] = fails.get(p, 0) + 1
     retry_later = [p for p in failed if fails[p] < MAX_RUNS]
-    new_data = dict(data, posted=posted, publishFails=fails)
+    # failed holds only destinations still without a post, so the Inbox card shows a cross for each.
+    still_failed = {p: e for p, e in dict(data.get('failed') or {}, **failed).items() if p not in posted}
+    new_data = dict(data, posted=posted, failed=still_failed, publishFails=fails)
     new_data.pop('publishRetries', None)
     fresh = inbox({'action': 'get', 'id': item['id']})['item']
     set_ = {'data': new_data}
