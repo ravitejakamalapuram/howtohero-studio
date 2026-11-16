@@ -1,0 +1,28 @@
+{
+  "_about": "One place for what each platform accepts. The publisher (publisher/publish.py) reads maxSeconds and cutSeconds: a longer video goes to that platform as a cut of its first cutSeconds, with a short fade out. The video build reads notes when it plans a video. Add what we learn about a platform here.",
+  "instagram": {
+    "maxSeconds": 40,
+    "cutSeconds": 39,
+    "captionMax": 2200,
+    "hashtagsMax": 30,
+    "notes": [
+      "The API refuses Reels over about 40 s on this account (rupload ProcessingFailedError, the container never finishes). Seen 2026-11-16; may lift as the account ages.",
+      "So the first 39 s must work alone: hook, the key idea and the payoff before 39 s; the mascot end card is cut.",
+      "The grid and feed show an early frame: the headline must be readable from frame 0.",
+      "No private or scheduled posts through the API."
+    ]
+  },
+  "facebook": {
+    "maxSeconds": 90,
+    "cutSeconds": 89,
+    "notes": [
+      "Page Reels take 3 to 90 s."
+    ]
+  },
+  "youtube": {
+    "notes": [
+      "Shorts up to 3 minutes; documentaries are 16:9 long-form and are never cut.",
+      "Until Google's API audit passes, API uploads stay private."
+    ]
+  }
+}

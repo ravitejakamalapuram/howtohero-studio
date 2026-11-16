@@ -39,6 +39,7 @@ Make exactly the claimed item, using "Build one video" below. Length cap: `data.
 2. Write `videos/vN.json` (see `videos/v1.json`): `file` = `how-<topic>-works.mp4`, a 2-line `hook` (≤ 22 chars/line, ONE yellow word), `topic` (the subject in 1-3 words), `maxSeconds` (the cap above), `beats` lines and `card` lines (see `videos/v17.json`). Rules that decide whether a viewer stays (63% of our first viewers swiped away, so these are not optional):
    - Hook: a surprising claim or a contradiction ("GPS NEVER SENDS ANYTHING"), never a question and never the topic restated. Test: cover the topic label; the hook must still say something a viewer did not know.
    - First spoken line: the same claim, in at most 12 words. Background and dates come after it.
+   - Platforms: read `platforms.json` (repo root) for what each platform accepts. Instagram gets only the first 39 s of a longer video, so the hook, the key idea and the payoff must all land before 39 s.
    - Length: as long as the story needs and no longer. Do not set `target` (it stretches the voice to 58 s); a 60 s cap usually means 7-9 spoken beats and 40-50 s. About 2.6 words per second.
    - Ending: the last spoken line is the payoff, ideally something the viewer would repeat to a friend. No spoken "follow" line. The final beat is the silent end card: `{ "hold": 1.6 }` with `card` lines `["FOLLOW FOR MORE", "HOW TO HERO"]`.
    Plain present or past tense. Accurate and conceptual: invent no numbers, show no real logos/brands.
