@@ -18,7 +18,10 @@ def main():
     for p in [x.strip() for x in os.environ.get('PLATFORMS', 'instagram,facebook').split(',') if x.strip()]:
         try:
             s = social({'action': 'stats', 'platform': p, 'limit': 50})
-            r = inbox({'action': 'channelStats', 'app': APP, 'platform': p, 'followers': s.get('followers'), 'posts': s.get('posts', [])})
+            body = {'action': 'channelStats', 'app': APP, 'platform': p, 'followers': s.get('followers'), 'posts': s.get('posts', [])}
+            if os.environ.get('GITHUB_REPOSITORY'):  # lets the dashboard's "Post now" start publish.yml here
+                body['publish'] = {'repo': os.environ['GITHUB_REPOSITORY'], 'workflow': 'publish.yml'}
+            r = inbox(body)
             print(f"{p}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
         except Exception as e:  # one platform failing should not stop the others
             failed += 1
