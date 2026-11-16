@@ -7,6 +7,8 @@ description: Make one vertical "How To Hero" explainer video (1080x1920, 40-60 s
 
 Pipeline lives in `pipeline/` next to this file (HyperFrames + Kokoro TTS + GSAP + ffmpeg + Chromium; all free, no signups). Work from a scratch copy so the repo stays clean.
 
+Art is drawn in code only (SVG/HTML diagrams in `scenes.js`). Never use AI image or video generation (Gemini, Imagen, any image model or connector) unless the user asks for it on that video in its `note`.
+
 ## Build run: loop, one video at a time
 
 The video jobs are two scheduled tasks. The **scout** (`SCOUT.md`) only proposes news stories and ideas as cards; it builds nothing. The **build run** (this section) builds what the user approved. Limits live in `config.json` next to this file.
