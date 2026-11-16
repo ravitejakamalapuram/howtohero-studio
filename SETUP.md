@@ -9,6 +9,7 @@ This page lists every key the How To Hero jobs use, where each one lives today a
 | Daily scout (`SCOUT.md`) | Claude scheduled task, 05:47 IST | `INBOX_URL`, `INBOX_TOKEN` |
 | Daily build run (`SKILL.md` "Build run") | Claude scheduled task, 11:03 IST | `INBOX_URL`, `INBOX_TOKEN` |
 | Auto-publisher (`publisher/publish.py`) | GitHub Actions (`publish.yml`), 3 times a day | `INBOX_URL`, `INBOX_TOKEN`, `SOCIAL_URL`, `SOCIAL_TOKEN` |
+| Daily stats (`publisher/stats.py`) | GitHub Actions (`stats.yml`), once a day | same four as the publisher |
 
 The scout and the build run only talk to the Inbox. Video uploads also go through the Inbox: `inbox.sh up` asks it for a one-time Drive upload link (`uploadUrl`), so the build run needs no Google or Drive key of its own. Only the publisher talks to Social Manager.
 
