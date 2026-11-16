@@ -35,8 +35,9 @@ MAX_RUNS = 3  # runs a platform may fail before the publisher gives up on it
 DRY = '--dry-run' in sys.argv
 ITEM_ID = os.environ.get('ITEM_ID', '').strip()
 POST_NOW = os.environ.get('POST_NOW') == 'true'
-# What each platform accepts (maxSeconds, cutSeconds); see platforms.json.
-RULES = json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'platforms.json')))
+# What each platform accepts (maxSeconds, cutSeconds): platforms/<name>.json, one file per platform.
+PLATFORM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'platforms')
+RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.listdir(PLATFORM_DIR) if f.endswith('.json')}
 
 
 def call(url, token, body):
@@ -94,7 +95,7 @@ def live_platforms():
 
 def platform_file(platform, item, data, cache):
     """The Drive id this platform gets: the video itself, or a cut of its first cutSeconds when it is longer than the
-    platform's maxSeconds (platforms.json). A cut is made once, uploaded through the Inbox and kept in data.cuts."""
+    platform's maxSeconds (platforms/<name>.json). A cut is made once, uploaded through the Inbox and kept in data.cuts."""
     rule = RULES.get(platform) or {}
     cuts = data.setdefault('cuts', {})
     if not rule.get('maxSeconds') or item['id'].startswith('doc-'):
