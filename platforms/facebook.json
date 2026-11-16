@@ -1,0 +1,8 @@
+{
+  "_about": "The single source of truth for this platform: what it accepts and what we have learned about it. Every skill, job and script that makes or posts videos for it reads this file; put new findings here, not anywhere else. The publisher reads maxSeconds and cutSeconds: a longer video goes to this platform as a cut of its first cutSeconds, with a short fade out.",
+  "maxSeconds": 90,
+  "cutSeconds": 89,
+  "notes": [
+    "Page Reels take 3 to 90 s."
+  ]
+}

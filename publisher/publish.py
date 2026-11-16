@@ -35,10 +35,9 @@ MAX_RUNS = 3  # runs a platform may fail before the publisher gives up on it
 DRY = '--dry-run' in sys.argv
 ITEM_ID = os.environ.get('ITEM_ID', '').strip()
 POST_NOW = os.environ.get('POST_NOW') == 'true'
-# Instagram's API refuses Reels longer than about 40 s on this account (ProcessingFailedError), so
-# Instagram gets the first IG_CUT_SECONDS of a longer video, with a short fade out.
-IG_MAX_SECONDS = 40
-IG_CUT_SECONDS = 39
+# What each platform accepts (maxSeconds, cutSeconds): platforms/<name>.json, one file per platform.
+PLATFORM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'platforms')
+RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.listdir(PLATFORM_DIR) if f.endswith('.json')}
 
 
 def call(url, token, body):
@@ -94,49 +93,48 @@ def live_platforms():
     return live
 
 
-def instagram_file(item, data):
-    """The Drive id Instagram gets: the video itself, or a cut of its first IG_CUT_SECONDS if it is longer
-    than IG_MAX_SECONDS. The cut is made once, uploaded through the Inbox and remembered in data.igDriveId."""
-    if data.get('igDriveId'):
-        return data['igDriveId']
-    f = inbox({'action': 'download', 'id': item['id']})
-    with tempfile.TemporaryDirectory() as d:
-        src, out = os.path.join(d, 'in.mp4'), os.path.join(d, 'ig.mp4')
-        with open(src, 'wb') as fh:
-            fh.write(base64.b64decode(f['base64']))
-        seconds = float(subprocess.check_output(
-            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src]).decode().strip())
-        if seconds <= IG_MAX_SECONDS:
-            data['igDriveId'] = item['driveId']
-            return item['driveId']
-        fade = IG_CUT_SECONDS - 1
-        subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-t', str(IG_CUT_SECONDS),
-                        '-vf', f'fade=t=out:st={fade}:d=1', '-af', f'afade=t=out:st={fade}:d=1',
-                        '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p',
-                        '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', out], check=True)
-        size = os.path.getsize(out)
-        session = inbox({'action': 'uploadUrl', 'id': item['id'], 'name': f"{item['id']}-instagram.mp4",
-                         'size': size, 'replaceExisting': True})
-        with open(out, 'rb') as fh:
-            req = urllib.request.Request(session['uploadUrl'], data=fh.read(), method='PUT',
-                                         headers={'Content-Type': 'video/mp4'})
-        with urllib.request.urlopen(req, timeout=300) as r:
-            file_id = json.loads(r.read().decode())['id']
-    print(f'instagram gets a {IG_CUT_SECONDS} s cut of the {seconds:.0f} s video')
-    data['igDriveId'] = file_id
-    return file_id
+def platform_file(platform, item, data, cache):
+    """The Drive id this platform gets: the video itself, or a cut of its first cutSeconds when it is longer than the
+    platform's maxSeconds (platforms/<name>.json). A cut is made once, uploaded through the Inbox and kept in data.cuts."""
+    rule = RULES.get(platform) or {}
+    cuts = data.setdefault('cuts', {})
+    if not rule.get('maxSeconds') or item['id'].startswith('doc-'):
+        return item['driveId']
+    if cuts.get(platform):
+        return cuts[platform]
+    if 'src' not in cache:
+        cache['dir'] = tempfile.mkdtemp()
+        cache['src'] = os.path.join(cache['dir'], 'in.mp4')
+        with open(cache['src'], 'wb') as fh:
+            fh.write(base64.b64decode(inbox({'action': 'download', 'id': item['id']})['base64']))
+        cache['seconds'] = float(subprocess.check_output(
+            ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', cache['src']]).decode().strip())
+    if cache['seconds'] <= rule['maxSeconds']:
+        return item['driveId']
+    cut = rule['cutSeconds']
+    out = os.path.join(cache['dir'], f'{platform}.mp4')
+    subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', cache['src'], '-t', str(cut),
+                    '-vf', f'fade=t=out:st={cut - 1}:d=1', '-af', f'afade=t=out:st={cut - 1}:d=1',
+                    '-c:v', 'libx264', '-preset', 'fast', '-crf', '20', '-pix_fmt', 'yuv420p',
+                    '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', out], check=True)
+    session = inbox({'action': 'uploadUrl', 'id': item['id'], 'name': f"{item['id']}-{platform}.mp4",
+                     'size': os.path.getsize(out), 'replaceExisting': True})
+    with open(out, 'rb') as fh:
+        req = urllib.request.Request(session['uploadUrl'], data=fh.read(), method='PUT', headers={'Content-Type': 'video/mp4'})
+    with urllib.request.urlopen(req, timeout=300) as r:
+        cuts[platform] = json.loads(r.read().decode())['id']
+    print(f"{platform} gets a {cut} s cut of the {cache['seconds']:.0f} s video")
+    return cuts[platform]
 
 
-def post_for(platform, item, data):
+def post_for(platform, item, data, cache):
     title = (data.get('yt') or item.get('title') or '').strip()
     caption = (data.get('ig') or item.get('summary') or title).strip()
-    video = {'driveFileId': item['driveId']}
-    key = f"{item['id']}-{platform}"
+    file_id = platform_file(platform, item, data, cache)
+    video = {'driveFileId': file_id}
+    key = f"{item['id']}-{platform}" + ('-cut' if file_id != item['driveId'] else '')  # a cut is a new job
     if platform == 'instagram':
-        ig = instagram_file(item, data)
-        if ig != item['driveId']:
-            key += '-cut'  # a new job: an earlier job under the plain key holds the full-length file
-        return {'platform': platform, 'key': key, 'video': {'driveFileId': ig}, 'caption': caption}
+        return {'platform': platform, 'key': key, 'video': video, 'caption': caption}
     if platform == 'facebook':
         return {'platform': platform, 'key': key, 'video': video, 'title': title.replace('#shorts', '').strip()[:255], 'description': caption}
     if platform == 'linkedin':
@@ -160,10 +158,10 @@ def run():
     if DRY or not platforms:
         return 0 if platforms else 1
 
-    jobs = {}
+    jobs, cache = {}, {}
     for p in platforms:
         try:
-            jobs[p] = social(dict(post_for(p, item, data), action='publish'))['job']
+            jobs[p] = social(dict(post_for(p, item, data, cache), action='publish'))['job']
         except (RuntimeError, OSError, subprocess.CalledProcessError, ValueError, KeyError) as e:
             jobs[p] = {'id': None, 'status': 'failed', 'error': f'not started: {e}'}
     retries = {}
