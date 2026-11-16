@@ -3,6 +3,7 @@
 # Needs INBOX_URL and INBOX_TOKEN in the environment. Never print, log or commit them,
 # and never print an upload link (anyone holding it can write the file).
 #   inbox.sh call '<json without token>'  -> the API reply; exits 1 when "ok" is false
+#                                  (every "add" gets data.app/data.icon so the Inbox labels it How To Hero)
 #   inbox.sh up <file> <itemId>   -> uploads to the Inbox's Drive folder, attaches it to the item,
 #                                             prints the attach reply ({"item":{...,"driveId","link"}})
 set -euo pipefail
@@ -10,7 +11,9 @@ set -euo pipefail
 
 call() {
   local body out
-  body=$(python3 -c 'import json,os,sys; d=json.loads(sys.argv[1]); d["token"]=os.environ["INBOX_TOKEN"]; print(json.dumps(d))' "$1")
+  body=$(python3 -c 'import json,os,sys; d=json.loads(sys.argv[1]); d["token"]=os.environ["INBOX_TOKEN"]
+if d.get("action")=="add": d["data"]={"app":"How To Hero","icon":"🦸",**(d.get("data") or {})}
+print(json.dumps(d))' "$1")
   # -L follows Apps Script's redirect; don't add -X POST, it breaks the redirect.
   out=$(curl -sSL --retry 3 -m 120 --data-binary "$body" "$INBOX_URL")
   printf '%s\n' "$out"
