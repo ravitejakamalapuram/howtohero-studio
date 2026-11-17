@@ -46,6 +46,7 @@ Make exactly the claimed item, using "Build one video" below. Length cap: `data.
    - Length: as long as the story needs and no longer. Do not set `target` (it stretches the voice to 58 s); a 60 s cap usually means 7-9 spoken beats and 40-50 s. About 2.6 words per second.
    - Ending: the last spoken line is the payoff, ideally something the viewer would repeat to a friend. No spoken "follow" line. The final beat is the silent end card: `{ "hold": 1.6 }` with `card` lines `["FOLLOW FOR MORE", "HOW TO HERO"]`.
    Plain present or past tense. Accurate and conceptual: invent no numbers, show no real logos/brands.
+   Then get a second opinion before drawing anything: write the hook, every spoken beat, the end card and the sources (with the facts each one backs) to `work/vN.review.txt` and run `python3 <skill dir>/advisor.py script work/vN.review.txt` (see "Advisor"). Apply every FACTS fix; take the HOOK and SCRIPT fixes unless they break a rule above. On STOP, treat it as a failed fact check (build run step 4).
 3. Write `videos/vN.scenes.js`: one diagram block per spoken line in the style of `videos/v17.scenes.js` (the silent end card is drawn by `finish.js`, do not draw it). Beat 1 is on screen from frame 0: draw its main picture with no `pop`/`fadeIn`, below the headline (local y ≥ 330), and make something move in the first second (a `U.push` loop). To `pop` a shape that has `scale()` in its transform, wrap it in a plain `<g>` and pop the group using helpers from `lib/lib.js`. Every beat is drawn in the 880x760 box inside the safe zone. Anton has no ₹ or ✓ glyph: draw them as shapes.
 4. `node build.mjs vN`, then in `work/vN`: `npx hyperframes check` (0 errors) and `npx hyperframes snapshot` per beat; look at every beat for clipped or invisible elements; fix.
 4b. Cover rule: the headline and key visual must be fully visible from frame 0 (no fade-in, no blank intro); `finish.js` draws a yellow topic label ("HOW JET ENGINES WORK", from `file`, or set `topic` in vN.json) above the hook so the first frame names the subject even when the hook is a teaser; the Instagram grid and Shorts shelf show an early frame. After rendering, also save `out/vN.cover.png` = a 1080x1920 frame at t=0.5 s (`ffmpeg -ss 0.5 -i vN.mp4 -frames:v 1 out/vN.cover.png`) and check the headline is readable in it.
@@ -62,6 +63,14 @@ The publisher posts a platform only from the main video (when it fits) or from i
 ### Platform versions for the queue
 
 Approved videos built before versions existed may lack one. List `{"action":"list","type":"video","status":"approved","limit":1000}`, order them as the publisher does (news first, then by `slot`), and take the first ones whose length (in `videoRef`, `| 47.3 s |`) is over a platform's `maxSeconds` and which have no `data.versions.<platform>`. For each: use its `videos/vN.json` when it exists (the `file` in `videoRef` names it), else write one from the item's `title`, `summary`, `data` (`topic`, `ig`, `sources`) and the main video's narration; build the version as above; then save it with `get` and `update` (`"ifVersion"`, `"set":{"data":{<the item's data plus versions and links>}}`). Do not change the item's status.
+
+## Advisor (second opinion from a stronger model)
+
+At two decisions, the jobs ask a stronger model to check their work: the scout's cards before they reach the user (`SCOUT.md`), and each script before render ("Build one video" step 2). Nowhere else: each call costs real money.
+
+`advisor.py <cards|script> <file>` sends the file to Claude Fable 5.2 through the API (paid from the user's API credits; key in the environment variable `HTH_ADVISOR_KEY`, never printed) and prints its advice plus the cost of the call. It stops spending by itself: after `HTH_ADVISOR_RUN_BUDGET` dollars in one run (default 2.00), or when the key is missing or refused, or the credits are used up.
+
+Exit code 3 means no advice; the first line says `FALLBACK: <reason>`. Then get the same second opinion in-session: start one subagent with the Agent tool, `model: "fable"`, and give it the text that `advisor.py <task> <file> --prompt` prints. If no subagent can be started, review the file yourself once more against that prompt, as a strict editor who did not write it. Never skip the review, and never stop the run because the advisor is unavailable. Put each call's cost line (or the fallback reason) in the final reply.
 
 ## Rules
 

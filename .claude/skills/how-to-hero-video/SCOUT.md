@@ -9,7 +9,7 @@ Both are proposals with nothing built. Approve sets them `approved`, which the b
 
 ## 1. News first
 
-News goes stale, so do it before ideas. Find stories with `NEWS.md` "Finding stories" (both lanes, ranked by virality). Run `dupcheck.py "<story in a few words>"` for each and drop it on a DUPLICATE, or when a CHECK item is the same event or finding. Propose the top ones, at most `scout.newsMax`. Aim for at least `scout.newsMin`, but never pad with weak, stale or badly sourced stories: fewer is fine. Add them in rank order, so Telegram shows the best first:
+News goes stale, so do it before ideas. Find stories with `NEWS.md` "Finding stories" (both lanes, ranked by virality). Run `dupcheck.py "<story in a few words>"` for each and drop it on a DUPLICATE, or when a CHECK item is the same event or finding. Pick the top ones, at most `scout.newsMax`. Aim for at least `scout.newsMin`, but never pad with weak, stale or badly sourced stories: fewer is fine. Draft them, don't add them yet: they go to the advisor with the ideas (step 3). Each is added later in rank order, so Telegram shows the best first, as:
 
 `inbox.sh call '{"action":"add","id":"story-<YYYY-MM-DD>-<short-slug>","type":"story","status":"pending","source":"news","title":"<lane A: \"Trending: \" + the news in plain words, at most 80 chars>","summary":"<the surprising claim in one sentence>. <the key numbers, each with where it is from>. Source: <URL>","data":{"kind":"news","lane":"<A or B>","rank":<1, 2, ...>,"sources":["<url>"],"facts":["<number or date> - <url>"],"topic":"<TECH NEWS|SPACE NEWS|SCIENCE NEWS>: <SUBJECT>","hook":"<2 short lines>","angle":"<what the video explains>"}}'`
 
@@ -19,12 +19,16 @@ For lane A also set `"note":"Trending: approve today, it goes stale."`. A `confl
 
 Read `IDEAS.md` first: it defines the idea kinds (`explainer`, `fact`, `curiosity`, `doc`), the quality bar every card must pass, the daily mix and the card fields. Read `platforms/*.json` (repo root) for the length limits it refers to.
 
-Count the backlog: `inbox.sh call '{"action":"list","type":"idea","status":"pending,approved","limit":1000}'` and count pending and approved separately. Apply the backlog rule in `IDEAS.md` "The daily mix" to decide how many idea cards to propose this run, then fill each kind of `scout.mix` with the best cards that pass the bar. Before each `add`, run `dupcheck.py "<topic>"` and drop the idea on a DUPLICATE, or when a CHECK item already covers the same subject (a plain `list` sees only 100 items, so don't rely on it). Then:
+Count the backlog: `inbox.sh call '{"action":"list","type":"idea","status":"pending,approved","limit":1000}'` and count pending and approved separately. Apply the backlog rule in `IDEAS.md` "The daily mix" to decide how many idea cards to propose this run, then fill each kind of `scout.mix` with the best cards that pass the bar. Draft the ideas, don't add them yet. For each, run `dupcheck.py "<topic>"` and drop the idea on a DUPLICATE, or when a CHECK item already covers the same subject (a plain `list` sees only 100 items, so don't rely on it). Each is added later as:
 
 `inbox.sh call '{"action":"add","type":"idea","status":"pending","title":"<the topic>","summary":"<the angle, one sentence: the surprising claim>","data":{"kind":"<explainer|fact|curiosity>","topic":"<topic>","angle":"<angle>","hook":"<2 short lines>","why":"<one line: why people will watch and share it>","sources":["<url>"],"fact":"<K or C>","maxSeconds":<from IDEAS.md>,"rank":<1, 2, ...>}}'`
 
 A documentary card (only when `IDEAS.md` allows one today) uses `"id":"doc-<slug>"`, `"kind":"doc"`, `"series":"DOC"`.
 
+## 3. Advisor, then add
+
+Write every drafted card (news first, then ideas: title, summary and `data` as drafted) and its `dupcheck.py` output to `/tmp/cards.txt`, and run `python3 advisor.py cards /tmp/cards.txt` once (see `SKILL.md` "Advisor", including its fallback on exit code 3). Drop each card it marks DROP, apply each FIX, and use its BEST order for the `rank`. Then add the news cards, then the ideas, with the `add` calls above.
+
 ## Final reply
 
-The stories proposed (id, lane, one line each), "no suitable news today" when none qualified, then the ideas proposed (kind, title, hook, one line each), the backlog counts (pending, approved) and any kind that had no card good enough today.
+The stories proposed (id, lane, one line each), "no suitable news today" when none qualified, then the ideas proposed (kind, title, hook, one line each), the backlog counts (pending, approved) any kind that had no card good enough today, how many cards the advisor dropped or fixed, and its cost line (or the fallback reason).

@@ -6,8 +6,8 @@ This page lists every key the How To Hero jobs use, where each one lives today a
 
 | Job | Runs on today | Keys |
 | --- | --- | --- |
-| Daily scout (`SCOUT.md`) | Claude scheduled task, 05:47 IST | `INBOX_URL`, `INBOX_TOKEN` |
-| Daily build run (`SKILL.md` "Build run") | Claude scheduled task, 11:03 IST | `INBOX_URL`, `INBOX_TOKEN` |
+| Daily scout (`SCOUT.md`) | Claude scheduled task, 05:47 IST | `INBOX_URL`, `INBOX_TOKEN`, optional `HTH_ADVISOR_KEY` |
+| Daily build run (`SKILL.md` "Build run") | Claude scheduled task, 11:03 IST | `INBOX_URL`, `INBOX_TOKEN`, optional `HTH_ADVISOR_KEY` |
 | Auto-publisher (`publisher/publish.py`) | GitHub Actions (`publish.yml`), 3 times a day | `INBOX_URL`, `INBOX_TOKEN`, `SOCIAL_URL`, `SOCIAL_TOKEN` |
 | Daily stats (`publisher/stats.py`) | GitHub Actions (`stats.yml`), once a day | same four as the publisher |
 
@@ -19,12 +19,13 @@ The scout and the build run only talk to the Inbox. Video uploads also go throug
 - **`INBOX_TOKEN`**: a client token for the Inbox. Each job or platform gets its own, with its own name.
 - **`SOCIAL_URL`**: the Social Manager web app's `/exec` URL.
 - **`SOCIAL_TOKEN`**: a client token for Social Manager. Only the publisher needs one.
+- **`HTH_ADVISOR_KEY`**: an Anthropic API key (console.anthropic.com > API keys) for `advisor.py`, the second opinion at the scout's cards and each script (`SKILL.md` "Advisor"). Optional: without it, or once the credits run out, the jobs ask a stronger model in-session instead. Use this name, never `ANTHROPIC_API_KEY`, which Claude Code itself would pick up and bill.
 
 Keys that stay inside the two Apps Script projects (Script Properties) and never go to a job: `TELEGRAM_BOT_TOKEN` (Inbox), and the YouTube, Meta and LinkedIn app secrets and sign-ins (Social Manager). Moving a job to another platform never touches them.
 
 ## Where they live today
 
-- **Scout and build run:** the Claude scheduled task prompt sets `INBOX_URL` and `INBOX_TOKEN` at the top. Each task has its own token.
+- **Scout and build run:** environment variables of the Claude cloud environment the scheduled tasks run in (`INBOX_URL`, `INBOX_TOKEN`, `HTH_ADVISOR_KEY`).
 - **Publisher:** repository secrets in this repo (Settings > Secrets and variables > Actions): `INBOX_URL`, `INBOX_TOKEN`, `SOCIAL_URL`, `SOCIAL_TOKEN`.
 - **Admin tokens** for both apps stay with the owner. They are only for making and revoking tokens.
 
