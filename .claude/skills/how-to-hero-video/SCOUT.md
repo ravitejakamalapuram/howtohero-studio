@@ -29,6 +29,10 @@ A documentary card (only when `IDEAS.md` allows one today) uses `"id":"doc-<slug
 
 Write every drafted card (news first, then ideas: title, summary and `data` as drafted) and its `dupcheck.py` output to `/tmp/cards.txt`, and run `python3 advisor.py cards /tmp/cards.txt` once (see `SKILL.md` "Advisor", including its fallback on exit code 3). Drop each card it marks DROP, apply each FIX, and use its BEST order for the `rank`. Then add the news cards, then the ideas, with the `add` calls above.
 
+## 4. Comment replies
+
+Draft the waiting comment replies as in `SKILL.md` "Comment replies".
+
 ## Final reply
 
-The stories proposed (id, lane, one line each), "no suitable news today" when none qualified, then the ideas proposed (kind, title, hook, one line each), the backlog counts (pending, approved) any kind that had no card good enough today, how many cards the advisor dropped or fixed, and its cost line (or the fallback reason).
+The stories proposed (id, lane, one line each), "no suitable news today" when none qualified, then the ideas proposed (kind, title, hook, one line each), the backlog counts (pending, approved) any kind that had no card good enough today, how many cards the advisor dropped or fixed, its cost line (or the fallback reason), and the comment replies drafted and skipped.
