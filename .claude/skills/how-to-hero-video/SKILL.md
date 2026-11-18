@@ -28,6 +28,8 @@ Card types: `story` = a news card, `idea` = an explainer idea card; both are onl
 
 This run never proposes new ideas or stories; that is the scout's job.
 
+6. Last, draft comment replies as in "Comment replies" below.
+
 Final reply: one line per video (item id, type, file, duration, verification result, slot for news), and "nothing approved" when step 1 found nothing.
 
 Alert: when the run made 0 videos although step 1 found approved cards, or it stopped after two failures or on the time budget with cards left, send one alert before the final reply: `inbox.sh call '{"action":"add","id":"alert-build-<YYYY-MM-DD>","type":"todo","status":"pending","title":"Build run: <n> videos made, <why>","summary":"<each failed card id and its note>","data":{"app":"How To Hero","icon":"🚨"}}'`. Telegram sends it as a message. Failed posts already alert from the Inbox (red FAILED message), and the publisher alerts when a video is more than 3 hours past its slot.
@@ -74,6 +76,15 @@ At two decisions, the jobs ask a stronger model to check their work: the scout's
 `advisor.py <cards|script> <file>` sends the file to Claude Fable 5.2 through the API (paid from the user's API credits; key in the environment variable `HTH_ADVISOR_KEY`, never printed) and prints its advice plus the cost of the call. It stops spending by itself: after `HTH_ADVISOR_RUN_BUDGET` dollars in one run (default 2.00), or when the key is missing or refused, or the credits are used up.
 
 Exit code 3 means no advice; the first line says `FALLBACK: <reason>`. Then get the same second opinion in-session: start one subagent with the Agent tool, `model: "fable"`, and give it the text that `advisor.py <task> <file> --prompt` prints. If no subagent can be started, review the file yourself once more against that prompt, as a strict editor who did not write it. Never skip the review, and never stop the run because the advisor is unavailable. Put each call's cost line (or the fallback reason) in the final reply.
+
+## Comment replies (scout and build runs, last step)
+
+The publish workflow (`publisher/replies.py`) turns each new viewer comment into an Inbox item of type `reply` in status `building`, and posts the replies the user approves. These runs only write the drafts. List them: `inbox.sh call '{"action":"list","type":"reply","status":"building","limit":50}'`. For each:
+- Spam, follow-for-follow, self-promotion or abuse with no question in it: `"set":{"status":"rejected","note":"no reply: <why>"}`.
+- Otherwise write the reply the way a friendly person on the team would: 1 to 3 short sentences, casual, never defensive or corporate, no hashtags. Agree with what's fair in the comment first ("Ha, fair, it sounds wrong at first!"), then answer with one concrete fact. When the comment questions a fact, check it and end with one reliable source link (a mission page, agency or paper, not a random blog), introduced in a few words. Thanks plus a hint at what's coming is enough for plain praise. An emoji at most. If the comment is right and the video is wrong, say so plainly and thank them.
+- Save it with `"set":{"status":"pending","data":{...the existing data, "reply":"<the reply>"},"summary":"💬 <author>: <comment>\n\n↩️ Draft reply: <the reply>"}`. Pending sends it to Telegram. The user approves it as is, or writes the edited text as the approval note, which gets posted instead.
+
+Never post a reply yourself. Put the count in the final reply: drafted, skipped as spam.
 
 ## Rules
 
