@@ -30,6 +30,8 @@ This run never proposes new ideas or stories; that is the scout's job.
 
 Final reply: one line per video (item id, type, file, duration, verification result, slot for news), and "nothing approved" when step 1 found nothing.
 
+Alert: when the run made 0 videos although step 1 found approved cards, or it stopped after two failures or on the time budget with cards left, send one alert before the final reply: `inbox.sh call '{"action":"add","id":"alert-build-<YYYY-MM-DD>","type":"todo","status":"pending","title":"Build run: <n> videos made, <why>","summary":"<each failed card id and its note>","data":{"app":"How To Hero","icon":"🚨"}}'`. Telegram sends it as a message. Failed posts already alert from the Inbox (red FAILED message), and the publisher alerts when a video is more than 3 hours past its slot.
+
 ## Worker steps
 
 Make exactly the claimed item, using "Build one video" below. Length cap: `data.maxSeconds`, else by `series` (A 120, B 120, C 150, D 120), else 60. Skip any item whose `series` is "DOC" or `kind` is "doc" (see "Documentaries"). Fact check: if `fact` is K (to check), look up a named source for every number and date before writing; if you cannot, release the item as a failure (step 4) with the reason in `note`. If `fact` is C (contested), the narration says "scientists think" and names the evidence. Then fill these `data` fields for the hand-in:
