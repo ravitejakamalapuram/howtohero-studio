@@ -11,7 +11,8 @@ Runs at the start of every publish run (see .github/workflows/publish.yml), in t
    a "reply" item in status "building" (no Telegram message yet). The scout and build runs draft the answer
    (SKILL.md "Comment replies") and set it "pending", which sends it to Telegram for approval.
 
-Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. YouTube only for now.
+Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. Covers the platforms in COMMENT_PLATFORMS; one that
+fails (say, Meta before the comment permissions are granted) is skipped with a note, and the others still run.
 """
 import datetime as dt
 import sys
@@ -19,6 +20,16 @@ import sys
 from publish import inbox, social, DRY
 
 MAX_AGE_DAYS = 14
+COMMENT_PLATFORMS = ['youtube', 'instagram', 'facebook']
+SHORT = {'youtube': 'yt', 'instagram': 'ig', 'facebook': 'fb'}
+
+
+def when(s):
+    """Parses YouTube's '...Z' and Meta's '...+0000' times."""
+    s = s.replace('Z', '+00:00')
+    if len(s) > 5 and s[-5] in '+-' and s[-3] != ':':
+        s = s[:-2] + ':' + s[-2:]
+    return dt.datetime.fromisoformat(s)
 
 
 def post_approved():
@@ -47,22 +58,28 @@ def post_approved():
 def pull_new():
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=MAX_AGE_DAYS)
     added = 0
-    for c in social({'action': 'comments', 'platform': 'youtube', 'limit': 50})['comments']:
-        if c['replied'] or dt.datetime.fromisoformat(c['at'].replace('Z', '+00:00')) < since:
-            continue
-        item = {'action': 'add', 'id': f"reply-yt-{c['id']}", 'type': 'reply', 'status': 'building',
-                'title': f"Reply to {c['author']} on \"{c['videoTitle']}\""[:200], 'summary': c['text'][:3000], 'link': c['url'],
-                'data': {'app': 'How To Hero', 'icon': '🦸', 'platform': 'youtube', 'commentId': c['id'], 'author': c['author'],
-                         'comment': c['text'], 'videoId': c['videoId'], 'videoTitle': c['videoTitle'], 'url': c['url'], 'at': c['at']}}
-        if DRY:
-            print(f"new comment {c['id']}: {c['text'][:80]}")
-            continue
+    for platform in COMMENT_PLATFORMS:
         try:
-            inbox(item)
-            added += 1
-        except RuntimeError as e:
-            if 'conflict' not in str(e):  # already in the Inbox
-                raise
+            comments = social({'action': 'comments', 'platform': platform, 'limit': 50})['comments']
+        except (RuntimeError, OSError) as e:
+            print(f'{platform}: comments skipped: {e}')
+            continue
+        for c in comments:
+            if c['replied'] or when(c['at']) < since:
+                continue
+            item = {'action': 'add', 'id': f"reply-{SHORT[platform]}-{c['id']}", 'type': 'reply', 'status': 'building',
+                    'title': f"Reply to {c['author']} on \"{c['videoTitle']}\" ({platform})"[:200], 'summary': c['text'][:3000], 'link': c['url'],
+                    'data': {'app': 'How To Hero', 'icon': '🦸', 'platform': platform, 'commentId': c['id'], 'author': c['author'],
+                             'comment': c['text'], 'videoId': c['videoId'], 'videoTitle': c['videoTitle'], 'url': c['url'], 'at': c['at']}}
+            if DRY:
+                print(f"new {platform} comment {c['id']}: {c['text'][:80]}")
+                continue
+            try:
+                inbox(item)
+                added += 1
+            except RuntimeError as e:
+                if 'conflict' not in str(e):  # already in the Inbox
+                    raise
     print(f'{added} new comment(s) waiting for a draft')
 
 
