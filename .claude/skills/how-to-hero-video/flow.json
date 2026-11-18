@@ -48,5 +48,23 @@
         "status": "trial"
       }
     }
+  },
+  "voice": {
+    "default": "kokoro",
+    "byGeo": {
+      "india": "neerja"
+    },
+    "fallback": "kokoro",
+    "voices": {
+      "kokoro": {
+        "engine": "kokoro",
+        "voice": "af_heart",
+        "speed": 1.0
+      },
+      "neerja": {
+        "engine": "edge",
+        "voice": "en-IN-NeerjaExpressiveNeural"
+      }
+    }
   }
 }

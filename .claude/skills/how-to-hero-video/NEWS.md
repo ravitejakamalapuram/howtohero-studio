@@ -26,7 +26,7 @@ Rank what qualifies by likely virality, highest first: how many people felt it o
 
 ## Build
 
-`cp -r .claude/skills/how-to-hero-video/pipeline /tmp/hth`, then in /tmp/hth: `npm i hyperframes@0.9.30` and `pip install kokoro-onnx soundfile`; set HYPERFRAMES_TELEMETRY=0. Run check, snapshot and render with `npx -y hyperframes@0.9.33 ...`. Follow SKILL.md "Build one video" and "Rules" with these differences: id `n<YYYYMMDD>` (add `b` for a second video the same day), `topic` "TECH NEWS: <SUBJECT>" / "SPACE NEWS: ..." / "SCIENCE NEWS: ...", 10 beats, the first beat states the news in plain words, then explain the mechanism, the last spoken line is "Follow for how things work, in a minute.", `build.mjs` end at most 61 s. Snapshot every beat and fix overlaps (keep drawings out of the top ~350 px of the beat box during beat 0, where the hook sits). Draw generic shapes, no real logos. Render, then `python3 verify.py <id>`: 0 violations required. Worked example: `videos/n1.json` + `n1.scenes.js`.
+Follow SKILL.md "Build one video" (pipeline2) with these differences: id `n<YYYYMMDD>` (add `b` for a second video the same day), `topic` "TECH NEWS: <SUBJECT>" / "SPACE NEWS: ..." / "SCIENCE NEWS: ...", up to 10 beats, the first beat states the news in plain words (and names the country for an `india` or `us` card), then explain the mechanism, the last spoken line is "Follow for how things work, in a minute.", at most 61 s. Draw generic shapes, no real logos. Worked example: `pipeline2/videos/n-quake.json` + `n-quake.scenes.json`.
 
 ## Hand in
 

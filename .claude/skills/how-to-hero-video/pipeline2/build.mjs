@@ -1,22 +1,23 @@
-// node build.mjs <id | path/to/<id>.json> [--style slug] [--accent slug|none] [--estimate] [--audio file] [--out dir]
+// node build.mjs <id | path/to/<id>.json> [--style slug] [--accent slug|none] [--estimate] [--audio file] [--voice name] [--out dir]
 // Reads videos/<id>.json + videos/<id>.scenes.json, checks them, picks the style if the video has none (and saves the pick),
 // works out when every beat starts, turns "word:" anchors into seconds and writes <out>/page.json for render.cjs.
 // Timing comes from one of:
 //   - "audio": { "file", "starts": [...] }  a finished voice track and the second each beat starts at
 //   - --estimate, or "dur" on every beat     no audio; 2.6 words a second (for tests and golden scenes)
-//   - otherwise the voice is made with Kokoro (npx hyperframes tts, as the old pipeline does)
+//   - otherwise the voice is made from flow.json's voice settings: Kokoro (npx hyperframes tts) or Edge (tts_edge.py);
+//     an Edge voice that fails falls back to the Kokoro fallback voice for the whole video, and voiceUsed records which one spoke
 import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { validateVideo, validateScenes, findWord, ACCENT_INTENTS } from './schema.mjs';
 import { pickStyle } from './pickstyle.mjs';
-import { loadFlow, kits, pickOpts, flowSha } from './flow.mjs';
+import { loadFlow, kits, pickOpts, flowSha, voiceFor } from './flow.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url)), args = process.argv.slice(2);
 const opt = n => { const i = args.indexOf('--' + n); return i < 0 ? null : args[i + 1]; };
 const rd = p => JSON.parse(fs.readFileSync(p, 'utf8')), r3 = n => +n.toFixed(3);
-if (!args[0] || args[0].startsWith('--')) { console.error('usage: node build.mjs <id | path/to/<id>.json> [--style slug] [--accent slug|none] [--estimate] [--audio file] [--out dir]'); process.exit(1); }
+if (!args[0] || args[0].startsWith('--')) { console.error('usage: node build.mjs <id | path/to/<id>.json> [--style slug] [--accent slug|none] [--estimate] [--audio file] [--voice name] [--out dir]'); process.exit(1); }
 const src = args[0].endsWith('.json') ? path.resolve(args[0]) : path.join(ROOT, 'videos', args[0] + '.json');
 const sf = src.replace(/\.json$/, '.scenes.json');
 for (const f of [src, sf]) if (!fs.existsSync(f)) { console.error('not found: ' + f); process.exit(1); }
@@ -53,12 +54,24 @@ if (V.audio) {
   const tts = !(args.includes('--estimate') || V.beats.every(b => b.dur || b.hold));
   let ds;
   if (!tts) ds = V.beats.map(b => b.dur || b.hold || (b.say ? b.say.split(/\s+/).length / 2.6 : 1.6));
-  else ds = V.beats.map((b, i) => { // Kokoro, one clip per beat
-    if (!b.say) return b.hold || 1.6;
-    const f = path.join(out, `v${i + 1}.wav`);
-    execFileSync('npx', ['hyperframes', 'tts', b.say, '-v', 'af_heart', '-s', '1.000', '-o', f], { stdio: 'pipe' });
-    return probe(f);
-  });
+  else {
+    const flow = loadFlow(), voices = flow.voice.voices;
+    const speak = name => V.beats.map((b, i) => { // one clip per beat
+      if (!b.say) return b.hold || 1.6;
+      const f = path.join(out, `v${i + 1}.wav`), x = voices[name];
+      if (x.engine === 'edge') execFileSync('python3', [path.join(ROOT, 'tts_edge.py'), b.say, x.voice, f], { stdio: 'pipe', timeout: 60000 });
+      else execFileSync('npx', ['hyperframes', 'tts', b.say, '-v', x.voice, '-s', (x.speed || 1).toFixed(3), '-o', f], { stdio: 'pipe' });
+      return probe(f);
+    });
+    let name = opt('voice') || voiceFor(V, flow);
+    if (!voices[name]) { console.error(`unknown voice "${name}" (flow.json voice.voices: ${Object.keys(voices).join(', ')})`); process.exit(1); }
+    try { ds = speak(name); } catch (err) {
+      if (name === flow.voice.fallback) throw err;
+      console.error(`voice ${name} failed (${String(err.message).split('\n')[0]}); using ${flow.voice.fallback}`);
+      name = flow.voice.fallback; ds = speak(name);
+    }
+    V.voiceUsed = name; fs.writeFileSync(src, JSON.stringify(V, null, 2) + '\n');
+  }
   let t = LEAD; starts = []; ends = [];
   for (const d of ds) { starts.push(r3(t)); ends.push(r3(t + d)); t += d + GAP; }
   dur = +(ends[N - 1] + TAIL).toFixed(2);

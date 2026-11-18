@@ -29,7 +29,7 @@ export function flowErrors(flow) {
   const obj = (v, at) => { if (!v || typeof v !== 'object' || Array.isArray(v)) { e.push(`${at} must be an object`); return false; } return true; };
   const known = (o, keys, at) => Object.keys(o).filter(k => !keys.includes(k)).forEach(k => e.push(`${at}.${k} is not a known setting (${keys.join(', ')})`));
   if (!obj(flow, 'flow.json')) return e;
-  known(flow, ['_about', 'scout', 'build', 'style'], 'flow');
+  known(flow, ['_about', 'scout', 'build', 'style', 'voice'], 'flow');
   if (obj(flow.scout, 'scout')) {
     for (const k of ['newsMin', 'newsMax', 'maxPendingIdeas', 'maxIdeaBacklog', 'ideasWhenBacklogged', 'docsPerWeek', 'maxOpenDocs']) num(flow.scout[k], `scout.${k}`);
     if (flow.scout.newsMin > flow.scout.newsMax) e.push('scout.newsMin is more than scout.newsMax');
@@ -58,8 +58,26 @@ export function flowErrors(flow) {
     }
     if (obj(s.seriesLock, 'style.seriesLock')) for (const [ser, slug] of Object.entries(s.seriesLock)) if (!slugs.includes(slug)) e.push(`style.seriesLock.${ser}: unknown kit "${slug}"`);
   }
+  if (obj(flow.voice, 'voice')) {
+    const v = flow.voice;
+    known(v, ['default', 'byGeo', 'fallback', 'voices'], 'voice');
+    if (obj(v.voices, 'voice.voices')) {
+      const names = Object.keys(v.voices);
+      for (const [n, x] of Object.entries(v.voices)) {
+        if (!obj(x, `voice.voices.${n}`)) continue;
+        if (!['kokoro', 'edge'].includes(x.engine)) e.push(`voice.voices.${n}.engine must be kokoro or edge`);
+        if (typeof x.voice !== 'string' || !x.voice) e.push(`voice.voices.${n}.voice must name the voice`);
+        if (x.speed !== undefined) num(x.speed, `voice.voices.${n}.speed`, 0.5, 2);
+      }
+      for (const k of ['default', 'fallback']) if (!names.includes(v[k])) e.push(`voice.${k} must be one of voice.voices (${names.join(', ')})`);
+      if (v.voices[v.fallback] && v.voices[v.fallback].engine !== 'kokoro') e.push('voice.fallback must be a kokoro voice (it runs on the machine, so it cannot fail for network reasons)');
+      if (obj(v.byGeo, 'voice.byGeo')) for (const [g, n] of Object.entries(v.byGeo)) if (!names.includes(n)) e.push(`voice.byGeo.${g}: unknown voice "${n}"`);
+    }
+  }
   return e;
 }
+// the voice for a video: its own "voice", else the one for its geo, else the default
+export function voiceFor(v, flow = loadFlow()) { return v.voice || (flow.voice.byGeo || {})[v.geo] || flow.voice.default; }
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const [cmd, arg] = process.argv.slice(2), flow = loadFlow(), errs = flowErrors(flow);

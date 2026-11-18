@@ -3,7 +3,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { pickStyle } from '../pickstyle.mjs';
-import { kits, loadFlow, flowErrors } from '../flow.mjs';
+import { kits, loadFlow, flowErrors, voiceFor } from '../flow.mjs';
 
 const REG = kits(loadFlow()); // registry facts + weight and status from flow.json
 const kit = (slug, o = {}) => ({ slug, status: 'core', formats: ['short', 'doc'], fit: { kinds: [], topics: [] }, weight: 1, pairsWith: [], ...o });
@@ -98,4 +98,15 @@ test('an accent kit is offered only for chart, map or timeline beats and a liste
   assert.deepEqual(pickStyle({ id: 'a' }, reg), { primary: 'main' });
   assert.deepEqual(pickStyle({ id: 'a', data: { style: 'main' } }, reg, { intents: ['map'] }), { primary: 'main', accent: 'data' });
   for (const id of ids(50)) assert.equal(pickStyle({ id }, REG, { intents: ['chart', 'map', 'timeline'] }).accent, undefined); // no kit has a partner yet
+});
+
+test('voice: the video, then its geo, then the default; the fallback must be Kokoro', () => {
+  const flow = loadFlow();
+  assert.equal(voiceFor({ geo: 'india' }, flow), 'neerja');
+  assert.equal(voiceFor({ geo: 'us' }, flow), flow.voice.default);
+  assert.equal(voiceFor({ geo: 'india', voice: 'kokoro' }, flow), 'kokoro');
+  const bad = structuredClone(flow);
+  bad.voice.fallback = 'neerja'; bad.voice.byGeo.us = 'nobody';
+  const e = flowErrors(bad).join('\n');
+  assert.match(e, /fallback must be a kokoro voice/); assert.match(e, /byGeo\.us: unknown voice/);
 });

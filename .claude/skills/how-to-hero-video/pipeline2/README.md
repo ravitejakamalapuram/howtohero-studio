@@ -25,7 +25,7 @@ node flow.mjs explain                        # print the settings and each style
 ```
 
 Timing comes from `"audio": { "file", "starts": [...] }` (a finished voice track and the second each beat starts),
-or from Kokoro (`npx hyperframes tts`, as in the old pipeline) when there is no `audio`,
+or, when there is no `audio`, from the voice `flow.json` gives the video (`voice`, else by `geo`, else the default): Kokoro (`npx hyperframes tts`) or an Edge voice (`tts_edge.py`, needs `edge-tts` and the network). An Edge voice that fails falls back to Kokoro for the whole video; `voiceUsed` records which one spoke. `--voice <name>` overrides it,
 or from `--estimate` (no sound, 2.6 words a second; for tests).
 Voice tracks are not kept in the repo (`*.m4a` and `*.wav` are ignored): `--audio <file>` says where the track named in `audio.file` is. Without it the build looks next to the video json and stops if the track is not there.
 The last beat is always the end card. Captions are cut from each beat's `say`, at most 2 lines at a time.
