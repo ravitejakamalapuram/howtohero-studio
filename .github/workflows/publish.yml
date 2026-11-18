@@ -19,6 +19,8 @@ on:
         type: boolean
         default: false
 concurrency: publish
+permissions:
+  contents: write # the publisher puts Instagram's copy of a video on the "instagram-uploads" release
 jobs:
   publish:
     runs-on: ubuntu-latest
@@ -26,8 +28,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg  # ffprobe measures a video when its videoRef has no length
-      - run: python3 -B publisher/publish.py
+      - run: python3 -B -u publisher/publish.py
         env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           INBOX_URL: ${{ secrets.INBOX_URL }}
           INBOX_TOKEN: ${{ secrets.INBOX_TOKEN }}
           SOCIAL_URL: ${{ secrets.SOCIAL_URL }}
