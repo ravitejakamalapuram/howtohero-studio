@@ -1,0 +1,21 @@
+{
+  "id": "n-airports", "file": "why-us-airports-froze.mp4", "topic": "NEWS: US AIRPORTS",
+  "format": "short", "kind": "news", "topics": ["transport", "infrastructure"], "series": "NEWS",
+  "style": { "primary": "iso-infographic" },
+  "cast": { "mascot": "small hero, red cape, round head" },
+  "hook": { "lines": ["WHY EVERY US AIRPORT", "FROZE AT ONCE"], "accent": "FROZE" },
+  "audio": { "file": "why-us-airports-froze.m4a", "dur": 59.37, "starts": [0.37, 4.37, 10.27, 16.8, 23.43, 30.47, 34.03, 40.5, 48.2, 55.97] },
+  "beats": [
+    { "say": "On Friday, the FAA held departures at every airport in the US." },
+    { "say": "The reason: communication problems at several of its big air traffic control centers." },
+    { "say": "Towers only handle takeoffs and landings. In between, huge regional centers guide the planes." },
+    { "say": "Each center sees planes through faraway radar sites, and talks to pilots through faraway radio sites." },
+    { "say": "All of that reaches the center over telecom lines. If they fail, controllers can lose the picture, or the voice." },
+    { "say": "So the safe move is a ground stop. New flights wait at the gate." },
+    { "say": "Planes already flying keep going and land. Fewer planes means less to watch while systems are down." },
+    { "say": "The FAA hasn't said exactly what broke. Outages like this usually start with a cut cable or a failed network box." },
+    { "say": "Flights restart as centers recover. But planes and crews are stuck in the wrong cities, so cancellations spill into the next day." },
+    { "hold": 3.4 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

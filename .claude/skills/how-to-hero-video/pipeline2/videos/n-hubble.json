@@ -1,0 +1,21 @@
+{
+  "id": "n-hubble", "file": "why-hubble-is-falling.mp4", "topic": "SPACE NEWS: HUBBLE",
+  "format": "short", "kind": "news", "topics": ["space"], "series": "NEWS",
+  "style": { "primary": "blueprint" },
+  "cast": { "mascot": "small hero, red cape, round head" },
+  "hook": { "lines": ["WHY HUBBLE", "IS FALLING."], "accent": "FALLING" },
+  "audio": { "file": "why-hubble-is-falling.m4a", "dur": 60.8, "starts": [0.37, 7.9, 13.5, 19.57, 23.87, 31.53, 38.2, 45, 51.37, 57.7] },
+  "beats": [
+    { "say": "Hubble has watched the universe since 1990. Now it is slowly falling, and NASA is asking companies how to save it." },
+    { "say": "Hubble orbits in low Earth orbit. Up there the air is incredibly thin, but it is not zero." },
+    { "say": "Every lap, Hubble brushes through that thin air. The drag steals a little speed, so it sinks a little lower." },
+    { "say": "Lower down, the air gets thicker. So the drag grows, and the fall speeds up." },
+    { "say": "Hubble has no engine to push itself back up. Astronauts used to boost it, but the space shuttle retired in 2011." },
+    { "say": "NASA's analysis says Hubble could fall back into the atmosphere around 2033 or 2034." },
+    { "say": "So NASA asked industry for ideas. Option one: boost it to a higher orbit, and buy more years of science." },
+    { "say": "Option two: service it, and upgrade it. Option three: bring it down safely, in a controlled re-entry." },
+    { "say": "Any mission would need to fly by 2032. Companies have until November thirtieth to reply." },
+    { "hold": 3.1 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

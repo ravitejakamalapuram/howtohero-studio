@@ -1,0 +1,3 @@
+# voice tracks stay out of the repo; pass one with --audio
+*.m4a
+*.wav

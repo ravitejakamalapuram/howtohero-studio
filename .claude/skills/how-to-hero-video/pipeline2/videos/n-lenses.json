@@ -1,0 +1,21 @@
+{
+  "id": "n-lenses", "file": "how-galaxies-act-as-lenses.mp4", "topic": "SPACE NEWS: GRAVITY LENSES",
+  "format": "short", "kind": "news", "topics": ["space"], "series": "NEWS",
+  "style": { "primary": "chalkboard" },
+  "cast": { "mascot": "small hero, red cape, round head" },
+  "hook": { "lines": ["GALAXIES THAT", "MAGNIFY."], "accent": "MAGNIFY" },
+  "audio": { "file": "how-galaxies-act-as-lenses.m4a", "dur": 50.82, "starts": [0.37, 6.23, 11.37, 16.63, 21.03, 25.73, 29.47, 36.23, 40.03, 47.63] },
+  "beats": [
+    { "say": "NASA just shared Hubble photos of nine galaxies acting as giant magnifying glasses." },
+    { "say": "Here is the trick. Mass warps space, and light passing a heavy galaxy curves with it." },
+    { "say": "So light from a galaxy far behind gets steered around the one in front, toward us." },
+    { "say": "We see that hidden galaxy smeared into bright arcs, sometimes doubled." },
+    { "say": "Line them up perfectly, and the light makes a full circle, an Einstein ring." },
+    { "say": "Slightly off, and one galaxy shows up four times in the same image." },
+    { "say": "The more mass, the stronger the bend. So the bending weighs the lens, including invisible dark matter." },
+    { "say": "Tiny kinks in the arcs could even expose small clumps of dark matter." },
+    { "say": "A survey at Kitt Peak spotted these lenses. Hubble zoomed in. And Roman, launched in August, will find many more." },
+    { "hold": 3.1 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

@@ -1,0 +1,12 @@
+{
+  "id": "golden-sketchnote", "file": "golden-sketchnote.mp4", "topic": "GOLDEN: SKETCHNOTE", "format": "short", "kind": "explainer", "topics": ["nature"],
+  "style": { "primary": "sketchnote" },
+  "hook": { "lines": ["MANGROVES ARE", "GROWING BACK."], "accent": "BACK" },
+  "beats": [
+    { "say": "Good news from the coast: the world's mangrove forests are growing back." },
+    { "say": "Rivers carry mud to the sea. It settles as new ground, and seedlings take root." },
+    { "say": "The world lost three thousand square kilometres by 2010, then gained two thousand back." },
+    { "hold": 2 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

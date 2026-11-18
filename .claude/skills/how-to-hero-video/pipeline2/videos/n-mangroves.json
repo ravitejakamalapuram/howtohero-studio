@@ -1,0 +1,21 @@
+{
+  "id": "n-mangroves", "file": "why-mangroves-are-growing-back.mp4", "topic": "GOOD NEWS: MANGROVES",
+  "format": "short", "kind": "news", "topics": ["nature"], "series": "NEWS",
+  "style": { "primary": "sketchnote" },
+  "cast": { "mascot": "small hero, red cape, round head" },
+  "hook": { "lines": ["MANGROVES", "ARE BACK."], "accent": "BACK" },
+  "audio": { "file": "why-mangroves-are-growing-back.m4a", "dur": 58.45, "starts": [0.37, 4.47, 13.23, 20.1, 26.53, 34.13, 39.3, 45.4, 50.1, 55.3] },
+  "beats": [
+    { "say": "Good news from the coast: the world's mangrove forests are growing back." },
+    { "say": "A new study, shared by NASA, read forty years of Landsat satellite images, from 1984 to 2023." },
+    { "say": "From 1984 to 2010, the world lost nearly three thousand square kilometres of mangroves." },
+    { "say": "Then, around 2010, the trend flipped. Since then, mangroves have gained nearly two thousand." },
+    { "say": "Satellites can see them because living leaves reflect lots of near-infrared light, so forest stands out from mud and water." },
+    { "say": "About two thirds of the gain is brand new ground, where mangroves spread onto fresh land." },
+    { "say": "Rivers carry mud to the sea. It settles into new mudflats, and mangrove seedlings take root there." },
+    { "say": "The other third is regrowth, where damaged forests recovered or were restored." },
+    { "say": "And mangroves can store up to four times more carbon than inland tropical forests." },
+    { "hold": 3.1 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

@@ -1,0 +1,29 @@
+{ "beats": [
+  { "beat": 1, "intent": "title", "items": [
+    { "k": "mk", "x": 0.5, "y": 0.47, "rx": 0.27, "ry": 0.15, "role": "good", "at": 0.6, "d": 1 },
+    { "k": "icon", "name": "tree", "box": [0.5, 0.6, 0.5], "lw": 0.006, "at": 0.2, "d": 1.4 },
+    { "k": "icon", "name": "wave", "box": [0.5, 0.85, 0.7], "role": "muted", "at": "word:coast", "d": 0.8 },
+    { "k": "text", "txt": "good news from the coast", "x": 0.5, "y": 0.93, "s": 0.056, "role": "muted", "font": "body", "at": "word:coast+0.4", "d": 0.8 }
+  ] },
+  { "beat": 2, "intent": "process", "items": [
+    { "k": "banner", "x": 0.5, "y": 0.07, "w": 0.62, "txt": "NEW GROUND", "at": 0, "d": 0.8 },
+    { "k": "line", "pts": [[0.04, 0.22], [0.18, 0.28], [0.27, 0.4], [0.33, 0.52]], "role": "muted", "lw": 0.02, "at": 0.3, "d": 1 },
+    { "k": "text", "txt": "river", "x": 0.16, "y": 0.17, "s": 0.054, "role": "muted", "font": "body", "at": 0.5, "d": 0.4 },
+    { "k": "icon", "name": "wave", "box": [0.78, 0.66, 0.4], "role": "muted", "at": "word:sea", "d": 0.7 },
+    { "k": "text", "txt": "sea", "x": 0.88, "y": 0.73, "s": 0.054, "role": "muted", "font": "body", "at": "word:sea+0.3", "d": 0.3 },
+    { "k": "mk", "x": 0.52, "y": 0.58, "rx": 0.24, "ry": 0.06, "role": "muted", "at": "word:settles", "d": 0.8 },
+    { "k": "arrow", "pts": [[0.82, 0.36], [0.68, 0.53]], "role": "accent", "at": "word:settles+0.3", "d": 0.5 },
+    { "k": "text", "txt": "mud settles", "x": 0.8, "y": 0.31, "s": 0.054, "role": "muted", "font": "body", "at": "word:settles+0.5", "d": 0.5 },
+    { "k": "icon", "name": "tree", "box": [0.4, 0.52, 0.12], "at": "word:seedlings", "d": 0.4 },
+    { "k": "icon", "name": "tree", "box": [0.5, 0.52, 0.14], "at": "word:seedlings+0.25", "d": 0.4 },
+    { "k": "icon", "name": "tree", "box": [0.6, 0.52, 0.12], "at": "word:seedlings+0.5", "d": 0.4 },
+    { "k": "text", "txt": "seedlings take root", "x": 0.5, "y": 0.84, "s": 0.058, "role": "good", "at": "word:root", "d": 0.7 }
+  ] },
+  { "beat": 3, "intent": "chart", "items": [
+    { "k": "text", "txt": "LOST, THEN GAINED", "x": 0.5, "y": 0.08, "s": 0.066, "at": 0, "d": 0.7 },
+    { "k": "bars", "x": 0.16, "y": 0.2, "w": 0.68, "h": 0.42, "vals": [3000, 2000], "labels": ["lost by 2010", "gained since"], "at": 0.4, "d": 1.4 },
+    { "k": "num", "to": 2000, "pre": "+", "suf": " km²", "x": 0.5, "y": 0.8, "s": 0.1, "role": "accent", "at": "word:gained", "d": 1 },
+    { "k": "icon", "name": "check", "box": [0.67, 0.27, 0.12], "role": "good", "at": "word:two", "d": 0.5 },
+    { "k": "dim", "x1": 0.16, "y1": 0.92, "x2": 0.84, "y2": 0.92, "label": "1984 to 2023", "at": "word:lost", "d": 0.8 }
+  ] }
+] }

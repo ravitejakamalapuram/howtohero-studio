@@ -1,0 +1,28 @@
+{ "beats": [
+  { "beat": 1, "intent": "title", "items": [
+    { "k": "icon", "name": "envelope", "box": [0.25, 0.5, 0.3], "at": 0, "d": 1 },
+    { "k": "arrow", "pts": [[0.42, 0.5], [0.6, 0.5]], "role": "accent", "at": 0.6, "d": 0.6 },
+    { "k": "icon", "name": "server", "box": [0.76, 0.5, 0.3], "at": 0.9, "d": 1 },
+    { "k": "icon", "name": "cross", "box": [0.76, 0.5, 0.36], "role": "warn", "at": "word:down", "d": 0.5 },
+    { "k": "text", "txt": "IT WAITS", "x": 0.5, "y": 0.8, "s": 0.09, "at": "word:waits", "d": 0.6 },
+    { "k": "hl", "x": 0.27, "y": 0.765, "w": 0.46, "h": 0.07, "role": "warn", "at": "word:queue", "d": 0.4 }
+  ] },
+  { "beat": 2, "intent": "process", "items": [
+    { "k": "banner", "x": 0.5, "y": 0.07, "w": 0.6, "txt": "RETRY", "at": 0, "d": 0.8 },
+    { "k": "icon", "name": "envelope", "box": [0.16, 0.42, 0.2], "at": 0.2, "d": 0.8 },
+    { "k": "icon", "name": "server", "box": [0.86, 0.42, 0.22], "role": "muted", "at": 0.4, "d": 0.8 },
+    { "k": "arrow", "pts": [[0.28, 0.36], [0.5, 0.3], [0.72, 0.36]], "role": "warn", "at": "word:again", "d": 0.6 },
+    { "k": "arrow", "pts": [[0.28, 0.42], [0.72, 0.42]], "role": "warn", "at": "word:again#2", "d": 0.6 },
+    { "k": "arrow", "pts": [[0.28, 0.48], [0.5, 0.54], [0.72, 0.48]], "role": "good", "at": "word:answers", "d": 0.6 },
+    { "k": "icon", "name": "clock", "box": [0.3, 0.74, 0.2], "role": "accent", "at": "word:later", "d": 0.8 },
+    { "k": "dim", "x1": 0.46, "y1": 0.76, "x2": 0.9, "y2": 0.76, "label": "LONGER EACH TIME", "at": "word:later+0.3", "d": 0.9 },
+    { "k": "icon", "name": "check", "box": [0.86, 0.6, 0.12], "role": "good", "at": "word:answers+0.4", "d": 0.4 }
+  ] },
+  { "beat": 3, "intent": "chart", "items": [
+    { "k": "text", "txt": "WHEN MAIL ARRIVES", "x": 0.5, "y": 0.08, "s": 0.06, "at": 0, "d": 0.7 },
+    { "k": "bars", "x": 0.14, "y": 0.2, "w": 0.72, "h": 0.42, "vals": [90, 7, 2, 1], "labels": ["1 h", "6 h", "1 day", "days"], "at": 0.4, "d": 1.6 },
+    { "k": "num", "to": 90, "suf": "%", "x": 0.6, "y": 0.3, "s": 0.11, "role": "accent", "at": "word:first", "d": 1 },
+    { "k": "circle", "x": 0.77, "y": 0.585, "r": 0.05, "role": "warn", "at": "word:sliver", "d": 0.6 },
+    { "k": "text", "txt": "still waiting", "x": 0.72, "y": 0.8, "s": 0.05, "role": "warn", "at": "word:sliver+0.3", "d": 0.6 }
+  ] }
+] }

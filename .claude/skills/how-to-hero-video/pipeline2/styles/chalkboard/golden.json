@@ -1,0 +1,12 @@
+{
+  "id": "golden-chalkboard", "file": "golden-chalkboard.mp4", "topic": "GOLDEN: CHALKBOARD", "format": "short", "kind": "explainer",
+  "style": { "primary": "chalkboard" },
+  "hook": { "lines": ["GALAXIES THAT", "MAGNIFY."], "accent": "MAGNIFY" },
+  "beats": [
+    { "say": "A heavy galaxy can bend light like a giant magnifying glass." },
+    { "say": "Light from a far galaxy curves around the heavy one and still reaches us." },
+    { "say": "More mass means a stronger bend, so the bend weighs the lens." },
+    { "hold": 2.4 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

@@ -1,0 +1,20 @@
+{
+  "id": "n-email", "file": "how-email-waits-out-an-outage.mp4", "topic": "TECH NEWS: EMAIL",
+  "format": "short", "kind": "news", "topics": ["internet"], "series": "NEWS",
+  "style": { "primary": "whiteboard" },
+  "cast": { "mascot": "small hero, red cape, round head" },
+  "hook": { "lines": ["HOW EMAIL WAITS", "OUT AN OUTAGE."], "accent": "OUTAGE" },
+  "audio": { "file": "how-email-waits-out-an-outage.m4a", "dur": 58.11, "starts": [0.37, 7.6, 13.13, 20, 27.13, 32.1, 40.6, 48.43, 54.97] },
+  "beats": [
+    { "say": "On November twelfth, a Microsoft outage cut people off from Microsoft three sixty five for about thirty hours." },
+    { "say": "Microsoft hasn't said exactly what broke. But here's why one failure hits so many people." },
+    { "say": "Cloud email isn't one computer. It's giant shared server farms, holding huge numbers of mailboxes." },
+    { "say": "They lean on shared parts, like login and routing servers. If one of those stumbles, everything behind it stalls." },
+    { "say": "Then every app retries at once, and that pile of retries can slow the recovery." },
+    { "say": "So what about email sent during the outage? Email has a safety net. Email's rule book, called SMTP, says a server that can't deliver" },
+    { "say": "a message must queue it and try again. It should wait at least thirty minutes between tries, and keep going for at least four to five days." },
+    { "say": "When service came back, the waiting mail poured in. Microsoft says that backlog has now been processed." },
+    { "hold": 3.14 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

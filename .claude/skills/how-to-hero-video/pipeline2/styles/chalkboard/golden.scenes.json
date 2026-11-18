@@ -1,0 +1,29 @@
+{ "beats": [
+  { "beat": 1, "intent": "title", "items": [
+    { "k": "icon", "name": "mag", "box": [0.52, 0.6, 0.56], "lw": 0.009, "at": 0.2, "d": 1.2 },
+    { "k": "icon", "name": "galaxy", "box": [0.47, 0.56, 0.23], "role": "muted", "at": 1, "d": 1 },
+    { "k": "text", "txt": "x9 GALAXIES", "x": 0.26, "y": 0.9, "s": 0.075, "role": "warn", "at": "word:giant", "d": 0.6 },
+    { "k": "text", "txt": "HUBBLE", "x": 0.78, "y": 0.9, "s": 0.075, "at": "word:magnifying", "d": 0.5 }
+  ] },
+  { "beat": 2, "intent": "process", "items": [
+    { "k": "text", "txt": "LIGHT TAKES THE BEND", "x": 0.5, "y": 0.06, "s": 0.08, "role": "accent", "at": 0, "d": 0.8 },
+    { "k": "hl", "x": 0.14, "y": 0.07, "w": 0.72, "h": 0.04, "at": 0.7, "d": 0.4 },
+    { "k": "icon", "name": "galaxy", "box": [0.5, 0.2, 0.16], "role": "muted", "at": 0.2, "d": 0.7 },
+    { "k": "text", "txt": "FAR GALAXY", "x": 0.8, "y": 0.2, "s": 0.04, "role": "muted", "font": "body", "at": "word:far", "d": 0.4 },
+    { "k": "circle", "x": 0.5, "y": 0.5, "r": 0.07, "role": "warn", "lw": 0.007, "at": "word:heavy", "d": 0.5 },
+    { "k": "mk", "x": 0.5, "y": 0.5, "rx": 0.07, "ry": 0.07, "role": "warn", "at": "word:heavy+0.3", "d": 0.5 },
+    { "k": "text", "txt": "HEAVY ONE", "x": 0.5, "y": 0.6, "s": 0.04, "role": "warn", "font": "body", "at": "word:heavy+0.4", "d": 0.4 },
+    { "k": "arrow", "pts": [[0.46, 0.27], [0.3, 0.4], [0.26, 0.5], [0.3, 0.62], [0.47, 0.8]], "at": "word:curves", "d": 1.2 },
+    { "k": "arrow", "pts": [[0.54, 0.27], [0.7, 0.4], [0.74, 0.5], [0.7, 0.62], [0.53, 0.8]], "at": "word:curves+0.3", "d": 1.2 },
+    { "k": "icon", "name": "earth", "box": [0.5, 0.88, 0.14], "role": "good", "at": "word:reaches", "d": 0.7 },
+    { "k": "text", "txt": "US", "x": 0.66, "y": 0.88, "s": 0.05, "role": "good", "at": "word:us", "d": 0.3 }
+  ] },
+  { "beat": 3, "intent": "chart", "items": [
+    { "k": "text", "txt": "MORE MASS, MORE BEND", "x": 0.5, "y": 0.06, "s": 0.08, "at": 0, "d": 0.8 },
+    { "k": "bars", "x": 0.12, "y": 0.2, "w": 0.76, "h": 0.42, "vals": [1, 2, 3.4, 5], "labels": ["x1", "x10", "x100", "x1000"], "at": 0.4, "d": 1.6 },
+    { "k": "mk", "x": 0.7185, "y": 0.2, "w": 0.133, "h": 0.42, "at": "word:stronger", "d": 0.5 },
+    { "k": "dim", "x1": 0.12, "y1": 0.74, "x2": 0.88, "y2": 0.74, "label": "MASS OF THE LENS", "at": "word:mass", "d": 0.8 },
+    { "k": "num", "pre": "BEND x", "to": 5, "x": 0.5, "y": 0.86, "s": 0.09, "role": "accent", "at": "word:bend", "d": 1.2 },
+    { "k": "rect", "x": 0.2, "y": 0.8, "w": 0.6, "h": 0.12, "role": "muted", "at": "word:weighs", "d": 0.6 }
+  ] }
+] }
