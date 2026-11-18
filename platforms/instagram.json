@@ -2,10 +2,10 @@
   "_about": "The single source of truth for this platform: what it accepts and what we have learned about it. Every skill, job and script that makes or posts videos for it reads this file; put new findings here, not anywhere else. maxSeconds is the platform's limit. A video longer than that never goes out cut: the video build makes a separate version for this platform of at most versionSeconds, with its own hook, payoff and end card (data.versions.<platform>), and the publisher posts it only when that version exists.",
   "postTimesIST": [
     "08:00",
-    "12:30",
-    "16:00",
-    "19:00",
-    "21:30"
+    "13:00",
+    "18:00",
+    "19:30",
+    "21:00"
   ],
   "maxSeconds": 90,
   "versionSeconds": 87,
@@ -17,6 +17,6 @@
     "maxSeconds is 90 until a longer post is tested. A video over it gets its own version of at most versionSeconds, never a truncated copy. That version still goes through the upload host (the publisher has no link for it yet), so expect it to need retries.",
     "The grid and feed show an early frame: the headline must be readable from frame 0.",
     "No private or scheduled posts through the API.",
-    "Posting times (IST) were picked 18 Nov 2026 when we went from 3 to 5 posts a day. Our own data was too thin to choose from (13 Reels, 80-135 views each, no pattern by hour), so they follow published India studies: SocialPilot's Reels study (7:30 AM, 3 PM, 7:30 PM IST) and several India guides that put the peak at 7-9 PM IST. 08:00 catches the morning commute, 12:30 lunch, 16:00 the afternoon break, 19:00 and 21:30 the evening peak. Slots are at least 2.5 h apart so one publish run (up to 25 min, started up to 10 min late) never overlaps the next. Re-check against Insights once 50+ Reels are up. Meta allows about 50 API posts a day, so 5 is far inside it."
+    "Posting times (IST) were picked 18 Nov 2026 when we went from 3 to 5 posts a day. Our own data was too thin to choose from (13 Reels, 80-135 views each, no pattern by hour), so they follow published India studies: SocialPilot's Reels study (7:30 AM, 3 PM, 7:30 PM IST) and several India guides that put the peak at 7-9 PM IST. 08:00 catches the morning commute, 13:00 lunch, and 18:00, 19:30 and 21:00 the evening peak (changed the same day at the user's choice: three evening posts instead of 16:00 + two evening). Slots stay at least 90 min apart: one publish run takes up to 25 min and starts up to 10 min late, GitHub cancels queued runs beyond one, and Reels posted minutes apart split the same test audience. 30-min slots (7, 7:30, 8, 8:30, 9 PM) were rejected for those reasons. Re-check against Insights once 50+ Reels are up. Meta allows about 50 API posts a day, so 5 is far inside it."
   ]
 }
