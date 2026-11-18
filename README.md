@@ -31,3 +31,7 @@ Tokens and URLs come from the scheduled tasks' prompts or environment. Never com
 ## Platforms
 
 Each platform has one file, `platforms/<platform>.json` (instagram, facebook, youtube). It is the single source of truth for that platform: limits (`maxSeconds`, and `versionSeconds` for the separate version the build makes when a video is longer) and `notes` every skill reads when making videos for it. Add new findings about a platform there and nowhere else.
+
+## Add a channel
+
+A channel is one skill folder under `.claude/skills/<channel>/` with its own `SKILL.md` (the steps, in order) and `flow.json` (its settings, with `"channel": "<id>"`). It reuses the shared tools: `how-to-hero-video/pipeline2/` (render, verify, style picker), `publisher/` (posting, stats, weekly report) and `platforms/*.json` (platform rules). Every card it makes carries `data.channel`, so stats and the weekly report stay per channel. A step that needs a person (for example a character sheet made in the browser) is an Inbox card the run waits on while it builds other work. The Telugu mythology channel will be the second one.
