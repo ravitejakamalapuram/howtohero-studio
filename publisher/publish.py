@@ -30,6 +30,7 @@ import subprocess
 import sys
 import tempfile
 import time
+import urllib.error
 import urllib.request
 
 WAIT_SECONDS = 15 * 60
@@ -124,27 +125,90 @@ def platform_file(platform, item, data, cache):
     return (data.get('versions') or {}).get(platform)
 
 
-def instagram_copy(item, data):
-    """Instagram's processing refuses our renders as they come (rupload ProcessingFailedError, even at 29 s) but takes
-    the same video re-encoded with plain libx264 settings. The copy is made once, uploaded through the Inbox and
-    remembered in data.igDriveId."""
-    if data.get('igDriveId'):
-        return data['igDriveId']
+GH_API = 'https://api.github.com'
+IG_RELEASE = 'instagram-uploads'  # a release in this repository whose files are the public links Instagram fetches
+IG_KEEP_DAYS = 3
+
+
+def gh(method, url, data=None, content_type='application/json'):
+    req = urllib.request.Request(url, data=data, method=method, headers={
+        'Authorization': f"Bearer {os.environ['GITHUB_TOKEN']}", 'Accept': 'application/vnd.github+json',
+        'Content-Type': content_type})
+    with urllib.request.urlopen(req, timeout=300) as r:
+        body = r.read()
+    return json.loads(body.decode()) if body else None
+
+
+def ig_release():
+    repo = os.environ['GITHUB_REPOSITORY']
+    try:
+        return gh('GET', f'{GH_API}/repos/{repo}/releases/tags/{IG_RELEASE}')
+    except urllib.error.HTTPError as e:
+        if e.code != 404:
+            raise
+    return gh('POST', f'{GH_API}/repos/{repo}/releases', json.dumps({
+        'tag_name': IG_RELEASE, 'name': 'Instagram uploads', 'prerelease': True, 'make_latest': 'false',
+        'body': 'Short-lived copies of videos on their way to Instagram, which fetches each one from its link here. '
+                'publisher/publish.py adds and removes them.'}).encode())
+
+
+def public_link(path, name):
+    """Puts the file on this repository's "instagram-uploads" release and returns its public link. Files older
+    than IG_KEEP_DAYS are removed on the way."""
+    rel = ig_release()
+    old = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=IG_KEEP_DAYS)
+    for a in rel.get('assets') or []:
+        if a['name'] == name or dt.datetime.fromisoformat(a['created_at'].replace('Z', '+00:00')) < old:
+            gh('DELETE', a['url'])
+    with open(path, 'rb') as fh:
+        asset = gh('POST', f"https://uploads.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/releases/{rel['id']}/assets?name={name}",
+                   fh.read(), 'video/mp4')
+    return asset['browser_download_url']
+
+
+def remove_public_link(name):
+    try:
+        for a in ig_release().get('assets') or []:
+            if a['name'] == name:
+                gh('DELETE', a['url'])
+    except (KeyError, OSError) as e:
+        print(f'public link not removed: {e}')
+
+
+def instagram_video(item, data):
+    """What Instagram gets: a public link to a copy of the video, which Instagram fetches itself, and the same copy
+    in Drive as the fallback (data.igDriveId, made once). Sending the file to Meta's upload host instead was refused
+    about two times in three, with any encoding (platforms/instagram.json). The copy is a plain libx264 re-encode
+    with the index at the front (faststart), so it plays from a link."""
+    name = f"{item['id']}-instagram.mp4"
     with tempfile.TemporaryDirectory() as d:
         src, out = os.path.join(d, 'in.mp4'), os.path.join(d, 'ig.mp4')
         with open(src, 'wb') as fh:
             fh.write(base64.b64decode(inbox({'action': 'download', 'id': item['id']})['base64']))
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
                         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', out], check=True)
-        session = inbox({'action': 'uploadUrl', 'id': item['id'], 'name': f"{item['id']}-instagram.mp4",
-                         'size': os.path.getsize(out), 'replaceExisting': True})
-        with open(out, 'rb') as fh:
-            req = urllib.request.Request(session['uploadUrl'], data=fh.read(), method='PUT',
-                                         headers={'Content-Type': 'video/mp4'})
-        with urllib.request.urlopen(req, timeout=300) as r:
-            data['igDriveId'] = json.loads(r.read().decode())['id']
-    print('instagram gets a re-encoded copy of the video')
-    return data['igDriveId']
+        if not data.get('igDriveId'):
+            session = inbox({'action': 'uploadUrl', 'id': item['id'], 'name': name,
+                             'size': os.path.getsize(out), 'replaceExisting': True})
+            with open(out, 'rb') as fh:
+                req = urllib.request.Request(session['uploadUrl'], data=fh.read(), method='PUT',
+                                             headers={'Content-Type': 'video/mp4'})
+            with urllib.request.urlopen(req, timeout=300) as r:
+                data['igDriveId'] = json.loads(r.read().decode())['id']
+        video = {'driveFileId': data['igDriveId']}
+        try:
+            video['url'] = public_link(out, name)
+            print(f"instagram fetches its copy from {video['url']}")
+        except (KeyError, OSError) as e:  # no GITHUB_TOKEN (a run outside Actions) or GitHub is down
+            print(f'no public link for instagram ({e}); it gets the Drive file')
+    return video
+
+
+def job_exists(key):
+    try:
+        return bool(social({'action': 'get', 'key': key})['job'])
+    except RuntimeError:
+        return False
 
 
 def post_for(platform, item, data, cache):
@@ -152,9 +216,11 @@ def post_for(platform, item, data, cache):
     caption = (data.get('ig') or item.get('summary') or title).strip()
     file_id = platform_file(platform, item, data, cache)
     key = f"{item['id']}-{platform}" + ('-version' if file_id != item['driveId'] else '')  # its own job
-    if platform == 'instagram' and file_id == item['driveId']:
-        file_id, key = instagram_copy(item, data), f"{item['id']}-instagram-ig"
     video = {'driveFileId': file_id}
+    if platform == 'instagram' and file_id == item['driveId']:
+        key = f"{item['id']}-instagram-link"
+        if not job_exists(key):  # a job from an earlier run carries on with the video it has
+            video = instagram_video(item, data)
     if platform == 'instagram':
         return {'platform': platform, 'key': key, 'video': video, 'caption': caption}
     if platform == 'facebook':
@@ -211,6 +277,8 @@ def run():
     jobs = {p: {'id': None, 'status': 'failed', 'error': e} for p, e in down.items()}
     cache, no_version = {}, {}
     for p in platforms:
+        if (data.get('posted') or {}).get(p):
+            continue  # already there: never post a platform twice, whatever key its job had
         try:
             if platform_file(p, item, data, cache) is None:
                 no_version[p] = f"needs its own {p} version of {RULES[p]['versionSeconds']} s or less (the video build makes it)"
@@ -233,6 +301,8 @@ def run():
             break
         time.sleep(30)
 
+    if jobs.get('instagram', {}).get('status') == 'done' and os.environ.get('GITHUB_TOKEN'):
+        remove_public_link(f"{item['id']}-instagram.mp4")
     posted = dict(data.get('posted') or {})
     posted.update({p: j['result'].get('url') for p, j in jobs.items() if j['status'] == 'done'})
     failed = {p: j['error'] for p, j in jobs.items() if j['status'] == 'failed'}
