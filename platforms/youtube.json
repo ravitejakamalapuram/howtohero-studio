@@ -2,10 +2,10 @@
   "_about": "The single source of truth for this platform: what it accepts and what we have learned about it. Every skill, job and script that makes or posts videos for it reads this file; put new findings here, not anywhere else. maxSeconds is the platform's limit. A video longer than that never goes out cut: the video build makes a separate version for this platform of at most versionSeconds, with its own hook, payoff and end card (data.versions.<platform>), and the publisher posts it only when that version exists.",
   "postTimesIST": [
     "08:00",
-    "12:30",
-    "16:00",
-    "19:00",
-    "21:30"
+    "13:00",
+    "18:00",
+    "19:30",
+    "21:00"
   ],
   "notes": [
     "Shorts up to 3 minutes; documentaries are 16:9 long-form and are never cut.",
