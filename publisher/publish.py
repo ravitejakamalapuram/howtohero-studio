@@ -214,8 +214,10 @@ def job_exists(key):
 
 
 def post_for(platform, item, data, cache):
-    title = (data.get('yt') or item.get('title') or '').strip()
-    caption = (data.get('ig') or item.get('summary') or title).strip()
+    # data.meta.<platform> (written by the build from platforms/<platform>.json "metadata") wins over the shared yt/ig text
+    meta = ((data.get('meta') or {}).get(platform) or {}) if isinstance(data.get('meta'), dict) else {}
+    title = (meta.get('title') or data.get('yt') or item.get('title') or '').strip()
+    caption = (meta.get('text') or data.get('ig') or item.get('summary') or title).strip()
     file_id = platform_file(platform, item, data, cache)
     key = f"{item['id']}-{platform}" + ('-version' if file_id != item['driveId'] else '')  # its own job
     video = {'driveFileId': file_id}
