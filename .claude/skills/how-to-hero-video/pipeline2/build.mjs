@@ -58,9 +58,11 @@ if (V.audio) {
     const flow = loadFlow(), voices = flow.voice.voices;
     const speak = name => V.beats.map((b, i) => { // one clip per beat
       if (!b.say) return b.hold || 1.6;
-      const f = path.join(out, `v${i + 1}.wav`), x = voices[name];
+      const f = path.join(out, `v${i + 1}.wav`), x = voices[name], key = f.replace(/\.wav$/, '.key'), k = [b.say, name, x.voice, x.speed || 1].join('|');
+      if (fs.existsSync(f) && fs.existsSync(key) && fs.readFileSync(key, 'utf8') === k) return probe(f); // same words, same voice: reuse the clip
       if (x.engine === 'edge') execFileSync('python3', [path.join(ROOT, 'tts_edge.py'), b.say, x.voice, f], { stdio: 'pipe', timeout: 60000 });
       else execFileSync('npx', ['hyperframes', 'tts', b.say, '-v', x.voice, '-s', (x.speed || 1).toFixed(3), '-o', f], { stdio: 'pipe' });
+      fs.writeFileSync(key, k);
       return probe(f);
     });
     let name = opt('voice') || voiceFor(V, flow);
