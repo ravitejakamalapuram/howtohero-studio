@@ -1,0 +1,64 @@
+{
+  "id": "v18",
+  "file": "how-chand-baori-stepwell-works.mp4",
+  "topic": "CHAND BAORI",
+  "format": "short",
+  "kind": "explainer",
+  "topics": [
+    "history",
+    "engineering"
+  ],
+  "series": "A",
+  "maxSeconds": 120,
+  "geo": "india",
+  "cast": {
+    "mascot": "small hero, red cape, round head"
+  },
+  "hook": {
+    "lines": [
+      "THIS WELL HAS",
+      "ITS OWN COOL AIR"
+    ],
+    "accent": "COOL"
+  },
+  "beats": [
+    {
+      "say": "This Indian well has 3,500 steps, and its own cool air."
+    },
+    {
+      "say": "It is Chand Baori, in Abhaneri, Rajasthan, built more than a thousand years ago."
+    },
+    {
+      "say": "Rajasthan is dry most of the year. Most of its rain falls in the four monsoon months."
+    },
+    {
+      "say": "In the monsoon, the giant pit fills up like a tank. Then, month after month, the water sinks lower."
+    },
+    {
+      "say": "With an ordinary well, your rope gets too short. Here, the steps simply follow the water down, thirteen levels deep."
+    },
+    {
+      "say": "The steps zig-zag in double flights down three of its walls."
+    },
+    {
+      "say": "At the bottom, deep stone walls block the sun, and the water cools the air as it evaporates, by several degrees."
+    },
+    {
+      "say": "A thousand years before air conditioning, people walked down a well to cool off."
+    },
+    {
+      "hold": 1.6
+    }
+  ],
+  "card": {
+    "lines": [
+      "FOLLOW FOR MORE",
+      "HOW TO HERO"
+    ]
+  },
+  "style": {
+    "primary": "blueprint"
+  },
+  "flowSha": "6142390379",
+  "voiceUsed": "neerja"
+}
