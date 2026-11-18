@@ -19,6 +19,8 @@ For lane A also set `"note":"Trending: approve today, it goes stale."`. A `confl
 
 Read `IDEAS.md` first: it defines the idea kinds (`explainer`, `fact`, `curiosity`, `doc`), the quality bar every card must pass, the daily mix and the card fields. Read `platforms/*.json` (repo root) for the length limits it refers to.
 
+Viewer questions: list viewer comments tagged `question` or `idea` from the last 30 days: `inbox.sh call '{"action":"list","type":"reply","limit":200}'` and keep those whose `data.tag` is `question` or `idea`. When the same question or topic appears twice or more and no card covers it (dupcheck), propose it as an idea card with `"why":"asked by <n> viewers"`.
+
 Count the backlog: `inbox.sh call '{"action":"list","type":"idea","status":"pending,approved","limit":1000}'` and count pending and approved separately. Apply the backlog rule in `IDEAS.md` "The daily mix" to decide how many idea cards to propose this run, then fill each kind of `scout.mix` with the best cards that pass the bar. Draft the ideas, don't add them yet. For each, run `dupcheck.py "<topic>"` and drop the idea on a DUPLICATE, or when a CHECK item already covers the same subject (a plain `list` sees only 100 items, so don't rely on it). Each is added later as:
 
 `inbox.sh call '{"action":"add","type":"idea","status":"pending","title":"<the topic>","summary":"<the angle, one sentence: the surprising claim>","data":{"kind":"<explainer|fact|curiosity>","topic":"<topic>","angle":"<angle>","hook":"<2 short lines>","why":"<one line: why people will watch and share it>","sources":["<url>"],"fact":"<K or C>","maxSeconds":<from IDEAS.md>,"rank":<1, 2, ...>,"geo":"<global|india|us>"}}'`

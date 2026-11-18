@@ -1,25 +1,31 @@
 #!/usr/bin/env python3
-"""Weekly style check: are some styles watched more than others? Proposes new style weights for approval.
+"""Weekly report and tuning proposal for one channel (its flow.json), sent as one Inbox card.
 
-1. Applies last week's proposal if the user approved it in the Inbox (writes flow.json; the workflow commits it).
-2. Joins every posted How To Hero video (Inbox: data.style, data.voice, data.geo, data.posted.<platform>)
-   with its views from Social Manager "stats" (Instagram and Facebook; YouTube needs the Analytics scope, not yet),
-   by post link.
-3. A style with at least MIN_PER_ARM videos gets weight = its median views / the median of all styled videos,
-   kept between 0.5 and 2. Styles with fewer videos keep their weight. Nothing changes without the user's tap.
-Run with --dry-run to print the table only. Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN.
+1. Applies last week's proposal if the user approved it (writes flow.json; the learn workflow commits it).
+2. Scores every posted video at the same age: its day-7 views per platform (data.metrics, stored daily by stats.py)
+   divided by that platform's median over the last 28 days, as a log, averaged over its platforms.
+3. For each lever (style, hookPattern, kind, length under/over 45 s) it averages the scores per value and shrinks
+   them toward 0 by n/(n+8). A value needs MIN_N videos (15 for length) before it counts, and a shrunk difference
+   under 20% is ignored as noise.
+4. Proposes style weights only (the one lever flow.json holds), at most 10% up or down a week; the floor in
+   flow.json keeps every style in play. Hook, kind and length results are reported for the scout and build to use.
+Nothing changes without the user's tap. Run with --dry-run to print the card only.
+Needs INBOX_URL and INBOX_TOKEN (SOCIAL_URL and SOCIAL_TOKEN are read by the shared helpers).
 """
 import datetime as dt
 import json
+import math
 import os
+import re
 import statistics
 import sys
 
-from publish import inbox, social
+from publish import inbox
 
 FLOW = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.claude', 'skills', 'how-to-hero-video', 'flow.json')
-MIN_PER_ARM = 8
-PLATFORMS = ['instagram', 'facebook']
+MIN_N = 8        # videos a value needs before it counts (length needs 15)
+NOISE = 0.2      # shrunk differences smaller than 20% are ignored
+MAX_STEP = 0.1   # a weight moves at most 10% a week
 DRY = '--dry-run' in sys.argv
 
 
@@ -37,38 +43,58 @@ def apply_approved(flow):
     return changed
 
 
-def views_by_url():
-    out = {}
-    for p in PLATFORMS:
-        try:
-            for post in social({'action': 'stats', 'platform': p, 'limit': 100}).get('posts', []):
-                if post.get('url') and post.get('views') is not None:
-                    out[post['url']] = post['views']
-        except Exception as e:  # one platform failing should not stop the report
-            print(f'{p} stats failed: {e}')
-    return out
+def scored(flow):
+    """[(video data, score)] for the channel's posted videos that have day-7 views."""
+    items = [i for i in inbox({'action': 'list', 'type': 'video', 'status': 'posted', 'limit': 1000})['items']
+             if (i.get('data') or {}).get('channel', 'how-to-hero') == flow['channel']]
+    now = dt.datetime.now(dt.timezone.utc)
+    recent = lambda d: d.get('postedAt') and now - dt.datetime.fromisoformat(d['postedAt'].replace('Z', '+00:00')) < dt.timedelta(days=35)
+    base = {}  # platform -> median day-7 views of the videos posted in the last 28 (+7) days
+    for i in items:
+        d = i.get('data') or {}
+        for p, m in (d.get('metrics') or {}).items():
+            if recent(d) and m.get('d7') is not None:
+                base.setdefault(p, []).append(m['d7'])
+    base = {p: max(1, statistics.median(v)) for p, v in base.items()}
+    out = []
+    for i in items:
+        d = i.get('data') or {}
+        s = [math.log((m['d7'] + 1) / base[p]) for p, m in (d.get('metrics') or {}).items() if m.get('d7') is not None and p in base]
+        if s:
+            out.append((d, sum(s) / len(s), i))
+    return out, base
 
 
-def table(flow):
-    views = views_by_url()
-    arms = {}
-    for item in inbox({'action': 'list', 'type': 'video', 'status': 'posted', 'limit': 1000})['items']:
-        d = item.get('data') or {}
-        if d.get('channel', 'how-to-hero') != flow['channel']:
-            continue
-        v = [views[u] for u in (d.get('posted') or {}).values() if u in views]
-        if v:
-            arms.setdefault(d.get('style') or 'classic', []).append(sum(v))
-    return arms
+def length_bucket(d):
+    m = re.search(r'\|\s*([\d.]+) s\s*\|', d.get('videoRef') or '')
+    return None if not m else ('under 45 s' if float(m.group(1)) < 45 else '45 s or more')
 
 
-def proposal(flow, arms):
-    styled = [x for s, vs in arms.items() if s in flow['style']['kits'] for x in vs]
-    if not styled:
-        return {}
-    base = statistics.median(styled) or 1
-    return {s: round(min(2.0, max(0.5, statistics.median(vs) / base)), 2)
-            for s, vs in arms.items() if s in flow['style']['kits'] and len(vs) >= MIN_PER_ARM}
+LEVERS = {'style': lambda d: d.get('style') or 'classic', 'hookPattern': lambda d: d.get('hookPattern'),
+          'kind': lambda d: d.get('kind'), 'length': length_bucket}
+
+
+def lever_table(rows):
+    """{lever: {value: (n, shrunk mean score)}}"""
+    t = {}
+    for lever, get in LEVERS.items():
+        groups = {}
+        for d, sc, _ in rows:
+            v = get(d)
+            if v:
+                groups.setdefault(v, []).append(sc)
+        need = 15 if lever == 'length' else MIN_N
+        t[lever] = {v: (len(x), (sum(x) / len(x)) * len(x) / (len(x) + 8)) for v, x in groups.items() if len(x) >= need}
+    return t
+
+
+def proposal(flow, t):
+    new = {}
+    for slug, (n, sc) in t['style'].items():
+        if slug in flow['style']['kits'] and abs(math.exp(sc) - 1) >= NOISE:
+            w = flow['style']['kits'][slug]['weight']
+            new[slug] = round(w * min(1 + MAX_STEP, max(1 - MAX_STEP, math.exp(sc))), 2)
+    return new
 
 
 def main():
@@ -76,22 +102,30 @@ def main():
     if apply_approved(flow) and not DRY:
         open(FLOW, 'w').write(json.dumps(flow, indent=2, ensure_ascii=False) + '\n')
         print('applied approved weights to flow.json')
-    arms = table(flow)
-    lines = [f"{s}: {len(vs)} videos, median {statistics.median(vs):.0f} views" for s, vs in sorted(arms.items())]
-    print('\n'.join(lines) or 'no posted videos with views yet')
-    new = {s: w for s, w in proposal(flow, arms).items() if w != flow['style']['kits'][s]['weight']}
-    if not new:
-        print(f'no change proposed (a style needs {MIN_PER_ARM} posted videos with views)')
-        return 0
+    rows, base = scored(flow)
     week = dt.date.today().isocalendar()
-    summary = ('Views per style (Instagram + Facebook):\n' + '\n'.join(lines) + '\n\nProposed weights: ' +
-               ', '.join(f"{s} {flow['style']['kits'][s]['weight']} -> {w}" for s, w in new.items()) +
-               '\nApprove to apply them to flow.json next week; reject to keep the weights.')
+    t = lever_table(rows)
+    pct = lambda sc: f"{(math.exp(sc) - 1) * 100:+.0f}%"
+    lines = [f"{flow['channel']}, week {week[1]}: {len(rows)} posted videos with day-7 views.",
+             'Typical day-7 views: ' + (', '.join(f'{p} {v:.0f}' for p, v in sorted(base.items())) or 'none yet') + '.']
+    for lever, vals in t.items():
+        if vals:
+            ranked = sorted(vals.items(), key=lambda kv: -kv[1][1])
+            lines.append(f'{lever}: ' + ', '.join(f'{v} {pct(sc)} ({n})' for v, (n, sc) in ranked))
+        else:
+            lines.append(f"{lever}: not enough data yet ({15 if lever == 'length' else MIN_N} videos per value)")
+    new = {s: w for s, w in proposal(flow, t).items() if w != flow['style']['kits'][s]['weight']}
+    if new:
+        lines.append('Proposed style weights: ' + ', '.join(f"{s} {flow['style']['kits'][s]['weight']} -> {w}" for s, w in new.items()) +
+                     '. Approve to apply them; reject to keep the weights.')
+    else:
+        lines.append('No weight change proposed this week. Approve or reject just closes this card.')
+    summary = '\n'.join(lines)
     print(summary)
-    if not DRY:
-        inbox({'action': 'add', 'id': f'flow-tune-{week[0]}-w{week[1]:02d}', 'type': 'flow-tune', 'status': 'pending',
-               'title': 'Tune style weights from last week\'s views', 'summary': summary,
-               'data': {'app': 'How To Hero', 'icon': '📈', 'weights': new}})
+    if not DRY and rows:
+        inbox({'action': 'add', 'id': f"learn-{flow['channel']}-{week[0]}-w{week[1]:02d}", 'type': 'flow-tune', 'status': 'pending',
+               'title': f"Weekly report: what worked on {flow['channel']}", 'summary': summary,
+               'data': {'app': 'How To Hero', 'icon': '📈', 'weights': new, 'channel': flow['channel']}})
     return 0
 
 

@@ -1,4 +1,4 @@
-# Weekly: applies approved style-weight proposals to flow.json and proposes new ones from views (publisher/learn.py).
+# Weekly report per channel: applies approved style weights to flow.json and sends one "what worked" card (publisher/learn.py).
 name: learn
 on:
   schedule:
