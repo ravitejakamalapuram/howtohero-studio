@@ -143,8 +143,7 @@ test('every video in videos/ and every golden scene passes', () => {
 // ---- shot spec and cast
 const shot = (sh, v = video()) => validateScenes({ beats: [{ beat: 1, intent: 'object', shot: sh, items: [] }] }, v);
 test('shot: a full shot block and a missing one are both fine', () => {
-  assert.deepEqual(shot({ style: 'blueprint', subject: 'Hubble telescope', action: 'sinks along its orbit', camera: 'push-in', framing: 'wide', motion: 'draw-on', light: 'flat', ai: null }), []);
-  assert.deepEqual(shot({ ai: 'a telescope drifting over the Earth' }), []);
+  assert.deepEqual(shot({ style: 'blueprint', subject: 'Hubble telescope', action: 'sinks along its orbit', camera: 'push-in', framing: 'wide', motion: 'draw-on', light: 'flat' }), []);
   assert.deepEqual(validateScenes({ beats: [{ beat: 1, intent: 'object', items: [] }] }, video()), []);
 });
 test('shot: closed vocabularies', () => {
@@ -163,7 +162,7 @@ test('shot: wrong shapes are named', () => {
   has(shot({ zoom: 2 }), /shot\.zoom is not a shot field/);
   has(shot({ subject: 5 }), /shot\.subject must be text/);
   has(shot({ action: '' }), /shot\.action must be text/);
-  has(shot({ ai: 7 }), /shot\.ai must be null or a text prompt/);
+  has(shot({ ai: 'a prompt' }), /shot\.ai is not a shot field/); // the outside-video-model prompt was removed
 });
 test('shot: a video has its primary style and at most one other', () => {
   const v = video({ style: { primary: 'whiteboard' } }), b = (beat, style) => ({ beat, intent: 'object', shot: { style }, items: [] });
@@ -172,14 +171,19 @@ test('shot: a video has its primary style and at most one other', () => {
   has(validateScenes({ beats: [b(1, 'chalkboard'), b(2, 'blueprint')] }, v3), /at most one other/);
   has(validateScenes({ beats: [b(1, 'chalkboard')] }, { ...v3, style: { primary: 'whiteboard', accent: 'blueprint' } }), /at most one other/);
 });
+test('video: style must be a known kit, geo a known audience', () => {
+  has(validateVideo(video({ style: { primary: 'oil-paint' } })), /style: "oil-paint" is not a kit/);
+  for (const g of ['global', 'india', 'us']) assert.deepEqual(validateVideo(video({ geo: g })), []);
+  has(validateVideo(video({ geo: 'uk' })), /^geo:/);
+});
 test('cast: a map of name to one description', () => {
   assert.deepEqual(validateVideo(video({ cast: { mascot: 'small hero, red cape, round head' } })), []);
   for (const c of [['mascot'], 'mascot', { mascot: 5 }, { mascot: '' }, null]) has(validateVideo(video({ cast: c })), /^cast:/);
 });
-test('build: page.json carries camera and framing only, never ai', () => {
+test('build: page.json carries camera and framing only, never the words of the shot', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p2-')), v = video({ id: 't-shot', style: { primary: 'whiteboard' } });
   fs.writeFileSync(path.join(dir, 't-shot.json'), JSON.stringify(v));
-  fs.writeFileSync(path.join(dir, 't-shot.scenes.json'), JSON.stringify({ beats: [{ beat: 1, intent: 'object', shot: { camera: 'push-in', subject: 'x', ai: 'PROMPT-XYZ' }, items: [] }] }));
+  fs.writeFileSync(path.join(dir, 't-shot.scenes.json'), JSON.stringify({ beats: [{ beat: 1, intent: 'object', shot: { camera: 'push-in', subject: 'PROMPT-XYZ' }, items: [] }] }));
   execFileSync('node', [path.join(ROOT, 'build.mjs'), path.join(dir, 't-shot.json'), '--estimate', '--out', dir]);
   const raw = fs.readFileSync(path.join(dir, 'page.json'), 'utf8');
   assert.deepEqual(JSON.parse(raw).beats[0].shot, { camera: 'push-in' });

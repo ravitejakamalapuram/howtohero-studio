@@ -19,7 +19,7 @@ from PIL import Image, ImageChops, ImageFilter
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 # the same numbers as FORMATS in engine/engine.js
-FORMATS = {"short": dict(W=1080, H=1920, bx=60, by=200, bw=960, bh=1160, capY=1500, capSize=56),
+FORMATS = {"short": dict(W=1080, H=1920, bx=60, by=200, bw=880, bh=1160, capY=1500, capSize=56),
            "doc": dict(W=1920, H=1080, bx=120, by=70, bw=1680, bh=780, capY=962, capSize=46)}
 CAPE = (0xE5, 0x38, 0x4F)  # the mascot's cape, the same red in every style (engine/brand.js)
 MIN_CAPTION = 4.5          # caption contrast needed

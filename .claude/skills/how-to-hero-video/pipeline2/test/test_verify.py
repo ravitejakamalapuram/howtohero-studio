@@ -75,15 +75,15 @@ class Captions(unittest.TestCase):
 
     def test_band_is_the_caption_area(self):
         im, _ = frame(WHITE)
-        self.assertEqual(V.caption_band(im, "short").size, (960, 168))
+        self.assertEqual(V.caption_band(im, "short").size, (880, 168))
         self.assertEqual(V.caption_band(im, "short").getbbox()[1], 0)
         im, _ = frame(WHITE, "doc")
         self.assertEqual(V.caption_band(im, "doc").size, (1680, 138))
 
 class SafeZone(unittest.TestCase):
     def test_zone(self):
-        self.assertEqual(V.safe_zone("short"), (50, 190, 1030, 1599))
-        self.assertEqual(V.safe_zone("short", 0.5), (25, 95, 515, 799))
+        self.assertEqual(V.safe_zone("short"), (50, 190, 950, 1599))
+        self.assertEqual(V.safe_zone("short", 0.5), (25, 95, 475, 799))
         x0, y0, x1, y1 = V.safe_zone("doc")
         self.assertTrue(0 < x0 < x1 < 1920 and 0 < y0 < y1 < 1070)
 
@@ -97,7 +97,7 @@ class SafeZone(unittest.TestCase):
     def test_inside_is_fine_outside_is_reported_by_side(self):
         paper, ink = (0x22, 0x32, 0x2A), (240, 240, 230)
         im, d = frame(paper)
-        d.rectangle((60, 200, 1019, 1359), outline=ink, width=6)   # the edge of the scene box
+        d.rectangle((60, 200, 939, 1359), outline=ink, width=6)    # the edge of the scene box (x 60-940: the right edge clears the like and comment buttons)
         d.rectangle((200, 1460, 880, 1540), fill=ink)              # a caption
         d.rectangle((0, 1910, 1079, 1919), fill=ink)               # the progress bar
         self.assertEqual(V.sides(V.outside(V.content_mask(im, paper), "short"), "short"), {})

@@ -47,7 +47,7 @@ The job instructions are plain Markdown and work for any agent:
 
 - Scout: `.claude/skills/how-to-hero-video/SCOUT.md` (with `NEWS.md` "Finding stories").
 - Build run: `.claude/skills/how-to-hero-video/SKILL.md` "Build run" (with `NEWS.md` "Build a story").
-- Numbers (cards per day, videos per run): `config.json` next to them.
+- Numbers (cards per day, videos per run): `flow.json` next to them (checked by `node pipeline2/flow.mjs check`).
 
 A task prompt on the new platform only needs: "Clone `howtohero-studio`, set `INBOX_URL` and `INBOX_TOKEN` from the secrets, and follow `<file>`." The `.claude/skills` folder name is only where Claude looks; other agents just read the files.
 

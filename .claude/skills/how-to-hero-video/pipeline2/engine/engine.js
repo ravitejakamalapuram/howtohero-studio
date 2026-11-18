@@ -7,7 +7,7 @@ import * as brand from './brand.js';
 export * from './icons.js';
 
 export const FORMATS = {
-  short: { W: 1080, H: 1920, bx: 60, by: 200, bw: 960, bh: 1160, u: 960, capY: 1500, capSize: 56 },
+  short: { W: 1080, H: 1920, bx: 60, by: 200, bw: 880, bh: 1160, u: 880, capY: 1500, capSize: 56 },
   doc: { W: 1920, H: 1080, bx: 120, by: 70, bw: 1680, bh: 780, u: 780, capY: 962, capSize: 46 },
 };
 export const F = {}; // the current format, filled by loadVideo

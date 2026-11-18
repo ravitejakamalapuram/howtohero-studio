@@ -31,9 +31,10 @@ export function findWord(say, at) {
 }
 
 // optional "shot" on a scene beat: one line of a shot list. camera and framing move the picture and style names the kit;
-// subject, action, motion and light are the plan in words. ai is a prompt for an outside video model: checked here, read nowhere else.
+// subject, action, motion and light are the plan in words.
 export const SHOT = { camera: ['static', 'pan-left', 'pan-right', 'pan-up', 'pan-down', 'push-in', 'pull-out', 'follow'], framing: ['wide', 'medium', 'close'], motion: ['draw-on', 'slide', 'pop', 'morph'], light: ['flat', 'spot', 'vignette'] };
-export const SHOT_KEYS = ['style', 'subject', 'action', ...Object.keys(SHOT), 'ai'];
+export const SHOT_KEYS = ['style', 'subject', 'action', ...Object.keys(SHOT)];
+export const GEOS = ['global', 'india', 'us'];
 export const STYLES = JSON.parse(fs.readFileSync(new URL('./styles/registry.json', import.meta.url), 'utf8')).map(k => k.slug);
 function shotErrors(sh, at) {
   if (!sh || typeof sh !== 'object' || Array.isArray(sh)) return [`${at}: shot must be an object like { "camera": "push-in", "framing": "wide" }`];
@@ -42,7 +43,6 @@ function shotErrors(sh, at) {
   for (const [f, ok] of Object.entries(SHOT)) if (sh[f] !== undefined && !ok.includes(sh[f])) e.push(`${at}: shot.${f} must be one of ${ok.join(', ')}`);
   if (sh.style !== undefined && !STYLES.includes(sh.style)) e.push(`${at}: shot.style must be one of ${STYLES.join(', ')}`);
   for (const f of ['subject', 'action']) if (sh[f] !== undefined && !isStr(sh[f])) e.push(`${at}: shot.${f} must be text in quotes`);
-  if (sh.ai !== undefined && sh.ai !== null && !isStr(sh.ai)) e.push(`${at}: shot.ai must be null or a text prompt`);
   return e;
 }
 export function validateVideo(v) {
@@ -51,6 +51,8 @@ export function validateVideo(v) {
   if (!isStr(v.file) || !v.file.endsWith('.mp4')) e.push('file: must be a name ending in .mp4');
   if (v.format && !['short', 'doc'].includes(v.format)) e.push('format: must be "short" or "doc"');
   if (v.style && !isStr(v.style.primary)) e.push('style: needs "primary" (a kit slug)');
+  for (const k of v.style ? [v.style.primary, v.style.accent] : []) if (isStr(k) && !STYLES.includes(k)) e.push(`style: "${k}" is not a kit in styles/registry.json (${STYLES.join(', ')})`);
+  if (v.geo !== undefined && !GEOS.includes(v.geo)) e.push(`geo: must be one of ${GEOS.join(', ')} (who the video is for)`);
   if (v.hook && !(Array.isArray(v.hook.lines) && v.hook.lines.length >= 1 && v.hook.lines.length <= 2 && v.hook.lines.every(isStr))) e.push('hook.lines: 1 or 2 lines of text');
   if (!v.card || !Array.isArray(v.card.lines) || !v.card.lines.length || v.card.lines.length > 3 || !v.card.lines.every(isStr)) e.push('card.lines: 1 to 3 lines of end card text');
   if (v.cast !== undefined && !(v.cast && typeof v.cast === 'object' && !Array.isArray(v.cast) && Object.values(v.cast).every(isStr))) e.push('cast: a map of character name to one fixed description');

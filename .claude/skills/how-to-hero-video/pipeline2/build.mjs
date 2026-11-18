@@ -11,6 +11,7 @@ import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { validateVideo, validateScenes, findWord, ACCENT_INTENTS } from './schema.mjs';
 import { pickStyle } from './pickstyle.mjs';
+import { loadFlow, kits, pickOpts, flowSha } from './flow.mjs';
 
 const ROOT = path.dirname(fileURLToPath(import.meta.url)), args = process.argv.slice(2);
 const opt = n => { const i = args.indexOf('--' + n); return i < 0 ? null : args[i + 1]; };
@@ -26,8 +27,8 @@ const out = path.resolve(opt('out') || path.join(ROOT, 'work', V.id)); fs.mkdirS
 
 // style: kept if the video has one, otherwise picked once and written back
 if (!V.style) {
-  const cfg = path.join(ROOT, '..', 'config.json');
-  V.style = pickStyle(V, rd(path.join(ROOT, 'styles', 'registry.json')), { intents: S.beats.map(b => b.intent), seriesLock: fs.existsSync(cfg) ? (rd(cfg).styles || {}).seriesLock : {} });
+  const flow = loadFlow();
+  V.style = pickStyle(V, kits(flow), pickOpts(flow, S.beats.map(b => b.intent))); V.flowSha = flowSha();
   fs.writeFileSync(src, JSON.stringify(V, null, 2) + '\n');
 }
 const style = { ...V.style };

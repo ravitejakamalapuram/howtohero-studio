@@ -1,11 +1,9 @@
 // Picks the style for a video. Same item id -> same answer, every time.
 //   1. the card says so (card.data.style, a slug or { primary, accent }; an unknown slug is an error)   2. the series is locked to a style
-//   3. a weighted pick among "active" kits that fit the kind/topic (about 1 in 5 picks goes to a "trial" kit)
+//   3. a weighted pick among "core" kits that fit the kind/topic (about 1 in 5 picks goes to a "trial" kit); no weight counts as less than opts.floor
+// Kits come from flow.mjs kits(): registry facts plus weight and status from flow.json.
 // The accent kit is only offered when a beat is a chart, map or timeline and the primary kit lists a partner in pairsWith.
-// CLI: node pickstyle.mjs videos/<id>.json [--write]
-import fs from 'node:fs';
-import path from 'node:path';
-import { fileURLToPath } from 'node:url';
+// To pick from the command line use: node flow.mjs resolve videos/<id>.json
 
 const ACCENT_INTENTS = ['chart', 'map', 'timeline'];
 function rng(str) { // small seeded generator (FNV-1a hash -> mulberry32)
@@ -14,7 +12,7 @@ function rng(str) { // small seeded generator (FNV-1a hash -> mulberry32)
 }
 
 // card: { id, series?, kind?, topics?, format?, data?: { style?, kind?, topics? } }
-// opts: { weights?: { slug: multiplier }, seriesLock?: { SERIES: slug }, trialShare?: 0.2, intents?: [beat intents] }
+// opts: { seriesLock?: { SERIES: slug }, trialShare?: 0.2, floor?: 0.1, intents?: [beat intents] }
 export function pickStyle(card, registry, opts = {}) {
   const d = card.data || {}, by = Object.fromEntries(registry.map(k => [k.slug, k])), usable = s => by[s] && by[s].status !== 'retired';
   const withAccent = primary => {
@@ -32,20 +30,11 @@ export function pickStyle(card, registry, opts = {}) {
   let fits = registry.filter(k => k.formats.includes(format) && (!kind || !k.fit.kinds.length || k.fit.kinds.includes(kind)));
   const onTopic = fits.filter(k => k.fit.topics.some(t => topics.includes(t)));
   if (onTopic.length) fits = onTopic;
-  const rand = rng(card.id), active = fits.filter(k => k.status === 'active'), trial = fits.filter(k => k.status === 'trial');
+  const rand = rng(card.id), active = fits.filter(k => k.status === 'core'), trial = fits.filter(k => k.status === 'trial');
   const first = rand() < (opts.trialShare ?? 0.2) ? trial : active, pool = first.length ? first : active.length ? active : trial;
-  if (!pool.length) throw new Error(`pickStyle: no active or trial kit fits ${card.id} (kind ${kind}, format ${format})`);
-  const w = k => k.weight * ((opts.weights || {})[k.slug] ?? 1);
+  if (!pool.length) throw new Error(`pickStyle: no core or trial kit fits ${card.id} (kind ${kind}, format ${format})`);
+  const w = k => Math.max(opts.floor ?? 0, k.weight);
   let r = rand() * pool.reduce((a, k) => a + w(k), 0);
   return withAccent((pool.find(k => (r -= w(k)) < 0) || pool[pool.length - 1]).slug);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
-  const ROOT = path.dirname(fileURLToPath(import.meta.url)), rd = p => JSON.parse(fs.readFileSync(p, 'utf8')), f = process.argv[2], v = rd(f);
-  const sf = f.replace(/\.json$/, '.scenes.json'), cfg = path.join(ROOT, '..', 'config.json');
-  const style = pickStyle(v, rd(path.join(ROOT, 'styles', 'registry.json')), {
-    intents: fs.existsSync(sf) ? rd(sf).beats.map(b => b.intent) : [], seriesLock: fs.existsSync(cfg) ? (rd(cfg).styles || {}).seriesLock : {},
-  });
-  if (process.argv.includes('--write')) fs.writeFileSync(f, JSON.stringify({ ...v, style }, null, 2) + '\n');
-  console.log(JSON.stringify(style));
-}

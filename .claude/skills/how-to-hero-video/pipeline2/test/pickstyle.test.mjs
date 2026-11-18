@@ -3,16 +3,17 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { pickStyle } from '../pickstyle.mjs';
+import { kits, loadFlow, flowErrors } from '../flow.mjs';
 
-const REG = JSON.parse(fs.readFileSync(new URL('../styles/registry.json', import.meta.url), 'utf8'));
-const kit = (slug, o = {}) => ({ slug, status: 'active', formats: ['short', 'doc'], fit: { kinds: [], topics: [] }, weight: 1, pairsWith: [], ...o });
+const REG = kits(loadFlow()); // registry facts + weight and status from flow.json
+const kit = (slug, o = {}) => ({ slug, status: 'core', formats: ['short', 'doc'], fit: { kinds: [], topics: [] }, weight: 1, pairsWith: [], ...o });
 const ids = n => Array.from({ length: n }, (_, i) => 'id-' + i);
 const share = (reg, slug, opts) => ids(1000).filter(id => pickStyle({ id }, reg, opts).primary === slug).length / 1000;
 
 test('registry: 5 kits, each with what the picker and verify.py read', () => {
   assert.equal(REG.length, 5);
   for (const k of REG) {
-    assert.ok(['trial', 'active', 'accent-only', 'retired'].includes(k.status), k.slug);
+    assert.ok(['trial', 'core', 'accent-only', 'retired'].includes(k.status), k.slug);
     assert.ok(['light', 'dark'].includes(k.luma), k.slug);
     assert.match(k.paper, /^#[0-9a-f]{6}$/i, k.slug);
     assert.ok(fs.existsSync(new URL(`../styles/${k.slug}/kit.js`, import.meta.url)), k.slug + '/kit.js');
@@ -59,7 +60,7 @@ test('format, kind and topic narrow the pick', () => {
     assert.equal(pickStyle({ id, data: { kind: 'explainer', topics: ['space'] } }, reg).primary, 'c');
     assert.notEqual(pickStyle({ id, kind: 'explainer', topics: ['cooking'] }, reg).primary, 'a'); // no topic match: any kit of that kind
   }
-  assert.throws(() => pickStyle({ id: 'x', kind: 'recipe' }, reg), /no active or trial kit fits/);
+  assert.throws(() => pickStyle({ id: 'x', kind: 'recipe' }, reg), /no core or trial kit fits/);
 });
 
 test('about 1 pick in 5 goes to a trial kit, and trialShare changes that', () => {
@@ -72,13 +73,22 @@ test('about 1 pick in 5 goes to a trial kit, and trialShare changes that', () =>
   assert.equal(share([kit('live'), kit('gone', { status: 'retired' }), kit('acc', { status: 'accent-only' })], 'live', { trialShare: 1 }), 1);
 });
 
-test('weights shift the pick', () => {
-  const reg = [kit('a'), kit('b')];
-  const even = share(reg, 'a'), heavy = share(reg, 'a', { weights: { a: 9 } });
+test('weights shift the pick, and the floor keeps every kit in play', () => {
+  const even = share([kit('a'), kit('b')], 'a'), heavy = share([kit('a', { weight: 9 }), kit('b')], 'a');
   assert.ok(even > 0.42 && even < 0.58, `even ${even}`);
   assert.ok(heavy > 0.85 && heavy < 0.95, `heavy ${heavy}`);
-  assert.equal(share(reg, 'a', { weights: { a: 0 } }), 0);
-  assert.ok(share([kit('a', { weight: 3 }), kit('b')], 'a') > 0.68);
+  assert.equal(share([kit('a', { weight: 0 }), kit('b')], 'a'), 0);
+  const floored = share([kit('a', { weight: 0 }), kit('b')], 'a', { floor: 0.1 });
+  assert.ok(floored > 0.05 && floored < 0.15, `floored ${floored}`);
+});
+
+test('flow.json is valid, and a broken one is explained', () => {
+  const flow = loadFlow();
+  assert.deepEqual(flowErrors(flow), []);
+  const bad = structuredClone(flow);
+  bad.build.paused = 'no'; bad.style.kits.whiteboard.status = 'active'; bad.style.kits.nope = { weight: 1, status: 'trial' }; bad.style.colour = 1;
+  const e = flowErrors(bad).join('\n');
+  for (const r of [/build\.paused/, /whiteboard\.status/, /style\.kits\.nope: no such kit/, /style\.colour is not a known setting/]) assert.match(e, r);
 });
 
 test('an accent kit is offered only for chart, map or timeline beats and a listed partner', () => {

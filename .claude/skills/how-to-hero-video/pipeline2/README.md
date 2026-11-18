@@ -6,7 +6,8 @@ A video is two data files. A style is one kit file. Any video renders in any sty
 videos/<id>.json          the words: hook, beats (what is said), end card, audio, style
 videos/<id>.scenes.json   the pictures: items per beat, with no colours or pixels in them
 styles/<slug>/kit.js      a style: paper, pen, fonts, colours
-styles/registry.json      the list of styles and when each one may be picked
+styles/registry.json      what each style is: formats, fit (kinds, topics), paper colour
+../flow.json              how often each style is used: weight and status (core, trial, accent-only, retired)
 engine/                   engine.js draws; brand.js keeps hook, captions, end card and mascot the same in every style
 ```
 
@@ -18,7 +19,9 @@ node render.cjs work/<id>/page.json out.mp4  # about 3 minutes for a 60 s Short;
 node render.cjs work/<id>/page.json /tmp/x --frames 0.5,12,58   # stills: /tmp/x-0.5.png ...
 node render.cjs work/<id>/page.json out.mp4 --style chalkboard  # same video, another style
 node schema.mjs videos/<id>.json             # only check the two files
-node pickstyle.mjs videos/<id>.json          # show which style would be picked
+node flow.mjs resolve videos/<id>.json       # pick the style once and write style + flowSha into the video
+node flow.mjs check                          # validate ../flow.json
+node flow.mjs explain                        # print the settings and each style's share
 ```
 
 Timing comes from `"audio": { "file", "starts": [...] }` (a finished voice track and the second each beat starts),
@@ -39,7 +42,7 @@ node --test && python3 -m unittest discover -s test   # tests for the picker, th
 
 ## Scene rules
 
-- `x`, `y` are 0..1 inside the safe box (Short: x 60-1020, y 200-1360 px). Sizes (`s`, `r`, `lw`...) are fractions of the box width.
+- `x`, `y` are 0..1 inside the safe box (Short: x 60-940, y 200-1360 px; the right edge clears the like and comment buttons on all three apps). Sizes (`s`, `r`, `lw`...) are fractions of the box width.
 - `at` is seconds after the beat starts, or `"word:<word>"` to start when that word is spoken. The build moves a label (`text`, `label`, `banner`, `num`) earlier when it would finish less than 1.3 s before its beat ends.
 - Colour is a role: `ink`, `accent`, `warn`, `good`, `muted`, `paper`. Never a hex value.
 - A text with no `max` is one line: it shrinks (to 60% at most) to stay inside the box, or inside `fit` (a width, as a fraction of the box width on a Short). Give two labels that sit side by side a `fit` each. With `max` the text wraps instead.
@@ -56,7 +59,7 @@ node --test && python3 -m unittest discover -s test   # tests for the picker, th
 ## Add a style
 
 1. Copy `styles/_template/` to `styles/<slug>/` and change `kit.js`. Only `tokens`, `bg` and `pen` are required.
-2. Add an entry to `styles/registry.json` with `"status": "trial"`.
+2. Add an entry to `styles/registry.json` and a `"<slug>": { "weight": 1, "status": "trial" }` entry under `style.kits` in `../flow.json`.
 3. Render stills of an existing video with `--style <slug>` and look at them.
 
 A kit changes stroke, texture and font. It does not change wording, layout, caption size or the red cape.

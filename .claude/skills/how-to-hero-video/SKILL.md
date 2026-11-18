@@ -11,7 +11,7 @@ Art is drawn in code only (SVG/HTML diagrams in `scenes.js`). Never use AI image
 
 ## Build run: loop, one video at a time
 
-The video jobs are two scheduled tasks. The **scout** (`SCOUT.md`) only proposes news stories and ideas as cards; it builds nothing. The **build run** (this section) builds what the user approved. Limits live in `config.json` next to this file.
+The video jobs are two scheduled tasks. The **scout** (`SCOUT.md`) only proposes news stories and ideas as cards; it builds nothing. The **build run** (this section) builds what the user approved. Its numbers live in `flow.json` next to this file (settings only; the steps are here). Before claiming anything, read `flow.json`: if `build.paused` is true, stop and say the run is paused. Keep track of time: once `build.budgetMinutes` have passed since the run started, finish the video in hand and claim no more.
 
 Ideas and finished videos live in the user's Inbox (Google Sheet + API + Telegram buttons; see the inbox repo's docs/FAQ.md). The old How To Hero artifact queue is retired: never read or write it, even if a task prompt still names it. Call the Inbox only through `inbox.sh` (next to this file) with `INBOX_URL` and `INBOX_TOKEN` set; never print, log or commit the URL, the token or an upload link. If the first Inbox call is refused (for example by a permission check) or fails twice, stop and say so. Once you have claimed an item, if a call fails twice, stop and say which call failed.
 

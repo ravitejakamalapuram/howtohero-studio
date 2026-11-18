@@ -1,6 +1,6 @@
 # Idea rules: what the scout proposes and how good it must be
 
-The single source of truth for which ideas How To Hero makes. The scout (`SCOUT.md`) follows it every run; the build run reads a card's `data.kind` and uses the build notes below. Change the rules here and the numbers in `config.json` (`scout`), never in a task prompt.
+The single source of truth for which ideas How To Hero makes. The scout (`SCOUT.md`) follows it every run; the build run reads a card's `data.kind` and uses the build notes below. Change the rules here and the numbers in `flow.json` (`scout`), never in a task prompt.
 
 ## The kinds
 
@@ -42,7 +42,7 @@ Rank the cards that pass by how likely a stranger is to stop scrolling and share
 
 ## The daily mix
 
-Numbers live in `config.json` under `scout`:
+Numbers live in `flow.json` under `scout`:
 - `news`: `newsMin` to `newsMax` story cards, never padded with weak stories (`NEWS.md`).
 - `mix`: how many idea cards of each kind per run (for example 4 curiosity, 3 explainer, 3 fact). If a kind has no card that passes the bar, propose fewer; don't fill the gap with another kind.
 - `doc`: at most `docsPerWeek` documentary cards a week, only when fewer than `maxOpenDocs` `doc-` cards are pending or approved. Propose one only on the weekday in `docDay`.
