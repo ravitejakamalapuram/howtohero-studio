@@ -8,11 +8,14 @@ one day replaces that day's numbers. Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL an
 import os
 import sys
 
-from publish import inbox, social
+from publish import RULES, inbox, social
 
 APP = 'How To Hero'  # the channel name on the Inbox Channels page
 # The Inbox tokens that add How To Hero items. Those items carry no data.app, so the channel claims them by source.
 SOURCES = ['queue', 'news']
+# When the Inbox starts publish.yml (IST): every platform's postTimesIST in platforms/<name>.json, merged.
+# One run posts one video to every platform, so the platforms share these times.
+TIMES = sorted({t for r in RULES.values() for t in r.get('postTimesIST', [])})
 
 
 def main():
@@ -23,9 +26,9 @@ def main():
             body = {'action': 'channelStats', 'app': APP, 'platform': p, 'followers': s.get('followers'), 'posts': s.get('posts', []),
                     'sources': SOURCES}
             if os.environ.get('GITHUB_REPOSITORY'):  # lets the dashboard's "Post now" start publish.yml here,
-                # and the Inbox's timer start it at the 3 daily slots (IST), since GitHub's schedule never fired
+                # and the Inbox's timer start it at the daily slots in TIMES (IST), since GitHub's schedule never fired
                 body['publish'] = {'repo': os.environ['GITHUB_REPOSITORY'], 'workflow': 'publish.yml',
-                                   'times': ['08:30', '13:00', '19:30'], 'first': ['news']}
+                                   'times': TIMES, 'first': ['news']}
             r = inbox(body)
             print(f"{p}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
         except Exception as e:  # one platform failing should not stop the others

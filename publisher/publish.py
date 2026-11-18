@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """Posts approved How To Hero videos from the Inbox through Social Manager.
 
-Each run takes the first approved video whose slot has passed (news first, then by slot), publishes it to
+Each run takes the first approved news video (its slot is ignored), else the first approved video whose slot
+has passed (by slot), publishes it to
 every platform in PLATFORMS that is connected, waits for the jobs, then marks the item "posted" in the Inbox
 with the post links in data.posted. One video per run, so a backlog goes out one run apart.
 
@@ -76,8 +77,9 @@ def due_items():
         items = inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
         return [i for i in items if i['id'] == ITEM_ID and i.get('driveId')]
     items = inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 200})['items']
-    due = [i for i in items if i.get('driveId') and (POST_NOW or when(i) is None or when(i) <= now)]
     is_news = lambda i: i.get('source') == 'news' or str(i['id']).startswith('news-')
+    # News goes out at the next run whatever its slot says: a story a day late has lost most of its reach.
+    due = [i for i in items if i.get('driveId') and (POST_NOW or is_news(i) or when(i) is None or when(i) <= now)]
     return sorted(due, key=lambda i: (not is_news(i), when(i) or now))
 
 
