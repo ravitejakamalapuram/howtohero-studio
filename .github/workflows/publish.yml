@@ -3,7 +3,7 @@
 name: publish
 on:
   # No schedule here: GitHub's never fired for this repo. The Inbox starts this workflow at
-  # 08:30, 13:00 and 19:30 IST (the times publisher/stats.py sends with channelStats).
+  # the postTimesIST in platforms/*.json (publisher/stats.py sends them with channelStats).
   workflow_dispatch:
     inputs:
       post_now:

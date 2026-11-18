@@ -30,7 +30,7 @@ Rank what qualifies by likely virality, highest first: how many people felt it o
 
 ## Hand in
 
-Slot: lane A (trending) = the next of today 12:30 or 18:30 that is at least 1 hour away, else tomorrow 08:30. Lane B = the first 08:30 on or after tomorrow that no other `source` "news" item uses.
+Slot: the next of the posting times (`postTimesIST` in `platforms/instagram.json`) that is at least 1 hour away, for both lanes. The publisher posts approved news at its next run whatever the slot says, so the slot is only a hint for the review card.
 
 Reuse the claimed story id.
 
