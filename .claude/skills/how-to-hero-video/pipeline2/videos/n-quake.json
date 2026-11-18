@@ -1,0 +1,75 @@
+{
+ "id": "n-quake",
+ "file": "how-japans-earthquake-alarm-stops-bullet-trains.mp4",
+ "topic": "HOW IT WORKS: JAPAN",
+ "format": "short",
+ "kind": "explainer",
+ "topics": [
+  "transport",
+  "earth"
+ ],
+ "series": "A",
+ "style": {
+  "primary": "blueprint"
+ },
+ "cast": {
+  "mascot": "small hero, red cape, round head"
+ },
+ "hook": {
+  "lines": [
+   "TRAINS BRAKE BEFORE",
+   "THE QUAKE HITS"
+  ],
+  "accent": "BEFORE"
+ },
+ "audio": {
+  "file": "n-quake.m4a",
+  "dur": 39.52,
+  "starts": [
+   0.3,
+   5.02,
+   8.75,
+   11.7,
+   16.75,
+   20.86,
+   24.63,
+   29.32,
+   36.52
+  ]
+ },
+ "beats": [
+  {
+   "say": "In Japan, bullet trains start braking before the earthquake shaking even arrives."
+  },
+  {
+   "say": "The trick: every earthquake sends out two kinds of waves."
+  },
+  {
+   "say": "The P-wave comes first. It is fast, but weak."
+  },
+  {
+   "say": "The S-wave follows. It is slower, and it is the one that shakes the ground hard."
+  },
+  {
+   "say": "Seismometers along the coast and the tracks listen for that first P-wave."
+  },
+  {
+   "say": "The moment they feel it, the system cuts power to the overhead lines."
+  },
+  {
+   "say": "With no power, every train brakes automatically, seconds before the S-wave hits."
+  },
+  {
+   "say": "In 2011, during Japan's biggest recorded earthquake, the bullet trains in the region stopped, and no passenger on them was hurt."
+  },
+  {
+   "hold": 3.0
+  }
+ ],
+ "card": {
+  "lines": [
+   "FOLLOW FOR HOW THINGS WORK,",
+   "IN A MINUTE."
+  ]
+ }
+}
