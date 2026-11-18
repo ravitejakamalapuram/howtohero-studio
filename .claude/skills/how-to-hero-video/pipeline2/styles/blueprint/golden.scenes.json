@@ -1,0 +1,31 @@
+{ "beats": [
+  { "beat": 1, "intent": "title", "items": [
+    { "k": "icon", "name": "hubble", "box": [0.5, 0.56, 0.5], "at": 0.2, "d": 1.8 },
+    { "k": "dim", "x1": 0.2, "y1": 0.8, "x2": 0.8, "y2": 0.8, "label": "IN ORBIT SINCE 1990", "at": "word:1990", "d": 0.9 },
+    { "k": "arrow", "pts": [[0.88, 0.4], [0.88, 0.7]], "role": "warn", "at": "word:slowly", "d": 0.7 },
+    { "k": "text", "txt": "STATUS: SINKING", "x": 0.5, "y": 0.9, "s": 0.046, "role": "warn", "at": "word:sinking", "d": 0.7 }
+  ] },
+  { "beat": 2, "intent": "process", "items": [
+    { "k": "text", "txt": "ONE LAP, STEP BY STEP", "x": 0.5, "y": 0.05, "s": 0.044, "role": "accent", "at": 0, "d": 0.8 },
+    { "k": "line", "pts": [[0.08, 0.1], [0.92, 0.1]], "at": 0.4, "d": 0.6 },
+    { "k": "circle", "x": 0.5, "y": 1.25, "r": 0.62, "a0": -2.3, "a1": -0.84, "role": "muted", "at": 0.2, "d": 1 },
+    { "k": "text", "txt": "EARTH", "x": 0.5, "y": 0.9, "s": 0.04, "role": "muted", "at": 0.8, "d": 0.4 },
+    { "k": "circle", "x": 0.5, "y": 1.25, "r": 0.88, "a0": -2.1, "a1": -1.04, "at": 0.5, "d": 1.2 },
+    { "k": "move", "icon": "hubble", "s": 0.15, "path": [[0.14, 0.62], [0.3, 0.53], [0.5, 0.49], [0.7, 0.53], [0.86, 0.62]], "lw": 0.003, "at": "word:lap", "d": 4 },
+    { "k": "hl", "x": 0.1, "y": 0.26, "w": 0.8, "h": 0.14, "role": "muted", "at": "word:thin", "d": 0.6 },
+    { "k": "text", "txt": "THIN AIR", "x": 0.5, "y": 0.33, "s": 0.04, "role": "muted", "at": "word:thin+0.2", "d": 0.5 },
+    { "k": "arrow", "pts": [[0.78, 0.2], [0.58, 0.2]], "role": "warn", "at": "word:drag", "d": 0.6 },
+    { "k": "text", "txt": "DRAG", "x": 0.86, "y": 0.2, "s": 0.04, "role": "warn", "at": "word:drag+0.2", "d": 0.4 },
+    { "k": "arrow", "pts": [[0.2, 0.2], [0.2, 0.42]], "role": "accent", "at": "word:drops", "d": 0.6 },
+    { "k": "text", "txt": "LOWER", "x": 0.34, "y": 0.2, "s": 0.04, "role": "accent", "at": "word:lower", "d": 0.4 }
+  ] },
+  { "beat": 3, "intent": "chart", "items": [
+    { "k": "text", "txt": "FALL PER YEAR", "x": 0.5, "y": 0.05, "s": 0.044, "at": 0, "d": 0.8 },
+    { "k": "bars", "x": 0.12, "y": 0.16, "w": 0.76, "h": 0.42, "vals": [1, 1.6, 2.7, 4.6], "labels": ["2026", "2028", "2030", "2032"], "at": 0.4, "d": 1.6 },
+    { "k": "mk", "x": 0.7185, "y": 0.16, "w": 0.133, "h": 0.42, "role": "warn", "at": "word:faster", "d": 0.5 },
+    { "k": "dim", "x1": 0.95, "y1": 0.16, "x2": 0.95, "y2": 0.58, "label": "THICKER AIR", "role": "muted", "at": "word:thicker", "d": 0.8 },
+    { "k": "num", "pre": "x", "to": 5, "x": 0.3, "y": 0.8, "s": 0.09, "role": "accent", "at": "word:faster", "d": 1.2 },
+    { "k": "text", "txt": "FASTER", "x": 0.62, "y": 0.8, "s": 0.05, "role": "good", "at": "word:faster+0.4", "d": 0.5 },
+    { "k": "rect", "x": 0.14, "y": 0.72, "w": 0.72, "h": 0.16, "role": "muted", "at": "word:last", "d": 0.6 }
+  ] }
+] }

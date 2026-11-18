@@ -1,0 +1,12 @@
+{
+  "id": "golden", "file": "whiteboard-golden.mp4", "topic": "GOLDEN: WHITEBOARD", "kind": "explainer", "topics": ["internet"],
+  "style": { "primary": "whiteboard" },
+  "hook": { "lines": ["WHERE DOES", "EMAIL WAIT?"], "accent": "WAIT" },
+  "beats": [
+    { "say": "When a mail server goes down, your email does not vanish. It waits in a queue." },
+    { "say": "The sender tries again and again, a little later each time, until the server answers." },
+    { "say": "Most mail gets through in the first hour. Only a sliver waits for days." },
+    { "hold": 2 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

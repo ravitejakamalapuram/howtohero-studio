@@ -1,0 +1,27 @@
+# Weekly report per channel: applies approved style weights to flow.json and sends one "what worked" card (publisher/learn.py).
+name: learn
+on:
+  schedule:
+    - cron: '41 3 * * 1'  # Mondays about 09:11 IST
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  learn:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - run: python3 -B publisher/learn.py
+        env:
+          INBOX_URL: ${{ secrets.INBOX_URL }}
+          INBOX_TOKEN: ${{ secrets.INBOX_TOKEN }}
+          SOCIAL_URL: ${{ secrets.SOCIAL_URL }}
+          SOCIAL_TOKEN: ${{ secrets.SOCIAL_TOKEN }}
+      - name: Commit approved weights
+        run: |
+          if ! git diff --quiet; then
+            node .claude/skills/how-to-hero-video/pipeline2/flow.mjs check
+            git config user.name "learn workflow"; git config user.email "actions@users.noreply.github.com"
+            git commit -am "flow.json: apply approved style weights" && git push
+          fi

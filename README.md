@@ -20,7 +20,7 @@ The old How To Hero artifact queue is retired. Its unposted cards moved to the I
 - `.claude/skills/how-to-hero-video/IDEAS.md`: the idea rules: video kinds, quality bar, daily mix and lengths.
 - `.claude/skills/how-to-hero-video/SKILL.md`: the build run and the video rules.
 - `.claude/skills/how-to-hero-video/NEWS.md`: how to find, source and build news stories.
-- `.claude/skills/how-to-hero-video/config.json`: the daily numbers (news per day, ideas per kind per day, backlog limits, videos per build run, claim time).
+- `.claude/skills/how-to-hero-video/flow.json`: the settings only (news per day, ideas per kind per day, backlog limits, videos per build run, claim time, pause switch, time budget, style weights). The steps are in `SKILL.md` and `SCOUT.md`. `node pipeline2/flow.mjs check` validates it, and the flow-check workflow runs that on every push and pull request that touches it.
 - `.claude/skills/how-to-hero-video/inbox.sh`: the only way the jobs call the Inbox.
 - `.claude/skills/how-to-hero-video/dupcheck.py`: checks a topic against every Inbox item before a job builds or proposes it, so no video is made twice.
 - `.claude/skills/how-to-hero-video/pipeline/`: HyperFrames + Kokoro TTS + ffmpeg renderer, `verify.py`, and worked examples in `videos/` (`v*` shorts, `n*` news, `d*` 16:9 documentaries).
@@ -31,3 +31,7 @@ Tokens and URLs come from the scheduled tasks' prompts or environment. Never com
 ## Platforms
 
 Each platform has one file, `platforms/<platform>.json` (instagram, facebook, youtube). It is the single source of truth for that platform: limits (`maxSeconds`, and `versionSeconds` for the separate version the build makes when a video is longer) and `notes` every skill reads when making videos for it. Add new findings about a platform there and nowhere else.
+
+## Add a channel
+
+A channel is one skill folder under `.claude/skills/<channel>/` with its own `SKILL.md` (the steps, in order) and `flow.json` (its settings, with `"channel": "<id>"`). It reuses the shared tools: `how-to-hero-video/pipeline2/` (render, verify, style picker), `publisher/` (posting, stats, weekly report) and `platforms/*.json` (platform rules). Every card it makes carries `data.channel`, so stats and the weekly report stay per channel. A step that needs a person (for example a character sheet made in the browser) is an Inbox card the run waits on while it builds other work. The Telugu mythology channel will be the second one.

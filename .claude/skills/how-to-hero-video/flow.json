@@ -1,0 +1,71 @@
+{
+  "_about": "Settings only for How To Hero videos. The steps and their order are in SKILL.md (build run) and SCOUT.md (scout); this file holds their numbers. Each save is checked by `node pipeline2/flow.mjs check` (also run by the flow-check GitHub workflow). Platform limits and post times live in /platforms/<platform>.json, not here. One flow.json per channel: a channel is one skill folder under .claude/skills (its SKILL.md is the recipe, this file its settings), and it reuses the shared tools in this folder's pipeline2/ and the repo's publisher/ and platforms/.",
+  "channel": "how-to-hero",
+  "scout": {
+    "newsMin": 3,
+    "newsMax": 10,
+    "mix": {
+      "curiosity": 4,
+      "explainer": 3,
+      "fact": 3
+    },
+    "maxPendingIdeas": 40,
+    "maxIdeaBacklog": 60,
+    "ideasWhenBacklogged": 3,
+    "docsPerWeek": 1,
+    "maxOpenDocs": 3,
+    "docDay": "Sunday"
+  },
+  "build": {
+    "maxPerRun": 10,
+    "claimTtlMinutes": 180,
+    "maxVersionsPerRun": 6,
+    "paused": false,
+    "budgetMinutes": 90
+  },
+  "style": {
+    "trialShare": 0.2,
+    "floor": 0.1,
+    "seriesLock": {},
+    "kits": {
+      "whiteboard": {
+        "weight": 1.0,
+        "status": "core"
+      },
+      "chalkboard": {
+        "weight": 1.0,
+        "status": "trial"
+      },
+      "blueprint": {
+        "weight": 1.0,
+        "status": "core"
+      },
+      "sketchnote": {
+        "weight": 1.0,
+        "status": "trial"
+      },
+      "iso-infographic": {
+        "weight": 1.0,
+        "status": "trial"
+      }
+    }
+  },
+  "voice": {
+    "default": "kokoro",
+    "byGeo": {
+      "india": "neerja"
+    },
+    "fallback": "kokoro",
+    "voices": {
+      "kokoro": {
+        "engine": "kokoro",
+        "voice": "af_heart",
+        "speed": 1.0
+      },
+      "neerja": {
+        "engine": "edge",
+        "voice": "en-IN-NeerjaExpressiveNeural"
+      }
+    }
+  }
+}

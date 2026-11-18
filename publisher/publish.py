@@ -214,8 +214,10 @@ def job_exists(key):
 
 
 def post_for(platform, item, data, cache):
-    title = (data.get('yt') or item.get('title') or '').strip()
-    caption = (data.get('ig') or item.get('summary') or title).strip()
+    # data.meta.<platform> (written by the build from platforms/<platform>.json "metadata") wins over the shared yt/ig text
+    meta = ((data.get('meta') or {}).get(platform) or {}) if isinstance(data.get('meta'), dict) else {}
+    title = (meta.get('title') or data.get('yt') or item.get('title') or '').strip()
+    caption = (meta.get('text') or data.get('ig') or item.get('summary') or title).strip()
     file_id = platform_file(platform, item, data, cache)
     key = f"{item['id']}-{platform}" + ('-version' if file_id != item['driveId'] else '')  # its own job
     video = {'driveFileId': file_id}
@@ -256,6 +258,28 @@ def sync_links():
             inbox({'action': 'update', 'id': item['id'], 'ifVersion': item['version'], 'set': {'data': dict(data, links=links)}})
 
 
+LATE_HOURS = 3  # a video still unposted this long after its slot means publish runs were missed
+
+
+def alert(alert_id, title, summary):
+    """A to-do in the Inbox, which Telegram sends as a message. The fixed id makes each alert go out once."""
+    try:
+        inbox({'action': 'add', 'id': alert_id, 'type': 'todo', 'status': 'pending', 'title': title, 'summary': summary,
+               'data': {'app': 'How To Hero', 'icon': '🚨'}})
+        print(f'alert sent: {title}')
+    except (RuntimeError, OSError) as e:  # an id that exists already means this alert went out before
+        print(f'alert not sent ({e})')
+
+
+def late_alert(items):
+    now = dt.datetime.now(dt.timezone.utc)
+    late = [i for i in items if when(i) and now - when(i) > dt.timedelta(hours=LATE_HOURS)]
+    if late and not DRY:
+        i = late[0]
+        alert(f"alert-late-{i['id']}", f"Publishing is behind: {len(late)} video(s) missed their slot",
+              f"\"{i.get('title')}\" was due at {i.get('slot')} and is still not posted. Check the latest publish runs in GitHub Actions.")
+
+
 def run():
     try:
         sync_links()
@@ -267,6 +291,8 @@ def run():
     if not items:
         print('nothing due')
         return 0
+    if not ITEM_ID:
+        late_alert(items)
     item = items[0]
     data = dict(item.get('data')) if isinstance(item.get('data'), dict) else {}
     platforms, down = live_platforms()

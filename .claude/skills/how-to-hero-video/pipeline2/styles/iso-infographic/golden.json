@@ -1,0 +1,12 @@
+{
+  "id": "golden-iso-infographic", "file": "golden-iso-infographic.mp4", "topic": "GOLDEN: ISO INFOGRAPHIC", "format": "short", "kind": "explainer", "topics": ["transport"],
+  "style": { "primary": "iso-infographic" },
+  "hook": { "lines": ["WHY EVERY AIRPORT", "FROZE AT ONCE"], "accent": "FROZE" },
+  "beats": [
+    { "say": "One Friday, every airport in the country stopped its departures at once." },
+    { "say": "Each control center sees planes through faraway radar sites, linked by telecom lines. Cut the lines, and the picture is lost." },
+    { "say": "Flights restart within hours, but cancellations pile up and spill into the next day." },
+    { "hold": 2.4 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

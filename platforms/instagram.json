@@ -7,6 +7,9 @@
     "19:30",
     "21:00"
   ],
+  "metadata": {
+    "text": "First line holds the topic keywords, second line one extra fact, then \"Sources: <names>\", then \"Follow @howtohero.official\" and 3 to 5 specific hashtags (never #reels, #explore, #viral). At most captionMax characters and hashtagsMax hashtags."
+  },
   "maxSeconds": 90,
   "versionSeconds": 87,
   "captionMax": 2200,

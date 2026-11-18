@@ -1,0 +1,20 @@
+# Checks the video settings (flow.json) and the pipeline2 tests whenever they change.
+name: flow-check
+on:
+  push:
+    paths: ['.claude/skills/how-to-hero-video/flow.json', '.claude/skills/how-to-hero-video/pipeline2/**']
+  pull_request:
+    paths: ['.claude/skills/how-to-hero-video/flow.json', '.claude/skills/how-to-hero-video/pipeline2/**']
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: .claude/skills/how-to-hero-video/pipeline2
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: node flow.mjs check
+      - run: node --test test/pickstyle.test.mjs test/schema.test.mjs

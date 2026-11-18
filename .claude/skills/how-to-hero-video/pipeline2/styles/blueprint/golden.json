@@ -1,0 +1,12 @@
+{
+  "id": "golden-blueprint", "file": "golden-blueprint.mp4", "topic": "GOLDEN: BLUEPRINT", "format": "short", "kind": "explainer",
+  "style": { "primary": "blueprint" },
+  "hook": { "lines": ["WHY HUBBLE", "IS SINKING."], "accent": "SINKING" },
+  "beats": [
+    { "say": "Hubble has circled Earth since 1990, and it is slowly sinking." },
+    { "say": "Every lap it brushes thin air. The drag steals speed, so the orbit drops lower." },
+    { "say": "Lower down the air is thicker, so each year it falls faster than the last." },
+    { "hold": 2.4 }
+  ],
+  "card": { "lines": ["FOLLOW FOR HOW THINGS WORK,", "IN A MINUTE."] }
+}

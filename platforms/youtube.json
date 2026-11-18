@@ -7,6 +7,10 @@
     "19:30",
     "21:00"
   ],
+  "metadata": {
+    "title": "At most 70 characters (YouTube allows 100): the claim first with the searchable noun in it, ending in \" #shorts\". No \"in 60 Seconds\".",
+    "text": "2-3 plain sentences: what the video shows and one extra fact, then \"Sources: <names>\", then 3 hashtags. No @handles (they are Instagram handles)."
+  },
   "notes": [
     "Shorts up to 3 minutes; documentaries are 16:9 long-form and are never cut.",
     "API uploads go out public (since 2026-11-16; Google confirmed API uploads are not forced private).",

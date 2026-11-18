@@ -1,6 +1,6 @@
 # Idea rules: what the scout proposes and how good it must be
 
-The single source of truth for which ideas How To Hero makes. The scout (`SCOUT.md`) follows it every run; the build run reads a card's `data.kind` and uses the build notes below. Change the rules here and the numbers in `config.json` (`scout`), never in a task prompt.
+The single source of truth for which ideas How To Hero makes. The scout (`SCOUT.md`) follows it every run; the build run reads a card's `data.kind` and uses the build notes below. Change the rules here and the numbers in `flow.json` (`scout`), never in a task prompt.
 
 ## The kinds
 
@@ -14,7 +14,7 @@ Every card has one `data.kind`. Pick the kind from the idea, not the other way r
 | `curiosity` | A big, relatable question about people, told as a story with evidence (see below). | Evergreen. | 75 |
 | `doc` | A 16:9 YouTube documentary, 8 minutes or more, built by hand, not by the build run (`series` "DOC"). | Evergreen. | 480 |
 
-Lengths come from `platforms/*.json`: a `fact` fits Instagram's `versionSeconds` (37), so one render goes everywhere. Anything longer than Instagram's `maxSeconds` (40) costs a second render for its Instagram version, so only give a card more time when the story needs it, and never more than Facebook's `versionSeconds` (87). Re-read the platform files each run; if a limit there changes, these lengths follow it.
+Lengths come from `platforms/*.json`: every platform takes 90 s today (Instagram and Facebook `maxSeconds` 90), so a video up to 87 s goes everywhere with one render. Anything longer costs a second render per platform, so only give a card more time when the story needs it. Re-read the platform files each run; if a limit there changes, these lengths follow it.
 
 ### Curiosity stories (the new kind)
 
@@ -42,7 +42,7 @@ Rank the cards that pass by how likely a stranger is to stop scrolling and share
 
 ## The daily mix
 
-Numbers live in `config.json` under `scout`:
+Numbers live in `flow.json` under `scout`:
 - `news`: `newsMin` to `newsMax` story cards, never padded with weak stories (`NEWS.md`).
 - `mix`: how many idea cards of each kind per run (for example 4 curiosity, 3 explainer, 3 fact). If a kind has no card that passes the bar, propose fewer; don't fill the gap with another kind.
 - `doc`: at most `docsPerWeek` documentary cards a week, only when fewer than `maxOpenDocs` `doc-` cards are pending or approved. Propose one only on the weekday in `docDay`.

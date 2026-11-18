@@ -7,6 +7,10 @@
     "19:30",
     "21:00"
   ],
+  "metadata": {
+    "title": "The YouTube title without \" #shorts\".",
+    "text": "Like Instagram but without the @handle line and with at most 3 hashtags; Facebook reads it as a post, so the first line is a full sentence."
+  },
   "maxSeconds": 90,
   "versionSeconds": 87,
   "notes": [
