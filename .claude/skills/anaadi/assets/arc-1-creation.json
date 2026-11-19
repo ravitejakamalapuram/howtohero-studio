@@ -1,0 +1,26 @@
+{
+  "_about": "Every image episodes 1 to 4 need. A build may start only when tools/check_assets.py finds every file and each one has been looked at (see Checking in ASSETS.md). Paths are under art.assetRoot in flow.json.",
+  "episodes": [1, 2, 3, 4],
+  "characters": {
+    "vishnu": ["characters/vishnu/vishnu-1-turnaround.png", "characters/vishnu/vishnu-2-expressions.png", "characters/vishnu/vishnu-3-poses.png"],
+    "adi-shesha": ["characters/adi-shesha/shesha-1-forms-and-poses.png", "characters/adi-shesha/shesha-2-moods.png"],
+    "brahma": ["characters/brahma/brahma-1-turnaround.png", "characters/brahma/brahma-2-expressions.png", "characters/brahma/brahma-3-poses.png"],
+    "madhu-kaitabha": ["characters/madhu-kaitabha/madhu-kaitabha-1-turnaround.png", "characters/madhu-kaitabha/madhu-kaitabha-2-expressions.png", "characters/madhu-kaitabha/madhu-kaitabha-3-poses.png"],
+    "yoganidra": ["characters/yoganidra/yoganidra-1-turnaround.png", "characters/yoganidra/yoganidra-2-expressions.png"]
+  },
+  "scenery": {
+    "cosmic-ocean": "scenery/01-cosmic-ocean.png",
+    "lotus-rising": "scenery/02-lotus-rising.png",
+    "inside-the-lotus": "scenery/03-inside-the-lotus.png",
+    "battle-ocean": "scenery/04-battle-ocean.png",
+    "brahmaloka": "scenery/05-brahmaloka.png",
+    "wheel-of-time": "scenery/06-wheel-of-time.png"
+  },
+  "props": { "lotus": "props/lotus-sheet.png" },
+  "usedBy": {
+    "1": ["vishnu", "adi-shesha", "cosmic-ocean", "lotus-rising", "lotus"],
+    "2": ["brahma", "lotus-rising", "inside-the-lotus", "lotus"],
+    "3": ["vishnu", "adi-shesha", "brahma", "madhu-kaitabha", "yoganidra", "battle-ocean", "cosmic-ocean"],
+    "4": ["brahma", "brahmaloka", "wheel-of-time"]
+  }
+}
