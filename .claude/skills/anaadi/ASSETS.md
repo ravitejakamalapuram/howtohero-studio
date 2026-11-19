@@ -33,3 +33,7 @@ Under `art.assetRoot` in `flow.json`: `characters/<name>/<name>-<n>-<kind>.png`,
 ## Video prompt
 
 Attach the start frame and write: use this exact image as the first frame; keep the same flat vector style, colours and character design for the whole clip (style lock); no new characters, no text; then the beats with times ("0-3 s: ...", "3-7 s: ...", "7-10 s: ...") and one slow camera move.
+
+## Location maps
+
+Two master maps show where a scene happens, following the Bhagavata Purana, canto 5: `maps/fourteen-lokas.png` (the fourteen worlds stacked, Shesha below) and `maps/bhu-mandala.png` (the earth disc from above: Meru, the ring islands and the seven oceans). A scene may open with a zoom from a map into its place and dissolve into the scene. Rules: the zoom is done in our own render (ffmpeg zoompan or the pipeline2 camera), not with Gemini video; it lasts two to three seconds at most; small deities on a map are our own character cutouts placed in code; the worlds do not exist before episode 4, so the maps are not used in episodes 1 to 3; say on screen once that the layout follows the Bhagavata.
