@@ -154,7 +154,7 @@ def ig_release():
                 'publisher/publish.py adds and removes them.'}).encode())
 
 
-def public_link(path, name):
+def public_link(path, name, content_type='video/mp4'):
     """Puts the file on this repository's "instagram-uploads" release and returns its public link. Files older
     than IG_KEEP_DAYS are removed on the way."""
     rel = ig_release()
@@ -164,7 +164,7 @@ def public_link(path, name):
             gh('DELETE', a['url'])
     with open(path, 'rb') as fh:
         asset = gh('POST', f"https://uploads.github.com/repos/{os.environ['GITHUB_REPOSITORY']}/releases/{rel['id']}/assets?name={name}",
-                   fh.read(), 'video/mp4')
+                   fh.read(), content_type)
     return asset['browser_download_url']
 
 
@@ -206,6 +206,23 @@ def instagram_video(item, data):
     return video
 
 
+def instagram_cover(item, data):
+    """A public link to the video's thumbnail (data.thumb, a Drive file the build made with pipeline2/thumb.mjs) for
+    Instagram's cover_url, or None. The release sweep removes it after IG_KEEP_DAYS."""
+    if not data.get('thumb') or not os.environ.get('GITHUB_TOKEN'):
+        return None
+    try:
+        got = inbox({'action': 'download', 'id': item['id'], 'driveId': data['thumb']})
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, 'cover.jpg')
+            with open(path, 'wb') as fh:
+                fh.write(base64.b64decode(got['base64']))
+            return public_link(path, f"{item['id']}-cover.jpg", 'image/jpeg')
+    except (KeyError, OSError, RuntimeError) as e:  # no cover is better than no post
+        print(f'no instagram cover ({e})')
+        return None
+
+
 def job_exists(key):
     try:
         return bool(social({'action': 'get', 'key': key})['job'])
@@ -226,23 +243,32 @@ def post_for(platform, item, data, cache):
         if not job_exists(key):  # a job from an earlier run carries on with the video it has
             video = instagram_video(item, data)
     if platform == 'instagram':
-        return {'platform': platform, 'key': key, 'video': video, 'caption': caption}
+        post = {'platform': platform, 'key': key, 'video': video, 'caption': caption}
+        cover = None if job_exists(key) else instagram_cover(item, data)
+        if cover:
+            post['coverUrl'] = cover
+        return post
     if platform == 'facebook':
         return {'platform': platform, 'key': key, 'video': video, 'title': title.replace('#shorts', '').strip()[:255], 'description': caption}
     if platform == 'linkedin':
         text = '\n'.join(l for l in caption.splitlines() if not l.startswith('Follow @'))
         return {'platform': platform, 'key': key, 'video': video, 'text': text[:3000]}
     if platform == 'youtube':
-        return {'platform': platform, 'key': key, 'video': video, 'title': title[:100], 'description': caption[:5000],
+        post = {'platform': platform, 'key': key, 'video': video, 'title': title[:100], 'description': caption[:5000],
                 'privacy': 'public', 'categoryId': 28, 'madeForKids': False}
+        if data.get('thumb'):  # custom thumbnail (pipeline2/thumb.mjs); a refused one is only a warning on the job
+            post['thumbnail'] = {'driveFileId': data['thumb']}
+        return post
     raise ValueError(platform)
 
 
 def video_links(item, data):
-    """{label: url} for the Inbox card: the main video and each platform version (data.versions.<platform>)."""
+    """{label: url} for the Inbox card: the main video, each platform version (data.versions.<platform>) and the thumbnail."""
     links = {'Main': item['link']} if item.get('link') else {}
     for p, file_id in sorted((data.get('versions') or {}).items()):
         links[p.capitalize()] = f'https://drive.google.com/file/d/{file_id}/view'
+    if data.get('thumb'):
+        links['Thumbnail'] = f"https://drive.google.com/file/d/{data['thumb']}/view"
     return links
 
 
