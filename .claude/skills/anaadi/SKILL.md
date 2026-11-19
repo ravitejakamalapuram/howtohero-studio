@@ -17,9 +17,9 @@ The one rule that shapes everything: **art first, episodes second**. Characters 
 4. **Gate.** Run `python3 tools/check_assets.py assets/arc-<n>-<name>.json`. It must pass, and every image must have been looked at (ASSETS.md, "Checking"). If anything is missing or wrong, make it again. Do not start an episode before this passes. Do not stop to ask between images; keep going until the set is complete.
 5. **Story.** For each episode write `story.md` (logline, sources, version note, beats, shot list) and `script.json` (Telugu lines). Sources and the version note come from the series bible and stay on screen for one line.
 6. **Voice.** Record each line with the voice in `flow.json` (`voice.default`). The line lengths set the shot lengths.
-7. **Scene frames.** For each shot, make one 9:16 start frame in Gemini with the character's turnaround sheet and the place's background attached, so the frame shows our designs and not new ones.
-8. **Clips.** Turn each start frame into a clip with Gemini video (image to video), with the style lock and timed beats in the prompt (ASSETS.md, "Video prompt").
-9. **Assemble.** Join the clips to the voice with captions, the source line and music in pipeline2, then run its verify step.
+7. **Scene frames.** For each shot, make one 9:16 start frame in Gemini with the character's sheet (or an earlier approved frame of the same character) attached, so the frame shows our designs and not new ones. Start a new chat for each frame and paste the reference in: a long chat starts to answer with errors. A place with no characters needs no new frame; its background is the start frame.
+8. **Clips.** Turn each start frame into a clip with Gemini video (image to video), with the style lock and timed beats in the prompt (ASSETS.md, "Video prompt"). Each clip comes back 10 s long at 720x1280. Look at three frames of every clip before using it.
+9. **Assemble.** Join the clips to the voice in our own render: scale to 1080x1920, fit each clip to its lines (trim, slow down by up to a third, or play a no-character clip backwards then forwards), cross-fade 0.4 s, Telugu captions drawn by the browser (Ramabhadra font, so the script shapes correctly), the source line at the top, the version note once, and a quiet code-made drone under the voice. Drop the sound that comes with the clips.
 10. **Review.** Upload the result and add an Inbox `video` card with `data.channel: "anaadi"`. Posting happens only after the card is approved.
 
 Steps 7 to 9 are proven for single shots only; update this file when the first full episode has passed review.
@@ -32,4 +32,5 @@ Gemini runs in the browser and the build runs in the cloud. `tools/gemini_pull.p
 
 - The Gemini web app needs the person's browser open. A build with missing art waits on an Inbox to-do; it does not guess.
 - Free image limits are per account and per day. Use the accounts in `flow.json` (`art.accounts`) in order, and when all are used up, do the text work (stories, scripts, voice) until the reset.
+- Video is limited too: an account may give only two clips a day, and says so when the limit is reached. Plan about four clips an episode across the accounts.
 - An account may show a terms box on its first upload. Only the person may accept it.
