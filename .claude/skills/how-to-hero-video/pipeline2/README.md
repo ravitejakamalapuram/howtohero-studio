@@ -21,6 +21,7 @@ node render.cjs work/<id>/page.json out.mp4 --style chalkboard  # same video, an
 node schema.mjs videos/<id>.json             # only check the two files
 node flow.mjs resolve videos/<id>.json       # pick the style once and write style + flowSha into the video
 node flow.mjs check                          # validate ../flow.json
+node thumb.mjs out.mp4 out.thumb.jpg --text "NASA IS|STUMPED" --at 1.5   # the custom thumbnail, rules in ../THUMBNAILS.md
 node flow.mjs explain                        # print the settings and each style's share
 ```
 

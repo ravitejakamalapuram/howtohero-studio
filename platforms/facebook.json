@@ -15,6 +15,7 @@
   "versionSeconds": 87,
   "notes": [
     "Page Reels take 3 to 90 s.",
-    "Posting times (IST) are the same 5 as Instagram (one publish run posts to every platform); see the reasoning in instagram.json. Page Reels have no daily cap that 5 posts comes near."
+    "Posting times (IST) are the same 5 as Instagram (one publish run posts to every platform); see the reasoning in instagram.json. Page Reels have no daily cap that 5 posts comes near.",
+    "Thumbnails (19 Nov 2026): the Page Reels API has no thumbnail or cover field, so Facebook picks a frame; the first frame is what matters here."
   ]
 }
