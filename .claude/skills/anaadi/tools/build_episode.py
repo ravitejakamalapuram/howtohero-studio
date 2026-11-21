@@ -10,7 +10,8 @@ EPISODE_DIR holds script.json ([{id, te}]), wav/<id>.wav, the clips and build.js
   "episode": {"label": "భాగం 1", "title": "సృష్టికి ముందు"},
   "brandLine": 5
 }
-"episode" shows a title card for the first 3 seconds and adds the label to the end card.
+"episode" shows a title card for the first 3 seconds and adds the label to the end card;
+"top" (pixels, default 300) moves the card when it would cover a face.
 A segment may carry "sfx": "ocean" | "shimmer" | "deep" | "wind", a soft code-made sound under the voice.
 A segment lasts as long as its lines. A clip that is too short is slowed (up to 1.4x)
 or, with "pingpong", played backwards then forwards (only for shots with no characters).
@@ -74,7 +75,7 @@ html,body{margin:0;width:1080px;height:1920px;background:transparent}
 const shot=async(h,f)=>{await p.setContent(`<style>${css}</style>${h}`);await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(120);await p.screenshot({path:process.argv[2]+'/'+f,omitBackground:true});};
 for(let i=0;i<o.caps.length;i++)await shot(`<div class=cap>${o.caps[i]}</div>`,`cap${i}.png`);
 for(let i=0;i<o.tags.length;i++)await shot(`<div class=tag><span>${o.tags[i]}</span></div>`,`tag${i}.png`);
-await shot(`<div class=brand>${o.brand}${o.epi?`<small>${o.epi.label}</small>`:''}</div>`,'brand.png');if(o.epi)await shot(`<div class=epi><b>${o.epi.label}</b><i>${o.epi.title}</i></div>`,'epi.png');await b.close();})();
+await shot(`<div class=brand>${o.brand}${o.epi?`<small>${o.epi.label}</small>`:''}</div>`,'brand.png');if(o.epi)await shot(`<div class=epi style="top:${o.epi.top||300}px"><b>${o.epi.label}</b><i>${o.epi.title}</i></div>`,'epi.png');await b.close();})();
 """
     open(tmp + '/ov.cjs', 'w').write(js)
     subprocess.run(['node', tmp + '/ov.cjs', tmp], check=True)
