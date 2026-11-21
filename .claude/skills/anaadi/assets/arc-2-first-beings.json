@@ -1,0 +1,19 @@
+{
+ "_about": "Every image episodes 5 to 8 need (the Kumaras, Rudra, the seven sages, the first humans, the tiny boar). Same rules as arc 1: a build may start only when tools/check_assets.py finds every file its episode uses and each one has been looked at. Brahma and the scenery of arc 1 are reused.",
+ "episodes": [5, 6, 7, 8],
+ "characters": {
+  "kumaras": ["characters/kumaras/kumaras-1-turnaround.png", "characters/kumaras/kumaras-2-expressions.png", "characters/kumaras/kumaras-3-poses.png"],
+  "rudra": ["characters/rudra/rudra-1-turnaround.png", "characters/rudra/rudra-2-expressions.png", "characters/rudra/rudra-3-poses.png"],
+  "saptarishi": ["characters/saptarishi/saptarishi-1-lineup.png", "characters/saptarishi/saptarishi-2-poses.png"],
+  "manu-shatarupa": ["characters/manu-shatarupa/manu-shatarupa-1-turnaround.png", "characters/manu-shatarupa/manu-shatarupa-2-expressions.png", "characters/manu-shatarupa/manu-shatarupa-3-poses.png"],
+  "varaha": ["characters/varaha/varaha-1-forms-and-poses.png", "characters/varaha/varaha-2-moods.png"]
+ },
+ "scenery": {"brahmaloka": "scenery/05-brahmaloka.png", "cosmic-ocean": "scenery/01-cosmic-ocean.png"},
+ "props": {},
+ "usedBy": {
+  "5": ["kumaras", "brahmaloka"],
+  "6": ["rudra", "brahmaloka"],
+  "7": ["saptarishi", "brahmaloka"],
+  "8": ["manu-shatarupa", "varaha", "cosmic-ocean"]
+ }
+}

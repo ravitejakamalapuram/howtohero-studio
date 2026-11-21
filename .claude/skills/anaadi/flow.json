@@ -1,0 +1,23 @@
+{
+  "_about": "Settings only for the Anaadi channel (Indian mythology told in story order as linked Shorts). The steps are in SKILL.md and the art rules in ASSETS.md. Platform limits live in /platforms/<platform>.json.",
+  "channel": "anaadi",
+  "platforms": ["youtube"],
+  "language": { "first": "te", "second": "en" },
+  "build": { "paused": true, "maxPerRun": 1, "budgetMinutes": 120 },
+  "episode": { "minSeconds": 45, "maxSeconds": 60, "format": "9:16" },
+  "art": {
+    "tool": "gemini-web",
+    "accounts": ["/u/0", "/u/2"],
+    "sheetsPerCharacter": ["turnaround", "expressions", "poses"],
+    "assetRoot": "/mnt/project-files/anaadi",
+    "masterSheet": "turnaround"
+  },
+  "video": { "tool": "gemini-web-veo", "clipSeconds": 10, "mode": "image-to-video" },
+  "voice": {
+    "default": "indic-te",
+    "voices": {
+      "indic-te": { "engine": "ai4bharat-indic-tts", "language": "te", "speaker": "male" },
+      "kokoro-en": { "engine": "kokoro", "voice": "bm_george", "speed": 1.0 }
+    }
+  }
+}
