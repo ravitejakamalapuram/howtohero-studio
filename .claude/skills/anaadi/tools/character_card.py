@@ -7,9 +7,16 @@ The upload links are secrets and are never printed.
 import json, os, sys, urllib.request, subprocess
 U=os.environ['INBOX_URL']; T=os.environ['INBOX_TOKEN']
 def call(d):
+    """One Inbox call; retried when the Inbox is busy or answers with something that is not JSON."""
+    import time
     d['token']=T
-    out=subprocess.run(['curl','-sS','-L',U,'-H','Content-Type: application/json','-d',json.dumps(d)],capture_output=True,text=True).stdout
-    return json.loads(out)
+    for i in range(6):
+        out=subprocess.run(['curl','-sS','-L',U,'-H','Content-Type: application/json','-d',json.dumps(d)],capture_output=True,text=True).stdout
+        try: r=json.loads(out)
+        except ValueError: r={'ok':False,'error':{'code':'busy'}}
+        if r.get('ok') or (r.get('error') or {}).get('code')!='busy': return r
+        time.sleep(10)
+    return r
 name, title, summary, usedby = sys.argv[1], sys.argv[2], sys.argv[3], sys.argv[4]
 files = sys.argv[5:]
 links={}; first=None
