@@ -331,6 +331,8 @@ def run_series(name):
             'language': cfg['language'], 'aiGenerated': cfg['aiGenerated'], 'madeForKids': False}
     if data.get('thumb'):
         post['thumbnail'] = {'driveFileId': data['thumb']}
+    if cfg.get('playlist'):  # Social Manager makes it on first use; a failure is only a warning
+        post['playlists'] = [cfg['playlist']]
     print(f"{name}: uploading episode {episode_of(item)} ({item['id']}), goes live {at.isoformat()}")
     if DRY:
         return 0
