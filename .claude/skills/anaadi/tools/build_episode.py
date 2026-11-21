@@ -114,7 +114,10 @@ def main(ep):
     for i, t in enumerate(tags):
         g = t['segment']; ov.append((f'tag{i}.png', cut[g] + (3.6 if epi and g == 0 else 0.6), cut[g + 1] - 0.6))
     if epi: ov.append(('epi.png', 0.3, 3.3))
-    if 'brandLine' in cfg: ov.append(('brand.png', starts[cfg['brandLine']][0], total))
+    if 'brandLine' in cfg:
+        b0 = starts[cfg['brandLine']][0]
+        if 'brandSecs' in cfg: b0 = max(b0, total - cfg['brandSecs'])  # long last line: card only at the end
+        ov.append(('brand.png', b0, total))
     n = len(segs)
     for k, (f, s, e) in enumerate(ov):
         inp += ['-i', f'{tmp}/{f}']; d = 0.18
