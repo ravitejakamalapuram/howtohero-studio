@@ -377,6 +377,17 @@ def alert(alert_id, title, summary):
         print(f'alert not sent ({e})')
 
 
+def close_late_alert(item_id):
+    """Once a late video is posted, its "Publishing is behind" to-do is out of date, so close it."""
+    try:
+        alert = inbox({'action': 'get', 'id': f'alert-late-{item_id}'})['item']
+        if alert.get('status') == 'pending':
+            inbox({'action': 'update', 'id': alert['id'], 'ifVersion': alert['version'], 'set': {'status': 'done'}})
+            print(f'closed {alert["id"]}')
+    except (RuntimeError, OSError, KeyError):  # no alert for this video, or the Inbox said no: nothing to close
+        pass
+
+
 def late_alert(items):
     now = dt.datetime.now(dt.timezone.utc)
     late = [i for i in items if when(i) and now - when(i) > dt.timedelta(hours=LATE_HOURS)]
@@ -477,6 +488,8 @@ def run():
             f'{p} failed ({fails[p]} of {MAX_RUNS} runs): {e}' for p, e in failed.items())
     inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': set_})
     print('marked posted' if set_.get('status') == 'posted' else 'left approved; the next run carries on')
+    if set_.get('status') == 'posted':
+        close_late_alert(item['id'])
     return 1 if failed else 0
 
 
