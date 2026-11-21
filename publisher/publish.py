@@ -45,6 +45,7 @@ LINKS_ONLY = os.environ.get('LINKS_ONLY') == 'true'
 PLATFORM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'platforms')
 RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.listdir(PLATFORM_DIR) if f.endswith('.json')}
 
+SERIES = RULES.get('youtube', {}).get('channels', {})  # serialized channels, e.g. anaadi
 
 def call(url, token, body):
     body = dict(body, token=token)
@@ -75,8 +76,9 @@ def due_items():
     now = dt.datetime.now(dt.timezone.utc)
     if ITEM_ID:  # a manual run that names one video posts it now; a posted one gets its missing platforms
         items = inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
-        return [i for i in items if i['id'] == ITEM_ID and i.get('driveId')]
-    items = inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 200})['items']
+        return [i for i in items if i['id'] == ITEM_ID and i.get('driveId') and not series_name(i)]
+    items = [i for i in inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 200})['items']
+             if not series_name(i)]  # serialized channels go through run_series, never to How To Hero
     is_news = lambda i: i.get('source') == 'news' or str(i['id']).startswith('news-')
     # News goes out at the next run whatever its slot says: a story a day late has lost most of its reach.
     due = [i for i in items if i.get('driveId') and (POST_NOW or is_news(i) or when(i) is None or when(i) <= now)]
@@ -283,6 +285,79 @@ def sync_links():
         if not DRY:
             inbox({'action': 'update', 'id': item['id'], 'ifVersion': item['version'], 'set': {'data': dict(data, links=links)}})
 
+def series_name(item):
+    """The serialized channel an item belongs to (platforms/youtube.json "channels"), or None for How To Hero."""
+    data = item.get('data') if isinstance(item.get('data'), dict) else {}
+    name = str(data.get('channel') or '').strip().lower()
+    return name if name in SERIES else None
+
+
+def episode_of(item):
+    try:
+        return int((item.get('data') or {}).get('episode'))
+    except (TypeError, ValueError):
+        return None
+
+
+def run_series(name):
+    """Uploads the next episode of a serialized channel, scheduled on YouTube. Returns 1 on a failed upload."""
+    cfg = SERIES[name]
+    items = [i for i in inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
+             if series_name(i) == name and episode_of(i)]
+    last_ep = cfg['after']['episode']
+    last_at = dt.datetime.fromisoformat(cfg['after']['publishAt'])
+    for i in items:
+        at = (i.get('data') or {}).get('publishAt')
+        if i['status'] == 'posted' and at and episode_of(i) > last_ep:
+            last_ep, last_at = episode_of(i), dt.datetime.fromisoformat(at)
+    nxt = [i for i in items if i['status'] == 'approved' and episode_of(i) == last_ep + 1 and i.get('driveId')]
+    if not nxt:
+        print(f'{name}: episode {last_ep + 1} is not approved yet; later episodes wait for it')
+        return 0
+    item = nxt[0]
+    data = dict(item['data'])
+    ist = dt.timezone(dt.timedelta(hours=5, minutes=30))
+    hh, mm = map(int, cfg['timeIST'].split(':'))
+    at = (last_at.astimezone(ist) + dt.timedelta(days=cfg['everyDays'])).replace(hour=hh, minute=mm, second=0, microsecond=0)
+    soon = dt.datetime.now(ist) + dt.timedelta(hours=1)
+    while at < soon:  # YouTube needs a future time; a gap in the bank pushes the next episode on
+        at += dt.timedelta(days=cfg['everyDays'])
+    meta = (data.get('meta') or {}).get('youtube') or {}
+    post = {'action': 'publish', 'platform': 'youtube', 'account': cfg['account'], 'key': f"{item['id']}-youtube",
+            'video': {'driveFileId': item['driveId']},
+            'title': (meta.get('title') or item.get('title') or '')[:100],
+            'description': (meta.get('text') or item.get('summary') or '')[:5000],
+            'privacy': 'private', 'publishAt': at.isoformat(), 'categoryId': cfg['categoryId'],
+            'language': cfg['language'], 'aiGenerated': cfg['aiGenerated'], 'madeForKids': False}
+    if data.get('thumb'):
+        post['thumbnail'] = {'driveFileId': data['thumb']}
+    print(f"{name}: uploading episode {episode_of(item)} ({item['id']}), goes live {at.isoformat()}")
+    if DRY:
+        return 0
+    job = social(post)['job']
+    deadline = time.time() + WAIT_SECONDS
+    while job['status'] in ('queued', 'running') and time.time() < deadline:
+        time.sleep(20)
+        job = social({'action': 'get', 'id': job['id']})['job']
+    fresh = inbox({'action': 'get', 'id': item['id']})['item']
+    if job['status'] == 'done':
+        url = (job.get('result') or {}).get('url')
+        at = dt.datetime.fromisoformat(str((job.get('result') or {}).get('publishAt') or at.isoformat()).replace('Z', '+00:00')).astimezone(ist)
+        posted = dict(data.get('posted') or {}, youtube=url)
+        inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {
+            'status': 'posted', 'data': dict(data, posted=posted, publishAt=at.isoformat(), postedAt=at.isoformat())}})
+        print(f'{name}: scheduled {url}')
+        return 0
+    fails = int(data.get('publishFails', 0)) + 1 if job['status'] == 'failed' else int(data.get('publishFails', 0))
+    inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {
+        'data': dict(data, publishFails=fails), 'note': f"Publisher: YouTube {job['status']}: {job.get('error') or 'still running'}"}})
+    if fails >= MAX_RUNS:
+        alert(f"alert-{item['id']}-youtube-{fails}", f"{name}: episode {episode_of(item)} will not upload",
+              f"YouTube failed {fails} runs in a row: {job.get('error')}. Later episodes wait until it goes out.")
+    if job['status'] == 'failed' and job.get('id'):
+        social({'action': 'retry', 'id': job['id']})  # the next run picks the same job up again
+    return 1 if job['status'] == 'failed' else 0
+
 
 LATE_HOURS = 3  # a video still unposted this long after its slot means publish runs were missed
 
@@ -313,10 +388,18 @@ def run():
         print(f'links not synced: {e}')
     if LINKS_ONLY:
         return 0
+    series_failed = 0
+    if not ITEM_ID:
+        for name in SERIES:
+            try:
+                series_failed |= run_series(name)
+            except (RuntimeError, OSError, KeyError, ValueError) as e:  # never let it stop How To Hero's post
+                print(f'{name}: {e}')
+                series_failed = 1
     items = due_items()
     if not items:
         print('nothing due')
-        return 0
+        return series_failed
     if not ITEM_ID:
         late_alert(items)
     item = items[0]

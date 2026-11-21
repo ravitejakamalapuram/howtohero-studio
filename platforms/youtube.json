@@ -17,5 +17,20 @@
     "Upload quota is about 6 videos a day by the old estimate, reset at 13:30 IST; in practice 9 uploads on 16 Nov 2026 all went through.",
     "Posting times (IST) are the same 5 as Instagram (one publish run posts to every platform); see the reasoning in instagram.json. India Shorts guides (Fluxnote) also name 7-9 AM and 7-9 PM IST. 5 uploads a day fit the quota: 9 uploads on 16 Nov 2026 all succeeded.",
     "Custom thumbnails work on Shorts through the API (thumbnails.set): tested 19 Nov 2026 on hWIIk9FVSJ8, no warning, and i.ytimg.com serves the new image, so the channel is verified for custom thumbnails. Shorts feed viewers never see it (the video autoplays); search, the Shorts tab, subscriptions and suggested do. The publisher sends data.thumb (rules in the skill's THUMBNAILS.md). Each call costs about 50 quota units."
-  ]
+  ],
+  "channels": {
+    "anaadi": {
+      "_about": "Serialized channel (Anaadi, Telugu mythology). Its Inbox cards carry data.channel \"anaadi\" and data.episode. The publisher uploads them to YouTube account \"anaadi\" strictly in episode order, one per run, each scheduled with YouTube's own publish time: one episode every everyDays days at timeIST, after the latest one already scheduled. A missing or failed episode holds every later one. 'after' is the last episode scheduled outside the publisher; raise it if you schedule one by hand.",
+      "account": "anaadi",
+      "timeIST": "19:30",
+      "everyDays": 1,
+      "categoryId": 27,
+      "language": "te",
+      "aiGenerated": true,
+      "after": {
+        "episode": 4,
+        "publishAt": "2026-11-23T19:30:00+05:30"
+      }
+    }
+  }
 }
