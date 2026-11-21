@@ -77,8 +77,11 @@ def due_items():
     if ITEM_ID:  # a manual run that names one video posts it now; a posted one gets its missing platforms
         items = inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
         return [i for i in items if i['id'] == ITEM_ID and i.get('driveId') and not series_name(i)]
-    items = [i for i in inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 200})['items']
-             if not series_name(i)]  # serialized channels go through run_series, never to How To Hero
+    # 1000 is the Inbox's largest page; the queue must never outgrow it, or videos past it are never posted.
+    res = inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 1000})
+    if res.get('total', 0) > len(res['items']):
+        print(f"WARNING: {res['total']} approved videos but only {len(res['items'])} read; the rest are skipped")
+    items = [i for i in res['items'] if not series_name(i)]  # serialized channels go through run_series, never to How To Hero
     is_news = lambda i: i.get('source') == 'news' or str(i['id']).startswith('news-')
     # News goes out at the next run whatever its slot says: a story a day late has lost most of its reach.
     due = [i for i in items if i.get('driveId') and (POST_NOW or is_news(i) or when(i) is None or when(i) <= now)]
