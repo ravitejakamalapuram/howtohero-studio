@@ -16,6 +16,23 @@ For every **place**, one 9:16 background with no characters and an empty centre.
 
 Richly detailed flat vector illustration: defined facial anatomy, detailed eyes with iris and highlights, hair and beard strands as clean shapes, ornament detail, cloth folds, soft gradients. Not a simple cartoon. Designs are our own: never copy another creator's characters.
 
+## House style (every character, no exceptions)
+
+All characters must sit at one level of realism: the level of the Brahma, Vishnu and Madhu-Kaitabha sheets. A new character that looks more cartoon-like than those is wrong, even if it looks good by itself. The person rejected two Rudra designs and one Kumaras design for this.
+
+Every character prompt starts with two things:
+
+1. **Two approved turnarounds attached** as the style anchor: Brahma and Madhu-Kaitabha (or Vishnu). Never a child character and never a sheet that is still waiting for approval.
+2. **This paragraph, word for word:**
+
+> The attached images are our own character sheets from our animated mythology series. They define the HOUSE STYLE that every character must match exactly: realistic ADULT proportions (about seven and a half heads tall, small head, long limbs, real anatomy with defined shoulders, chest, hands and feet), a detailed semi-realistic face with a real nose, lips, brows and eyelids (NOT a cute cartoon face, NO big round head, NO big baby eyes, NOT chibi), finely detailed ornaments, cloth folds and hair strands, clean thin outlines, flat colours with two-tone cel shading. Create a NEW character sheet in exactly this house style, at the same level of realism and detail as the attached sheets, 16:9, plain light grey background, no text, no labels:
+
+Then the character: the look people know from temple and calendar pictures (ornaments, weapons, colours, hair), and the sheet layout. A child or an animal keeps its own proportions (a child is about five heads tall) but the same detailed face and rendering; say so in the prompt.
+
+For sheets 2 and 3 repeat "the same realistic house style (detailed semi-realistic face, not cartoon)". Later sheets drift towards a painted look; when they disagree with the turnaround, redo them.
+
+Before sending a character for approval, put its turnaround next to Brahma, Vishnu and Madhu-Kaitabha in one image and look: head size against body, face detail, ornament detail, line weight. If it stands out, redo it first.
+
 ## Keeping designs the same
 
 - Make all sheets for one character in the same chat, and say "this exact same character, same design and colours".
