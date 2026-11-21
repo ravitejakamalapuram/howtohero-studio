@@ -7,8 +7,11 @@ EPISODE_DIR holds script.json ([{id, te}]), wav/<id>.wav, the clips and build.js
   "out": "anaadi-ep01.mp4",
   "segments": [{"clip": "clip-A.mp4", "lines": [0, 1], "pingpong": true, "start": 0.0}],
   "tags": [{"text": "...", "segment": 0}],
+  "episode": {"label": "భాగం 1", "title": "సృష్టికి ముందు"},
   "brandLine": 5
 }
+"episode" shows a title card for the first 3 seconds and adds the label to the end card.
+A segment may carry "sfx": "ocean" | "shimmer" | "deep" | "wind", a soft code-made sound under the voice.
 A segment lasts as long as its lines. A clip that is too short is slowed (up to 1.4x)
 or, with "pingpong", played backwards then forwards (only for shots with no characters).
 Captions change at the real pauses in the voice.
@@ -53,8 +56,8 @@ def timeline(ep, lines):
         t += d + GAP
     return caps, starts, round(t - GAP + TAIL, 2)
 
-def render_overlays(tmp, caps, tags, brand):
-    json.dump({'caps': [c['text'] for c in caps], 'tags': tags, 'brand': brand, 'fonts': HERE + '/fonts'},
+def render_overlays(tmp, caps, tags, brand, epi):
+    json.dump({'caps': [c['text'] for c in caps], 'tags': tags, 'brand': brand, 'epi': epi, 'fonts': HERE + '/fonts'},
               open(tmp + '/ov.json', 'w'), ensure_ascii=False)
     js = r"""
 const {chromium}=require('playwright');const fs=require('fs');const o=JSON.parse(fs.readFileSync(process.argv[2]+'/ov.json'));
@@ -64,12 +67,14 @@ html,body{margin:0;width:1080px;height:1920px;background:transparent}
 .cap{position:absolute;left:70px;right:70px;bottom:330px;text-align:center;font-family:R;font-size:76px;line-height:1.35;color:#fff7dc;text-shadow:0 0 18px #000,0 4px 0 #1a1030,0 0 40px rgba(0,0,0,.9);-webkit-text-stroke:2px rgba(20,10,40,.55);paint-order:stroke fill}
 .tag{position:absolute;left:60px;right:60px;top:150px;text-align:center;font-family:M;font-size:34px;color:#f3d98a;text-shadow:0 0 10px #000,0 2px 6px #000}
 .tag span{display:inline-block;line-height:1.5;background:rgba(10,8,30,.55);padding:10px 22px;border-radius:26px;border:1px solid rgba(243,217,138,.5)}
+.epi{position:absolute;left:0;right:0;top:300px;text-align:center;font-family:R;color:#f6d77a;text-shadow:0 0 24px #000,0 0 50px rgba(0,0,0,.8)}.epi b{display:block;font-size:150px;font-weight:400;line-height:1.1}.epi i{display:inline-block;font-style:normal;font-family:M;font-size:52px;color:#fff7dc;margin-top:18px;padding:8px 34px;border-top:2px solid rgba(246,215,122,.7);border-bottom:2px solid rgba(246,215,122,.7)}
+.brand small{display:block;font-family:M;font-size:44px;color:#fff7dc;margin-top:6px}
 .brand{position:absolute;left:0;right:0;top:230px;text-align:center;font-family:R;font-size:120px;color:#f6d77a;text-shadow:0 0 30px #000,0 0 60px rgba(246,215,122,.5)}`;
 (async()=>{const b=await chromium.launch();const p=await b.newPage({viewport:{width:1080,height:1920}});
 const shot=async(h,f)=>{await p.setContent(`<style>${css}</style>${h}`);await p.evaluate(()=>document.fonts.ready);await p.waitForTimeout(120);await p.screenshot({path:process.argv[2]+'/'+f,omitBackground:true});};
 for(let i=0;i<o.caps.length;i++)await shot(`<div class=cap>${o.caps[i]}</div>`,`cap${i}.png`);
 for(let i=0;i<o.tags.length;i++)await shot(`<div class=tag><span>${o.tags[i]}</span></div>`,`tag${i}.png`);
-await shot(`<div class=brand>${o.brand}</div>`,'brand.png');await b.close();})();
+await shot(`<div class=brand>${o.brand}${o.epi?`<small>${o.epi.label}</small>`:''}</div>`,'brand.png');if(o.epi)await shot(`<div class=epi><b>${o.epi.label}</b><i>${o.epi.title}</i></div>`,'epi.png');await b.close();})();
 """
     open(tmp + '/ov.cjs', 'w').write(js)
     subprocess.run(['node', tmp + '/ov.cjs', tmp], check=True)
@@ -82,18 +87,20 @@ def main(ep):
     cut = [0.0] + [round(starts[s['lines'][0]][0] - GAP / 2, 2) for s in segs[1:]] + [total]
     tmp = tempfile.mkdtemp()
     tags = cfg.get('tags', [])
-    render_overlays(tmp, caps, [t['text'] for t in tags], cfg.get('brand', 'అనాది'))
+    epi = cfg.get('episode')
+    render_overlays(tmp, caps, [t['text'] for t in tags], cfg.get('brand', 'అనాది'), epi)
     inp, fc, sc = [], [], "scale=1080:1920:flags=lanczos,fps=30,setsar=1,format=yuv420p"
     for i, s in enumerate(segs):
         inp += ['-i', f"{ep}/{s['clip']}"]
         need = cut[i + 1] - cut[i] + (XF if i < len(segs) - 1 else 0)
         st = s.get('start', 0); have = float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration',
               '-of', 'csv=p=0', f"{ep}/{s['clip']}"], capture_output=True, text=True).stdout) - st - 0.1
-        end = f"trim=0:{need:.2f},setpts=PTS-STARTPTS,fps=30,settb=1/30[S{i}]"
+        end = f"tpad=stop_mode=clone:stop_duration=2,trim=0:{need:.2f},setpts=PTS-STARTPTS,fps=30,settb=1/30[S{i}]"
         if need <= have:
             fc.append(f"[{i}:v]{sc},trim=start={st},setpts=PTS-STARTPTS,{end}")
         elif s.get('pingpong'):
-            fc.append(f"[{i}:v]{sc},split[f{i}][r{i}];[r{i}]reverse[q{i}];[q{i}][f{i}]concat=n=2:v=1,{end}")
+            k = max(need / (2 * have), 1.0)   # still too short after there-and-back: slow it a little
+            fc.append(f"[{i}:v]{sc},split[f{i}][r{i}];[r{i}]reverse[q{i}];[q{i}][f{i}]concat=n=2:v=1,setpts={k:.3f}*PTS,{end}")
         else:
             k = need / have
             if k > 1.4: sys.exit(f"segment {i}: clip is {have:.1f}s but its lines need {need:.1f}s; add a clip or mark pingpong")
@@ -104,7 +111,8 @@ def main(ep):
     fc.append(f"[{cur}]fade=t=in:d=0.5,fade=t=out:st={total - 0.6:.2f}:d=0.6[v0]"); cur = 'v0'
     ov = [(f'cap{i}.png', c['s'], c['e']) for i, c in enumerate(caps)]
     for i, t in enumerate(tags):
-        g = t['segment']; ov.append((f'tag{i}.png', cut[g] + 0.6, cut[g + 1] - 0.6))
+        g = t['segment']; ov.append((f'tag{i}.png', cut[g] + (3.6 if epi and g == 0 else 0.6), cut[g + 1] - 0.6))
+    if epi: ov.append(('epi.png', 0.3, 3.3))
     if 'brandLine' in cfg: ov.append(('brand.png', starts[cfg['brandLine']][0], total))
     n = len(segs)
     for k, (f, s, e) in enumerate(ov):
@@ -120,7 +128,17 @@ def main(ep):
               f"sine=f=261.63:d={total}:r=48000,volume=0.22[s3];sine=f=392.4:d={total}:r=48000,volume=0.08[s4];"
               f"[s1][s2][s3][s4]amix=inputs=4:normalize=0,tremolo=f=0.25:d=0.35,aecho=0.8:0.7:120|260:0.4|0.3,"
               f"lowpass=f=1800,volume=0.16,afade=t=in:d=2,afade=t=out:st={total - 2.5}:d=2.5[mus]")
-    fc.append(''.join(am) + f"[mus]amix=inputs={len(lines) + 1}:normalize=0,alimiter=limit=0.95,apad,atrim=0:{total}[aout]")
+    SFX = {'ocean': "anoisesrc=c=pink:r=48000:d={d},lowpass=f=700,highpass=f=80,tremolo=f=0.13:d=0.8,volume=0.55",
+           'wind': "anoisesrc=c=brown:r=48000:d={d},bandpass=f=420:w=300,tremolo=f=0.2:d=0.6,volume=0.9",
+           'deep': "sine=f=55:r=48000:d={d},tremolo=f=0.4:d=0.5,volume=0.35",
+           'shimmer': "sine=f=1318.5:r=48000:d={d}[h1];sine=f=1975.5:r=48000:d={d}[h2];sine=f=2637:r=48000:d={d}[h3];"
+                      "[h1][h2][h3]amix=inputs=3:normalize=0,tremolo=f=6:d=0.7,aecho=0.8:0.8:180|340:0.5|0.35,volume=0.035"}
+    for i, sg in enumerate(segs):
+        if sg.get('sfx') in SFX:
+            d = cut[i + 1] - cut[i] + 0.6; a = max(cut[i] - 0.3, 0)
+            fc.append(SFX[sg['sfx']].format(d=f'{d:.2f}') + f",afade=t=in:d=0.8,afade=t=out:st={d - 0.9:.2f}:d=0.9,"
+                      f"adelay={int(a * 1000)}:all=1[fx{i}]"); am.append(f'[fx{i}]')
+    fc.append(''.join(am) + f"[mus]amix=inputs={len(am) + 1}:normalize=0,alimiter=limit=0.95,apad,atrim=0:{total}[aout]")
     out = f"{ep}/{cfg.get('out', 'episode.mp4')}"
     subprocess.run(['ffmpeg', '-v', 'error', '-y'] + inp + ['-filter_complex', ';'.join(fc), '-map', f'[{cur}]', '-map', '[aout]',
                     '-t', str(total), '-c:v', 'libx264', '-preset', 'medium', '-crf', '19', '-pix_fmt', 'yuv420p',
