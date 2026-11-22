@@ -32,7 +32,7 @@ export function flowErrors(flow) {
   known(flow, ['_about', 'channel', 'scout', 'build', 'style', 'voice', 'sound', 'photos'], 'flow');
   if (typeof flow.channel !== 'string' || !/^[a-z0-9-]+$/.test(flow.channel)) e.push('channel must be a short id like "how-to-hero"');
   if (obj(flow.scout, 'scout')) {
-    for (const k of ['newsMin', 'newsMax', 'maxPendingIdeas', 'maxIdeaBacklog', 'ideasWhenBacklogged', 'docsPerWeek', 'maxOpenDocs']) num(flow.scout[k], `scout.${k}`);
+    for (const k of ['newsMin', 'newsMax', 'newsWindowHours', 'newsWindowWeekendHours', 'weekFallbackDays', 'maxPendingIdeas', 'maxIdeaBacklog', 'ideasWhenBacklogged', 'docsPerWeek', 'maxOpenDocs']) num(flow.scout[k], `scout.${k}`);
     if (flow.scout.newsMin > flow.scout.newsMax) e.push('scout.newsMin is more than scout.newsMax');
     if (obj(flow.scout.mix, 'scout.mix')) for (const [k, v] of Object.entries(flow.scout.mix)) num(v, `scout.mix.${k}`);
   }

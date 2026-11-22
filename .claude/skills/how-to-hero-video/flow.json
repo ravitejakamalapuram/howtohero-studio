@@ -4,6 +4,9 @@
   "scout": {
     "newsMin": 3,
     "newsMax": 10,
+    "newsWindowHours": 48,
+    "newsWindowWeekendHours": 72,
+    "weekFallbackDays": 7,
     "mix": {
       "curiosity": 4,
       "explainer": 3,
