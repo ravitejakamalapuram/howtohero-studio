@@ -25,6 +25,10 @@ The one rule that shapes everything: **art first, episodes second**. Characters 
 
 The Inbox dashboard has an Anaadi group with a Video pipeline page. The text on it is `assets/pipeline-about.txt`; after changing the pipeline, update that file and send it again with the Inbox `channelAbout` action (`app` "Anaadi").
 
+## Fix what was rejected
+
+The person gives a reason for every rejection, in the Inbox note. At the start of every Anaadi run, before making anything new: `how-to-hero-video/fixlist.py --max <fix.maxFixes> --limit <fix.maxPerRun> --channel anaadi` (nothing when `build.paused` is true) and fix each item as `how-to-hero-video/FIXES.md` says. A `character` item is redone with the sheet rules in ASSETS.md; an episode card is rebuilt from the step the reason points at and passes the checklist below again, then goes back to `pending` with its video link replaced. Send nothing back that was not looked at again.
+
 ## Checklist for every episode
 
 Every build follows this file from step 1, whoever runs it and however many episodes they have made. Before adding the review card, tick each line; a line that fails sends the episode back to its step. When a mistake teaches a new rule, add it here in the same change, so the next build cannot miss it.
@@ -37,7 +41,7 @@ Every build follows this file from step 1, whoever runs it and however many epis
 6. `build.json` gives each scene a fitting sound (`sfx`), has the episode label and title, and the closing line shows the channel name.
 7. The build printed a length of 55 to 65 seconds and did not exit with an error.
 8. A sheet of frames from the finished MP4 was looked at: captions readable and inside the frame, the title card not over a face, cuts at the right lines.
-9. The review card was added in one call with the video link, `data.channel` "anaadi", the right `data.episode`, `meta.youtube` and `data.thumb` (a mid-video still), then read back to confirm.
+9. If this was a fix, the reason was followed and nothing an earlier reason asked to remove came back. The review card was added in one call with the video link, `data.channel` "anaadi", the right `data.episode`, `meta.youtube` and `data.thumb` (a mid-video still), then read back to confirm.
 10. Files for the person are given as Drive links in the message, and the episode's state is saved to project memory.
 
 ## Moving files out of Gemini
