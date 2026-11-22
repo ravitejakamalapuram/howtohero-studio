@@ -33,7 +33,7 @@ Every build follows this file from step 1, whoever runs it and however many epis
 2. Every frame was looked at and counted: the number of figures, faces and arms matches the story (seven sages means seven). The image tool miscounts; ask it for an edit until the count is right.
 3. Three frames of every clip were looked at: no new characters, no text, no change of style.
 4. The script has sources and a version note, and the source tag shows on screen for one line.
-5. The voice is the one in `flow.json`, every line was recorded with the default model, and no take is far longer than its text.
+5. The voice is the one in `flow.json`, every line of the episode was recorded with one model, and no take is far longer than its text. The voice tool sends only the Telugu text, because the voice service reads any instruction aloud (found 2026-11-22). Transcribe the sound of the finished MP4 and compare it with the script: the voice must say the script and nothing else.
 6. `build.json` gives each scene a fitting sound (`sfx`), has the episode label and title, and the closing line shows the channel name.
 7. The build printed a length of 55 to 65 seconds and did not exit with an error.
 8. A sheet of frames from the finished MP4 was looked at: captions readable and inside the frame, the title card not over a face, cuts at the right lines.
