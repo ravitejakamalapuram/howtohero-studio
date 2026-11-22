@@ -12,7 +12,7 @@ Git holds code, prompts, settings, docs and small text sources. These things are
 | Queue, history, stats | The Inbox Google Sheet | Everything | No: it is state, not code | Back up the Sheet (File, Make a copy) before moving |
 | `credentials.md` (web app links, tokens) | `/mnt/project-files/social-manager/credentials.md` | Setting up keys | Tokens can be re-issued | Keep the only copy in a password manager. Never commit it |
 
-Backup destination is the user's call (Drive folder or a private storage bucket). Do not use a GitHub release for the art if the repo is public.
+Backups live in the user's Google Drive folder **How To Hero backups**, one versioned file each: `anaadi-art-v1-2026-11-22.tar.gz` (sha256 `26786526d16bc2a979193705eaf65fee79329948dfc0744a0d55cab1516a388d`; unpack it into the folder that holds `anaadi/` and `anaadi-branding/`, then `ops/assets.sh verify`). When the art changes, run `ops/assets.sh pack`, upload as a new version (v2, ...) and keep the old one. Not yet backed up: the 1.5 GB Telugu voice checkpoint. Do not use a GitHub release for the art if the repo is public.
 
 ## Indic-TTS (Anaadi Telugu voice)
 
