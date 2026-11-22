@@ -295,6 +295,19 @@ def series_name(item):
     return name if name in SERIES else None
 
 
+def series_groups(name):
+    """The groups (sub-series) of a serialized channel: its main one ("group") plus any in "groups"."""
+    cfg = SERIES[name]
+    return [cfg.get('group', '')] + list(cfg.get('groups', {}))
+
+
+def group_of(item, name):
+    """An item's group key: data.group, or the channel's main group when it has none. None for an unknown group."""
+    cfg = SERIES[name]
+    g = str((item.get('data') or {}).get('group') or cfg.get('group', '')).strip().lower()
+    return g if g in series_groups(name) else None
+
+
 def episode_of(item):
     try:
         return int((item.get('data') or {}).get('episode'))
@@ -302,11 +315,15 @@ def episode_of(item):
         return None
 
 
-def run_series(name):
-    """Uploads the next episode of a serialized channel, scheduled on YouTube. Returns 1 on a failed upload."""
-    cfg = SERIES[name]
+def run_series(name, group=''):
+    """Uploads the next episode of one group of a serialized channel, scheduled on YouTube.
+    Each group numbers its own episodes and has its own time, pace and playlist. Returns 1 on a failed upload."""
+    cfg = {k: v for k, v in SERIES[name].items() if k != 'groups'}
+    if group != cfg.get('group', ''):
+        cfg.update(SERIES[name]['groups'][group])
+        name = f'{name}/{group}'
     items = [i for i in inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
-             if series_name(i) == name and episode_of(i)]
+             if series_name(i) == name.split('/')[0] and group_of(i, name.split('/')[0]) == group and episode_of(i)]
     last_ep = cfg['after']['episode']
     last_at = dt.datetime.fromisoformat(cfg['after']['publishAt'])
     for i in items:
@@ -407,11 +424,12 @@ def run():
     series_failed = 0
     if not ITEM_ID:
         for name in SERIES:
-            try:
-                series_failed |= run_series(name)
-            except (RuntimeError, OSError, KeyError, ValueError) as e:  # never let it stop How To Hero's post
-                print(f'{name}: {e}')
-                series_failed = 1
+            for group in series_groups(name):
+                try:
+                    series_failed |= run_series(name, group)
+                except (RuntimeError, OSError, KeyError, ValueError) as e:  # never let it stop How To Hero's post
+                    print(f'{name}/{group}: {e}')
+                    series_failed = 1
     items = due_items()
     if not items:
         print('nothing due')
