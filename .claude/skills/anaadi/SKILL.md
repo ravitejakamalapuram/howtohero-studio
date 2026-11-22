@@ -1,6 +1,6 @@
 ---
 name: anaadi
-description: Make one Anaadi episode (Indian mythology told in story order, vertical 9:16, 45-60 s, Telugu first) from the series bible. Character and scenery art comes first and is reused across the series; an episode is built only when its art set is complete. Use for Anaadi builds or when asked to make an Anaadi episode or character sheet.
+description: Make one Anaadi episode (Indian mythology told in story order, vertical 9:16, 55-65 s, Telugu first) from the series bible. Character and scenery art comes first and is reused across the series; an episode is built only when its art set is complete. Use for Anaadi builds or when asked to make an Anaadi episode or character sheet.
 ---
 
 # Anaadi episodes
@@ -25,7 +25,20 @@ The one rule that shapes everything: **art first, episodes second**. Characters 
 
 The Inbox dashboard has an Anaadi group with a Video pipeline page. The text on it is `assets/pipeline-about.txt`; after changing the pipeline, update that file and send it again with the Inbox `channelAbout` action (`app` "Anaadi").
 
-Steps 7 to 9 are proven for single shots only; update this file when the first full episode has passed review.
+## Checklist for every episode
+
+Every build follows this file from step 1, whoever runs it and however many episodes they have made. Before adding the review card, tick each line; a line that fails sends the episode back to its step. When a mistake teaches a new rule, add it here in the same change, so the next build cannot miss it.
+
+1. Every character on screen has an approved `character` item in the Inbox, and its frames were made from that sheet or from an approved earlier frame. For Brahma use an approved frame as the reference: the sheet alone has given the wrong number of faces.
+2. Every frame was looked at and counted: the number of figures, faces and arms matches the story (seven sages means seven). The image tool miscounts; ask it for an edit until the count is right.
+3. Three frames of every clip were looked at: no new characters, no text, no change of style.
+4. The script has sources and a version note, and the source tag shows on screen for one line.
+5. The voice is the one in `flow.json`, every line was recorded with the default model, and no take is far longer than its text.
+6. `build.json` gives each scene a fitting sound (`sfx`), has the episode label and title, and the closing line shows the channel name.
+7. The build printed a length of 55 to 65 seconds and did not exit with an error.
+8. A sheet of frames from the finished MP4 was looked at: captions readable and inside the frame, the title card not over a face, cuts at the right lines.
+9. The review card was added in one call with the video link, `data.channel` "anaadi", the right `data.episode` and `meta.youtube`, then read back to confirm.
+10. Files for the person are given as Drive links in the message, and the episode's state is saved to project memory.
 
 ## Moving files out of Gemini
 
