@@ -1,9 +1,10 @@
 #!/usr/bin/env python3
 """Record an episode's Telugu lines with an expressive storyteller voice (Gemini speech).
 
-Usage: voice_gemini.py EPISODE_DIR [MODEL] [VOICE]
-Reads script.json ([{id, te, mood}]) and writes wav/<id>.wav. "mood" is a short acting note
-for that line ("hushed, vast emptiness"). One request per line; a line that already has a
+Usage: voice_gemini.py EPISODE_DIR [MODEL] [VOICE] [TEMPO]
+Reads script.json ([{id, te, mood}]) and writes wav/<id>.wav. "mood" is kept in the script as a
+note for the writer only: the voice gets the Telugu text alone, so put the feeling into the words
+and the punctuation. One request per line; a line that already has a
 wav is skipped, so a run that stops at the daily limit can be continued later.
 The free tier allows 10 requests a day for each model, so use ONE model for a whole
 episode (the voice differs a little between models) and do not waste takes.
@@ -12,13 +13,13 @@ The key comes from GEMINI_API_KEY (the cloud session's proxy adds it by itself).
 import base64, json, os, subprocess, sys, time
 
 API = 'https://generativelanguage.googleapis.com/v1beta/models/'
-STYLE = ("Narrate this Telugu line like a warm, wise Indian storyteller telling an ancient epic: natural human "
-         "delivery, a steady storytelling pace (not slow), real feeling, short natural pauses between sentences. "
-         "Mood of this line: {mood}. Show the mood in the tone of voice, never by slowing down or by long silences: "
-         "the whole line must take about {secs} seconds. Speak only the Telugu text, once.\n\n{text}")
+TEMPO = 0.9   # for gemini-3.8-flash-tts, whose plain reading is brisk (about 0.07 s a character); set 1.06 for
+              # gemini-3.1-flash-tts-preview, which reads slower. Aim for about 0.08 s a character.
 
 def take(l, out, model, voice):
-    body = {"contents": [{"parts": [{"text": STYLE.format(mood=l.get('mood', 'calm wonder'), text=l['te'], secs=round(len(l['te']) * 0.11))}]}],
+    # Only the Telugu text is sent. Since 2026-11-22 these models read any instruction in the prompt aloud
+    # ("Say warmly: ..." included) and refuse a system instruction, so the mood note is no longer sent.
+    body = {"contents": [{"parts": [{"text": l['te']}]}],
             "generationConfig": {"responseModalities": ["AUDIO"],
                                  "speechConfig": {"voiceConfig": {"prebuiltVoiceConfig": {"voiceName": voice}}}}}
     open('/tmp/anaadi_req.json', 'w').write(json.dumps(body))
@@ -32,13 +33,15 @@ def take(l, out, model, voice):
     open(out + '.bin', 'wb').write(base64.b64decode(p['data']))
     pre = [] if 'wav' in p.get('mimeType', '') else ['-f', 's16le', '-ar', '24000', '-ac', '1']
     subprocess.run(['ffmpeg', '-v', 'error', '-y'] + pre + ['-i', out + '.bin', '-af',
-                    'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,loudnorm=I=-18:TP=-2',
+                    'silenceremove=start_periods=1:start_threshold=-45dB,areverse,silenceremove=start_periods=1:start_threshold=-45dB,areverse,atempo=%s,loudnorm=I=-18:TP=-2' % TEMPO,
                     '-ar', '48000', '-ac', '1', out], check=True)
     os.remove(out + '.bin')
     return float(subprocess.run(['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', out],
                                 capture_output=True, text=True).stdout)
 
-def main(ep, model='gemini-3.8-flash-tts', voice='Charon'):
+def main(ep, model='gemini-3.8-flash-tts', voice='Charon', tempo=None):
+    global TEMPO
+    if tempo: TEMPO = float(tempo)
     os.makedirs(ep + '/wav', exist_ok=True)
     for l in json.load(open(ep + '/script.json')):
         out = f"{ep}/wav/{l['id']}.wav"
@@ -53,4 +56,4 @@ def main(ep, model='gemini-3.8-flash-tts', voice='Charon'):
         print(l['id'], round(d, 2), 's')
 
 if __name__ == '__main__':
-    main(*sys.argv[1:4])
+    main(*sys.argv[1:5])
