@@ -29,7 +29,7 @@ export function flowErrors(flow) {
   const obj = (v, at) => { if (!v || typeof v !== 'object' || Array.isArray(v)) { e.push(`${at} must be an object`); return false; } return true; };
   const known = (o, keys, at) => Object.keys(o).filter(k => !keys.includes(k)).forEach(k => e.push(`${at}.${k} is not a known setting (${keys.join(', ')})`));
   if (!obj(flow, 'flow.json')) return e;
-  known(flow, ['_about', 'channel', 'scout', 'build', 'style', 'voice'], 'flow');
+  known(flow, ['_about', 'channel', 'scout', 'build', 'style', 'voice', 'sound'], 'flow');
   if (typeof flow.channel !== 'string' || !/^[a-z0-9-]+$/.test(flow.channel)) e.push('channel must be a short id like "how-to-hero"');
   if (obj(flow.scout, 'scout')) {
     for (const k of ['newsMin', 'newsMax', 'maxPendingIdeas', 'maxIdeaBacklog', 'ideasWhenBacklogged', 'docsPerWeek', 'maxOpenDocs']) num(flow.scout[k], `scout.${k}`);
@@ -74,6 +74,14 @@ export function flowErrors(flow) {
       if (v.voices[v.fallback] && v.voices[v.fallback].engine !== 'kokoro') e.push('voice.fallback must be a kokoro voice (it runs on the machine, so it cannot fail for network reasons)');
       if (obj(v.byGeo, 'voice.byGeo')) for (const [g, n] of Object.entries(v.byGeo)) if (!names.includes(n)) e.push(`voice.byGeo.${g}: unknown voice "${n}"`);
     }
+  }
+  if (flow.sound !== undefined && obj(flow.sound, 'sound')) { // the sound pass (sfx.py): earshot requests in words, volumes 0-1
+    const s = flow.sound;
+    known(s, ['enabled', 'cut', 'hit', 'end', 'bed', 'bedByKeyword', 'volume'], 'sound');
+    if (typeof s.enabled !== 'boolean') e.push('sound.enabled must be true or false');
+    for (const k of ['cut', 'hit', 'end', 'bed']) if (typeof s[k] !== 'string' || !s[k]) e.push(`sound.${k} must be a sound request in words`);
+    if (s.bedByKeyword !== undefined && obj(s.bedByKeyword, 'sound.bedByKeyword')) for (const [w, ks] of Object.entries(s.bedByKeyword)) if (!Array.isArray(ks) || !ks.length) e.push(`sound.bedByKeyword.${w} must list topic words`);
+    if (obj(s.volume, 'sound.volume')) for (const k of ['cut', 'hit', 'end', 'bed']) num(s.volume[k], `sound.volume.${k}`, 0, 1);
   }
   return e;
 }

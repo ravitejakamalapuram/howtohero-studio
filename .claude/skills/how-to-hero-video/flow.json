@@ -67,5 +67,51 @@
         "voice": "en-IN-NeerjaExpressiveNeural"
       }
     }
+  },
+  "sound": {
+    "enabled": true,
+    "cut": "soft whoosh",
+    "hit": "low cinematic impact boom",
+    "end": "bell note",
+    "bed": "soft air pad",
+    "bedByKeyword": {
+      "dark drone": [
+        "space",
+        "planet",
+        "star",
+        "orbit",
+        "nasa",
+        "hubble",
+        "mars",
+        "moon",
+        "galaxy",
+        "black hole",
+        "telescope"
+      ],
+      "deep ocean ambience": [
+        "ocean",
+        "sea",
+        "mangrove",
+        "whale",
+        "coral",
+        "tide",
+        "wave"
+      ],
+      "wind ambience": [
+        "storm",
+        "wind",
+        "volcano",
+        "quake",
+        "desert",
+        "mountain",
+        "weather"
+      ]
+    },
+    "volume": {
+      "cut": 0.35,
+      "hit": 0.5,
+      "end": 0.4,
+      "bed": 0.18
+    }
   }
 }
