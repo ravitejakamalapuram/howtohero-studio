@@ -16,7 +16,15 @@ PRICE_IN, PRICE_OUT = 8.0, 40.0      # $ per million tokens
 PRICE_SEARCH = 0.01                  # $ per web search
 RUN_BUDGET = float(os.environ.get("HTH_ADVISOR_RUN_BUDGET", "2.00"))  # $ per job run
 SPEND_FILE = "/tmp/hth-advisor-spend.json"
-MAX_SECONDS = int(os.environ.get("HTH_ADVISOR_MAX_SECONDS", "240"))  # whole call, web search included; past it the job uses the in-session fallback
+try:
+    MAX_SECONDS = max(1, int(os.environ.get("HTH_ADVISOR_MAX_SECONDS", "240")))  # whole call, web search included; past it the job uses the in-session fallback
+except ValueError:
+    MAX_SECONDS = 240
+TIMEOUT_COST = 0.25                  # $ booked when a call times out: the answer is lost but the API still bills it
+
+
+class WallClock(BaseException):
+    """Raised by the alarm. Not an Exception, so the SDK's own retry and error handling cannot swallow it."""
 
 ROLE = ("You are the senior editor of How To Hero, a channel of short vertical science and "
         "engineering explainers. A junior producer (another AI) asks you to review its work. "
@@ -77,20 +85,23 @@ def main():
         fallback("no HTH_ADVISOR_KEY in this environment")
     if spent() >= RUN_BUDGET:
         fallback(f"this run's advisor budget (${RUN_BUDGET:.2f}) is used up")
+    def too_slow(*_):
+        raise WallClock
+    signal.signal(signal.SIGALRM, too_slow)  # the SDK's own timeout only covers idle reads, so cap the wall clock
+    signal.alarm(MAX_SECONDS)  # armed before the pip install too, which can also hang
     try:
-        import anthropic
-    except ImportError:
-        os.system(f"{sys.executable} -m pip install -q anthropic >/dev/null 2>&1")
         try:
             import anthropic
         except ImportError:
-            fallback("could not install the anthropic package")
+            os.system(f"{sys.executable} -m pip install -q anthropic >/dev/null 2>&1")
+            try:
+                import anthropic
+            except ImportError:
+                fallback("could not install the anthropic package")
+    except WallClock:
+        fallback(f"no answer within {MAX_SECONDS} s (loading the anthropic package)")
 
-    def too_slow(*_):
-        raise TimeoutError
-    signal.signal(signal.SIGALRM, too_slow)  # the SDK's own timeout only covers idle reads, so cap the wall clock
-    signal.alarm(MAX_SECONDS)
-    client = anthropic.Anthropic(api_key=key, base_url="https://api.anthropic.com")
+    client = anthropic.Anthropic(api_key=key, base_url="https://api.anthropic.com", max_retries=0)
     messages = [{"role": "user", "content": prompt}]
     total, start = 0.0, time.time()
     try:
@@ -117,7 +128,8 @@ def main():
         if e.status_code == 402 or "credit" in text or "billing" in text:
             fallback("API credits are used up")
         fallback(f"API error {e.status_code} ({getattr(e, 'type', '')})")
-    except TimeoutError:
+    except WallClock:
+        total += TIMEOUT_COST
         fallback(f"no answer within {MAX_SECONDS} s")
     except anthropic.APIConnectionError:
         fallback("could not reach the API")
