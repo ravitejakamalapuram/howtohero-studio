@@ -29,13 +29,14 @@ export function flowErrors(flow) {
   const obj = (v, at) => { if (!v || typeof v !== 'object' || Array.isArray(v)) { e.push(`${at} must be an object`); return false; } return true; };
   const known = (o, keys, at) => Object.keys(o).filter(k => !keys.includes(k)).forEach(k => e.push(`${at}.${k} is not a known setting (${keys.join(', ')})`));
   if (!obj(flow, 'flow.json')) return e;
-  known(flow, ['_about', 'channel', 'scout', 'build', 'style', 'voice', 'sound', 'photos'], 'flow');
+  known(flow, ['_about', 'channel', 'scout', 'fix', 'build', 'style', 'voice', 'sound', 'photos'], 'flow');
   if (typeof flow.channel !== 'string' || !/^[a-z0-9-]+$/.test(flow.channel)) e.push('channel must be a short id like "how-to-hero"');
   if (obj(flow.scout, 'scout')) {
     for (const k of ['newsMin', 'newsMax', 'maxPendingIdeas', 'maxIdeaBacklog', 'ideasWhenBacklogged', 'docsPerWeek', 'maxOpenDocs']) num(flow.scout[k], `scout.${k}`);
     if (flow.scout.newsMin > flow.scout.newsMax) e.push('scout.newsMin is more than scout.newsMax');
     if (obj(flow.scout.mix, 'scout.mix')) for (const [k, v] of Object.entries(flow.scout.mix)) num(v, `scout.mix.${k}`);
   }
+  if (obj(flow.fix, 'fix')) { known(flow.fix, ['maxFixes'], 'fix'); num(flow.fix.maxFixes, 'fix.maxFixes', 0, 10); }
   if (obj(flow.build, 'build')) {
     known(flow.build, ['maxPerRun', 'claimTtlMinutes', 'maxVersionsPerRun', 'paused', 'budgetMinutes'], 'build');
     num(flow.build.maxPerRun, 'build.maxPerRun', 0, 50); num(flow.build.claimTtlMinutes, 'build.claimTtlMinutes', 10);

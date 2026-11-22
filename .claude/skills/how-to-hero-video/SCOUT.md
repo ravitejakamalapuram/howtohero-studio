@@ -7,6 +7,10 @@ Two card types, never mixed up:
 - `idea` = an explainer idea card. Approving it means "build this idea".
 Both are proposals with nothing built. Approve sets them `approved`, which the build run reads as ready to build.
 
+## 0. Fix rejected cards first
+
+The person gives a reason for every rejection. Before proposing anything new, fix their rejected `story` and `idea` cards as `FIXES.md` says: `fixlist.py --max <fix.maxFixes> --types story,idea --not-channel anaadi`, then fix and send each back as `pending`. A fixed news story that has gone stale (the news is old now) is dropped instead: release it as rejected with `data.fixFailures` 2. Fixed cards count toward `scout.maxPendingIdeas`. Fixing adds no advisor step; only new cards go there.
+
 ## 1. News first
 
 News goes stale, so do it before ideas. Find stories with `NEWS.md` "Finding stories" (both lanes, ranked by virality). Run `dupcheck.py "<story in a few words>"` for each and drop it on a DUPLICATE, or when a CHECK item is the same event or finding. Pick the top ones, at most `scout.newsMax`. Aim for at least `scout.newsMin`, but never pad with weak, stale or badly sourced stories: fewer is fine. Draft them, don't add them yet: they go to the advisor with the ideas (step 3). Each is added later in rank order, so Telegram shows the best first, as:

@@ -16,6 +16,9 @@
     "maxOpenDocs": 3,
     "docDay": "Sunday"
   },
+  "fix": {
+    "maxFixes": 3
+  },
   "build": {
     "maxPerRun": 10,
     "claimTtlMinutes": 180,

@@ -19,6 +19,6 @@ You are the daily How To Hero build run. Clone https://github.com/ravitejakamala
 ## Steps
 
 1. `cd /home/user/howtohero-studio && ops/bootstrap.sh && . ops/env.sh && ops/doctor.sh`. Stop and say what is missing if doctor fails on a required line. (It reinstalls apt, pip and npm packages every time, so it needs the network listed in `SETUP.md` plus the apt mirrors, github.com, Playwright's CDN; ideally make it the cloud environment's setup script so it runs once, cached.)
-2. Read `.claude/skills/how-to-hero-video/SKILL.md` and follow "Build run", "Worker steps" and "Build one video" exactly (and `NEWS.md` "Build a story" for news cards). Settings come from `flow.json` in the skill folder; it says which pipeline to use. Claim each approved card before building it; news first; at most `build.maxPerRun` videos. Propose no new ideas or stories. Post nothing.
+2. Read `.claude/skills/how-to-hero-video/SKILL.md` and follow "Build run", "Worker steps" and "Build one video" exactly (and `NEWS.md` "Build a story" for news cards). Settings come from `flow.json` in the skill folder; it says which pipeline to use. Fix rejected videos first (`FIXES.md`). Claim each approved card before building it; news first; at most `build.maxPerRun` videos. Propose no new ideas or stories. Post nothing.
 3. If the first Inbox call is refused or an upload fails, stop and say exactly what failed.
 4. Reply with SKILL.md's final reply.

@@ -18,7 +18,7 @@ Daily How To Hero scout run. Clone https://github.com/ravitejakamalapuram/howtoh
 
 ## Steps
 
-1. Follow `.claude/skills/how-to-hero-video/SCOUT.md` exactly, with the numbers in `flow.json` next to it. News `story` cards first (ranked by virality, `NEWS.md` "Finding stories"), then `idea` cards, each checked with `dupcheck.py`. It proposes cards only: build no video, post nothing anywhere.
+1. Follow `.claude/skills/how-to-hero-video/SCOUT.md` exactly (step 0 fixes the person's rejected cards first, see `FIXES.md`), with the numbers in `flow.json` next to it. News `story` cards first (ranked by virality, `NEWS.md` "Finding stories"), then `idea` cards, each checked with `dupcheck.py`. It proposes cards only: build no video, post nothing anywhere.
 2. The Advisor step in SCOUT.md uses `advisor.py`. If it exits 3 or times out, use the Fable subagent fallback the skill describes. Do not skip the review.
 3. If the first Inbox call is refused, stop and say exactly what failed.
 4. Reply with SCOUT.md's "Final reply".

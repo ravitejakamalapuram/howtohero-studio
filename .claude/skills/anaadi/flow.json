@@ -3,6 +3,7 @@
   "channel": "anaadi",
   "platforms": ["youtube"],
   "language": { "first": "te", "second": "en" },
+  "fix": { "maxFixes": 3 },
   "build": { "paused": true, "maxPerRun": 1, "budgetMinutes": 120 },
   "episode": { "minSeconds": 45, "maxSeconds": 60, "format": "9:16" },
   "art": {
