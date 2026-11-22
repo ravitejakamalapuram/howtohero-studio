@@ -29,7 +29,7 @@ export function flowErrors(flow) {
   const obj = (v, at) => { if (!v || typeof v !== 'object' || Array.isArray(v)) { e.push(`${at} must be an object`); return false; } return true; };
   const known = (o, keys, at) => Object.keys(o).filter(k => !keys.includes(k)).forEach(k => e.push(`${at}.${k} is not a known setting (${keys.join(', ')})`));
   if (!obj(flow, 'flow.json')) return e;
-  known(flow, ['_about', 'channel', 'scout', 'build', 'style', 'voice', 'sound'], 'flow');
+  known(flow, ['_about', 'channel', 'scout', 'build', 'style', 'voice', 'sound', 'photos'], 'flow');
   if (typeof flow.channel !== 'string' || !/^[a-z0-9-]+$/.test(flow.channel)) e.push('channel must be a short id like "how-to-hero"');
   if (obj(flow.scout, 'scout')) {
     for (const k of ['newsMin', 'newsMax', 'maxPendingIdeas', 'maxIdeaBacklog', 'ideasWhenBacklogged', 'docsPerWeek', 'maxOpenDocs']) num(flow.scout[k], `scout.${k}`);
@@ -82,6 +82,13 @@ export function flowErrors(flow) {
     for (const k of ['cut', 'hit', 'end', 'bed']) if (typeof s[k] !== 'string' || !s[k]) e.push(`sound.${k} must be a sound request in words`);
     if (s.bedByKeyword !== undefined && obj(s.bedByKeyword, 'sound.bedByKeyword')) for (const [w, ks] of Object.entries(s.bedByKeyword)) if (!Array.isArray(ks) || !ks.length) e.push(`sound.bedByKeyword.${w} must list topic words`);
     if (obj(s.volume, 'sound.volume')) for (const k of ['cut', 'hit', 'end', 'bed']) num(s.volume[k], `sound.volume.${k}`, 0, 1);
+  }
+  if (flow.photos !== undefined && obj(flow.photos, 'photos')) { // photos.py: Openverse cc0/pdm photos for news Shorts
+    const s = flow.photos;
+    known(s, ['enabled', 'newsOnly', 'maxPerVideo', 'minLongSide', 'minShortSide', 'trustedSources'], 'photos');
+    for (const k of ['enabled', 'newsOnly']) if (typeof s[k] !== 'boolean') e.push(`photos.${k} must be true or false`);
+    num(s.maxPerVideo, 'photos.maxPerVideo', 0, 4); num(s.minLongSide, "photos.minLongSide", 800, 8000); num(s.minShortSide, "photos.minShortSide", 400, 8000);
+    if (!Array.isArray(s.trustedSources) || s.trustedSources.some(x => typeof x !== 'string')) e.push('photos.trustedSources must be a list of source names');
   }
   return e;
 }

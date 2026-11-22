@@ -113,5 +113,25 @@
       "end": 0.4,
       "bed": 0.18
     }
+  },
+  "photos": {
+    "enabled": true,
+    "newsOnly": true,
+    "maxPerVideo": 2,
+    "minLongSide": 1000,
+    "minShortSide": 600,
+    "trustedSources": [
+      "nasa",
+      "wikimedia",
+      "wikimedia commons",
+      "smithsonian",
+      "flickr commons",
+      "met museum",
+      "rijksmuseum",
+      "europeana",
+      "esa",
+      "noaa",
+      "usgs"
+    ]
   }
 }
