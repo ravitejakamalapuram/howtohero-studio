@@ -17,7 +17,8 @@
     "docDay": "Sunday"
   },
   "fix": {
-    "maxFixes": 3
+    "maxFixes": 3,
+    "maxPerRun": 2
   },
   "build": {
     "maxPerRun": 10,

@@ -36,7 +36,7 @@ export function flowErrors(flow) {
     if (flow.scout.newsMin > flow.scout.newsMax) e.push('scout.newsMin is more than scout.newsMax');
     if (obj(flow.scout.mix, 'scout.mix')) for (const [k, v] of Object.entries(flow.scout.mix)) num(v, `scout.mix.${k}`);
   }
-  if (obj(flow.fix, 'fix')) { known(flow.fix, ['maxFixes'], 'fix'); num(flow.fix.maxFixes, 'fix.maxFixes', 0, 10); }
+  if (flow.fix !== undefined && obj(flow.fix, 'fix')) { known(flow.fix, ['maxFixes', 'maxPerRun'], 'fix'); num(flow.fix.maxFixes, 'fix.maxFixes', 0, 10); num(flow.fix.maxPerRun, 'fix.maxPerRun', 0, 20); }
   if (obj(flow.build, 'build')) {
     known(flow.build, ['maxPerRun', 'claimTtlMinutes', 'maxVersionsPerRun', 'paused', 'budgetMinutes'], 'build');
     num(flow.build.maxPerRun, 'build.maxPerRun', 0, 50); num(flow.build.claimTtlMinutes, 'build.claimTtlMinutes', 10);

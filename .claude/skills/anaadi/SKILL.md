@@ -27,7 +27,7 @@ The Inbox dashboard has an Anaadi group with a Video pipeline page. The text on 
 
 ## Fix what was rejected
 
-The person gives a reason for every rejection, in the Inbox note. At the start of every Anaadi run, before making anything new: `how-to-hero-video/fixlist.py --max <fix.maxFixes> --channel anaadi` and fix each item as `how-to-hero-video/FIXES.md` says. A `character` item is redone with the sheet rules in ASSETS.md; an episode card is rebuilt from the step the reason points at and passes the checklist below again, then goes back to `pending` with its video link replaced. Send nothing back that was not looked at again.
+The person gives a reason for every rejection, in the Inbox note. At the start of every Anaadi run, before making anything new: `how-to-hero-video/fixlist.py --max <fix.maxFixes> --limit <fix.maxPerRun> --channel anaadi` (nothing when `build.paused` is true) and fix each item as `how-to-hero-video/FIXES.md` says. A `character` item is redone with the sheet rules in ASSETS.md; an episode card is rebuilt from the step the reason points at and passes the checklist below again, then goes back to `pending` with its video link replaced. Send nothing back that was not looked at again.
 
 ## Checklist for every episode
 
