@@ -2,3 +2,5 @@ node_modules/
 work/
 out/
 __pycache__/
+.env
+ops/.venv/

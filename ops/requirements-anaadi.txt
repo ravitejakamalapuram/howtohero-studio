@@ -1,0 +1,4 @@
+# Optional: the Telugu Indic-TTS voice (CPU only). Install with: ops/bootstrap.sh --anaadi
+# torch comes from the CPU index (see bootstrap.sh); the checkpoint is a 1.5 GB download, see ops/ASSETS.md.
+coqui-tts[codec]
+six

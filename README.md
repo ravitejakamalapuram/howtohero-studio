@@ -15,6 +15,7 @@ The old How To Hero artifact queue is retired. Its unposted cards moved to the I
 
 ## Layout
 
+- `ops/`: set up a fresh machine (`bootstrap.sh`, `doctor.sh`), the two job files (`ops/jobs/`) and what lives outside git (`ASSETS.md`). Start with `SETUP.md` "A new machine".
 - `SETUP.md`: every key the jobs use, where it lives, and how to run a job on another AI platform.
 - `.claude/skills/how-to-hero-video/SCOUT.md`: the daily scout (proposes news and ideas).
 - `.claude/skills/how-to-hero-video/IDEAS.md`: the idea rules: video kinds, quality bar, daily mix and lengths.
