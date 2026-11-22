@@ -26,3 +26,8 @@ USE OR OTHER DEALINGS IN THE SOFTWARE.
 ## Fonts (SIL Open Font License 1.1)
 
 The fonts in `fonts/` and their copyright notices are listed in `fonts/OFL.txt`.
+
+## earshot (MIT, used as a tool)
+
+`sfx.py` calls the earshot command line (https://github.com/Leonxlnx/earshot) to render its sound effects.
+No earshot code is copied here. Sounds earshot renders belong to whoever renders them, free for commercial use without credit.
