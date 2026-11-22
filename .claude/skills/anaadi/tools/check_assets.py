@@ -3,7 +3,7 @@
 usage: check_assets.py assets/arc-1-creation.json [episode]"""
 import json, os, sys
 here = os.path.dirname(os.path.abspath(__file__))
-root = json.load(open(os.path.join(here, '..', 'flow.json')))['art']['assetRoot']
+root = os.environ.get('ANAADI_ASSET_ROOT') or json.load(open(os.path.join(here, '..', 'flow.json')))['art']['assetRoot']  # env wins, so another machine can keep the art anywhere
 m = json.load(open(sys.argv[1]))
 groups = {**m['characters'], **m['scenery'], **m['props']}
 need = m['usedBy'][sys.argv[2]] if len(sys.argv) > 2 else list(groups)

@@ -58,3 +58,15 @@ What the platform must provide:
 - **Network access** to: the Inbox (`script.google.com`, `script.googleusercontent.com`), Drive uploads (`www.googleapis.com`), npm (`registry.npmjs.org`), PyPI (`pypi.org`, `files.pythonhosted.org`), Hugging Face for the Kokoro voice (`huggingface.co` and its file CDN), and the news and science sites the scout reads.
 
 Run one platform at a time for each job. Two build runs won't build the same card (the claim prevents it), but two scouts would propose twice as many cards.
+
+## A new machine, from a fresh clone
+
+```
+git clone https://github.com/ravitejakamalapuram/howtohero-studio && cd howtohero-studio
+ops/bootstrap.sh            # pinned tools into ops/.venv (add --anaadi for the Telugu voice)
+. ops/env.sh                # PATH, HYPERFRAMES_PYTHON
+cp .env.example .env        # fill the names in; export them (or set them in the cloud environment)
+ops/doctor.sh               # says what is still missing; prints names, never values
+```
+
+Then run a job by following `ops/jobs/scout.md` or `ops/jobs/build.md`; they hold the schedule, the environment and the routine prompt. What is not in git (art, the 1.5 GB voice checkpoint, Google-side state) is listed in `ops/ASSETS.md`. The publisher, stats and weekly report run in GitHub Actions and only need the four repo secrets.

@@ -1,0 +1,29 @@
+# Proves a clean machine can be set up from this repo: bootstrap, doctor (tools only), the settings check, and one still render.
+name: bootstrap-check
+on:
+  push:
+    paths: ['ops/**', '.github/workflows/bootstrap-check.yml', '.claude/skills/how-to-hero-video/pipeline2/**']
+  pull_request:
+    paths: ['ops/**', '.github/workflows/bootstrap-check.yml']
+  schedule:
+    - cron: '17 3 * * 1'   # weekly: catches upstream rot (a deleted or changed package)
+  workflow_dispatch:
+jobs:
+  fresh-machine:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: ops/bootstrap.sh
+      - run: ops/doctor.sh --no-keys
+      - run: . ops/env.sh && node .claude/skills/how-to-hero-video/pipeline2/flow.mjs check
+      - name: Render one still (catches a broken Chromium, fonts or render path)
+        run: |
+          . ops/env.sh
+          cd .claude/skills/how-to-hero-video/pipeline2
+          node build.mjs v18 --estimate --out /tmp/chk >/dev/null
+          node render.cjs /tmp/chk/page.json /tmp/chk/still --frames 0.5
+          test -s /tmp/chk/still-0.5.png
