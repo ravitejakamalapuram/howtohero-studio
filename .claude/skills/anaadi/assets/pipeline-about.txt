@@ -1,0 +1,10 @@
+Anaadi tells Indian mythology in story order, one short episode a day on YouTube, in Telugu.
+
+1. Art first. Every character gets three sheets (turnaround, expressions, poses). Each new character comes to you here as a "Character approval". Nothing uses a character before you approve it; a rejected one is redrawn from your note.
+2. Story and voice. Each episode is written from the series bible with its sources, then recorded.
+3. Shots. Start frames are made from the approved sheets, then turned into clips with Gemini video.
+4. Build. Clips, voice, Telugu captions and source tags are put together into one 45 to 60 second video.
+5. Review. The finished episode arrives here as a video approval, numbered "Ep N".
+6. Post. Approved episodes are scheduled on YouTube by themselves, strictly in episode order, one a day at 19:30 IST, and added to the season playlist.
+
+Episodes are built ahead as fast as the free Gemini limits allow; only posting is once a day.
