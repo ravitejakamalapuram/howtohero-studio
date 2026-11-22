@@ -2,6 +2,7 @@
 # Sets up a fresh Linux machine (Debian/Ubuntu) to build How To Hero videos. Safe to run again.
 #   ops/bootstrap.sh            video build (Kokoro, Edge voice, sound effects, render, verify)
 #   ops/bootstrap.sh --anaadi   also the Telugu Indic-TTS voice (CPU torch, large download)
+# Needs network: apt mirrors, pypi.org, download.pytorch.org (--anaadi), github.com (earshot), registry.npmjs.org, Playwright's CDN.
 # It installs tools only. It never commits, uploads or writes a secret. Then run ops/doctor.sh.
 set -euo pipefail
 cd "$(dirname "$0")"
@@ -11,7 +12,7 @@ if command -v apt-get >/dev/null; then
   $SUDO apt-get update -qq
   # ffmpeg: encode/probe. fonts: Chromium draws captions, Telugu needs noto-telugu, emoji needs noto-color-emoji.
   $SUDO apt-get install -y -qq --no-install-recommends ffmpeg python3-venv python3-pip curl git ca-certificates \
-    fonts-noto-core fonts-noto-color-emoji fonts-telu fonts-noto-ui-core espeak-ng
+    fontconfig fonts-noto-core fonts-noto-color-emoji fonts-telu fonts-noto-ui-core espeak-ng
 else
   echo "no apt-get: install ffmpeg, python3-venv, espeak-ng and Noto fonts (core, Telugu, color emoji) yourself" >&2
 fi
@@ -25,17 +26,19 @@ python3 -m venv .venv
 .venv/bin/pip install -q --upgrade pip
 .venv/bin/pip install -q -r requirements.txt
 
-# render.cjs does require('playwright'): install it where node finds it, with its Chromium (skipped if one is already set up)
-npm ls -g playwright@1.63.0 >/dev/null 2>&1 || $SUDO npm i -g playwright@1.63.0
-if [ ! -d "${PLAYWRIGHT_BROWSERS_PATH:-/opt/pw-browsers}" ] && ! ls ~/.cache/ms-playwright/chromium-* >/dev/null 2>&1; then
-  $SUDO npx --yes playwright@1.63.0 install --with-deps chromium
+# render.cjs does require('playwright'): install it for this user (no sudo, so it lands in the active Node's global folder),
+# with its Chromium. sudo is only for the system libraries Chromium needs.
+npm ls -g playwright@1.63.0 >/dev/null 2>&1 || npm i -g playwright@1.63.0
+if [ -z "${PLAYWRIGHT_BROWSERS_PATH:-}" ] || [ ! -d "$PLAYWRIGHT_BROWSERS_PATH" ]; then
+  npx --yes playwright@1.63.0 install chromium
 fi
+$SUDO env "PATH=$PATH" npx --yes playwright@1.63.0 install-deps chromium
 
 # warm hyperframes (pinned in pipeline2/build.mjs) so the first build does not stall
 npx --yes hyperframes@0.9.33 --version >/dev/null 2>&1 || true
 
 if [ "${1:-}" = "--anaadi" ]; then
-  .venv/bin/pip install -q torch torchaudio --index-url https://download.pytorch.org/whl/cpu
+  .venv/bin/pip install -q "torch==2.*" "torchaudio==2.*" --index-url https://download.pytorch.org/whl/cpu
   .venv/bin/pip install -q -r requirements-anaadi.txt
   echo "Indic-TTS code installed. The Telugu checkpoint is a separate download, see ops/ASSETS.md."
 fi

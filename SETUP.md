@@ -63,9 +63,9 @@ Run one platform at a time for each job. Two build runs won't build the same car
 
 ```
 git clone https://github.com/ravitejakamalapuram/howtohero-studio && cd howtohero-studio
-ops/bootstrap.sh            # pinned tools into ops/.venv (add --anaadi for the Telugu voice)
+ops/bootstrap.sh            # pinned Python 3.13 tools into ops/.venv (add --anaadi for the Telugu voice; its torch and coqui-tts are version-ranged, not exact)
 . ops/env.sh                # PATH, HYPERFRAMES_PYTHON
-cp .env.example .env        # fill the names in; export them (or set them in the cloud environment)
+cp .env.example .env        # fill the values in, then:  set -a; . ./.env; set +a   (or set them in the cloud environment)
 ops/doctor.sh               # says what is still missing; prints names, never values
 ```
 

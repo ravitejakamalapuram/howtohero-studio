@@ -21,7 +21,7 @@ Source: github.com/AI4Bharat/Indic-TTS (MIT). Steps, tested 2026-11-16 on CPU, P
 1. `ops/bootstrap.sh --anaadi` (CPU torch and `coqui-tts[codec]`, `six`).
 2. Download `te.zip` from the release `v1-checkpoints-release`, unzip so `model/te/fastpitch/` and `model/te/hifigan/` exist.
 3. In the fastpitch `config.json`, set `speakers_file` to the local `model/te/fastpitch/speakers.pth`, and copy that config to `fp.json`.
-4. `python3 .claude/skills/anaadi/tools/indic_tts_syn.py <lines.json> <outdir> male` (lines are `[{"id","te"}]`). About 4 times faster than real time. Telugu script only: spell English words and numbers in Telugu.
+4. From the folder that holds `model/` and `fp.json`, after `. ops/env.sh`: `python3 <repo>/.claude/skills/anaadi/tools/indic_tts_syn.py <lines.json> <outdir> male` (lines are `[{"id","te"}]`). About 4 times faster than real time. Telugu script only: spell English words and numbers in Telugu.
 
 The 1.5 GB zip has no copy of its own yet; mirror it to the backup destination so a deleted upstream release cannot block a rebuild.
 
