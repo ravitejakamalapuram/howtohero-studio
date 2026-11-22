@@ -11,7 +11,7 @@ at it, so render.cjs picks it up. The voice track is kept as "voice" so a rerun 
 Settings are flow.json "sound". With sound.enabled false, or when earshot is not installed, the page
 is left on the plain voice track and the script exits 0: a missing sound pass never stops a build.
 """
-import json, os, shutil, subprocess, sys
+import json, os, re, shutil, subprocess, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -25,16 +25,29 @@ def sound(words, cache):
     os.makedirs(cache, exist_ok=True)
     f = os.path.join(cache, words.replace(" ", "_") + ".wav")
     if not os.path.exists(f):
-        run(["earshot", "make", words, "-o", f])
+        run(["earshot", "make", words, "-o", f + ".part"])  # a killed render never lands in the cache
+        os.replace(f + ".part", f)
     return f
 
 
 def bed_for(topic, cfg):
     t = (topic or "").lower()
     for words, keys in cfg.get("bedByKeyword", {}).items():
-        if any(k in t for k in keys):
+        if any(re.search(r"\b" + re.escape(k) + r"\b", t) for k in keys):  # whole words: "research" is not "sea"
             return words
     return cfg["bed"]
+
+
+def last_line(err):
+    return (err.stderr.decode(errors="replace").strip().splitlines() or ["no message"])[-1][:200]
+
+
+def plain(page, pf, voice, why):
+    """Leave the page on the plain voice track, undoing an earlier mix so render.cjs never uses a stale one."""
+    if voice and page.get("audio") != voice:
+        page["audio"] = voice
+        json.dump(page, open(pf, "w"))
+    print(why + ": plain voice track")
 
 
 def main():
@@ -47,10 +60,9 @@ def main():
     cfg = json.load(open(flow)).get("sound", {"enabled": False})
     voice = page.get("voice") or page.get("audio")
     if not cfg.get("enabled") or not voice:
-        print("sound pass off: plain voice track"); return
+        return plain(page, pf, voice, "sound pass off")
     if not shutil.which("earshot"):
-        print('earshot not installed (pip install "earshot @ git+https://github.com/Leonxlnx/earshot"): plain voice track')
-        return
+        return plain(page, pf, voice, 'earshot not installed (pip install "earshot @ git+https://github.com/Leonxlnx/earshot")')
     cache = os.path.join(HERE, "work", "sfx")
     v, dur, beats = cfg["volume"], page["dur"], page["beats"]
     cues = []  # (file, second, volume)
@@ -66,8 +78,7 @@ def main():
         cues.append((sound(cfg["end"], cache), page["endAt"], v["end"]))
         bed = sound(bed_for(page.get("topic"), cfg), cache)
     except subprocess.CalledProcessError as err:
-        print("earshot failed (" + err.stderr.decode(errors="replace").strip().splitlines()[-1][:200] + "): plain voice track")
-        return
+        return plain(page, pf, voice, "earshot failed (" + last_line(err) + ")")
     ins = ["-i", voice, "-stream_loop", "-1", "-i", bed]
     fc = [f"[1]atrim=0:{dur},volume={v['bed']},afade=t=in:d=2,afade=t=out:st={max(0, dur - 2.5):.2f}:d=2.5[bed]"]
     lab = ["[0]", "[bed]"]
@@ -80,8 +91,7 @@ def main():
     try:
         run(["ffmpeg", "-y", "-v", "error", *ins, "-filter_complex", ";".join(fc), "-map", "[a]", out])
     except subprocess.CalledProcessError as err:  # a failed mix keeps the plain voice, like a missing earshot
-        print("mix failed (" + (err.stderr.decode(errors="replace").strip().splitlines() or ["?"])[-1][:200] + "): plain voice track")
-        return
+        return plain(page, pf, voice, "mix failed (" + last_line(err) + ")")
     page["voice"], page["audio"] = voice, out
     json.dump(page, open(pf, "w"))
     print(f"sound pass: {len(cues)} effects + bed '{bed_for(page.get('topic'), cfg)}' -> {out}")
