@@ -16,6 +16,8 @@ A segment may carry "sfx": "ocean" | "shimmer" | "deep" | "wind", a soft code-ma
 A segment lasts as long as its lines. A clip that is too short is slowed (up to 1.4x)
 or, with "pingpong", played backwards then forwards (only for shots with no characters).
 Captions change at the real pauses in the voice.
+Lines play in script.json order, so a segment's lines must follow the previous segment's lines.
+The result must run 55 to 65 seconds; outside that the build exits with an error after writing the file.
 """
 import json, os, re, subprocess, sys, tempfile, wave
 
@@ -149,6 +151,8 @@ def main(ep):
                     '-c:a', 'aac', '-b:a', '160k', '-movflags', '+faststart', out], check=True)
     json.dump({'caps': caps, 'cuts': cut, 'total': total}, open(ep + '/timeline.json', 'w'), ensure_ascii=False, indent=1)
     print(out, total)
+    if not 55 <= total <= 65:  # the person's rule: every episode runs 60 s, give or take 5
+        sys.exit(f'{out}: {total} s is outside 55 to 65 s; add or cut lines (SKILL.md, Story)')
 
 if __name__ == '__main__':
     main(sys.argv[1])
