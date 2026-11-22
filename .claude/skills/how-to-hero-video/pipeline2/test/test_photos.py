@@ -28,3 +28,10 @@ class Photos(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestSrcSafety(unittest.TestCase):
+    def test_src_pattern_rejects_paths(self):
+        for bad in ("../x", "/tmp/x", "a/b", "A", ""):
+            self.assertFalse(photos.SRC_OK.match(bad), bad)
+        self.assertTrue(photos.SRC_OK.match("hubble-1"))

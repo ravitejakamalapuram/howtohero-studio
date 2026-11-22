@@ -22,9 +22,16 @@ UA = "howtohero-studio-photos/1.0"
 AI_WORDS = re.compile(r"\b(ai|a\.i\.|artificial intelligence|generated|midjourney|dall[- ]?e|stable ?diffusion|diffusion|gpt|firefly|neural|synthetic)\b", re.I)
 
 
+MAX_BYTES = 15_000_000
+SRC_OK = re.compile(r"^[a-z0-9-]+$")
+
+
 def get(url, timeout=30):
     req = urllib.request.Request(url, headers={"User-Agent": UA})
-    return urllib.request.urlopen(req, timeout=timeout).read()
+    data = urllib.request.urlopen(req, timeout=timeout).read(MAX_BYTES + 1)
+    if len(data) > MAX_BYTES:
+        raise ValueError("download over 15 MB")
+    return data
 
 
 def looks_ai(r):
@@ -109,11 +116,19 @@ def main():
     items = [it for b in json.load(open(sf)).get("beats", []) for it in b.get("items", []) if it.get("k") == "photo"]
     if not items:
         print("no photo items in this video"); return
-    items = items[: cfg["maxPerVideo"]]
     out = vf[:-5] + ".photos"
     os.makedirs(out, exist_ok=True)
-    got, skipped = [], []
+    for old in os.listdir(out):  # a rerun never keeps a photo from an earlier run
+        if old.endswith(".jpg"):
+            os.remove(os.path.join(out, old))
+    got, skipped, seen = [], [], set()
+    total = len(items)
+    items = items[: cfg.get("maxPerVideo", 2)]
     for it in items:
+        src = it.get("src") if isinstance(it, dict) else None
+        if not isinstance(src, str) or not SRC_OK.match(src) or src in seen:
+            skipped.append({"src": str(src)[:40], "why": "src must be a unique short name (a-z, 0-9, -)"}); continue
+        seen.add(src)
         try:
             c, why = fetch(it, out, cfg)
         except Exception as e:  # network blocked, API down, bad image: the beat keeps its drawn items
@@ -121,14 +136,14 @@ def main():
         if c:
             got.append(c)
         else:
-            skipped.append({"src": it["src"], "why": why})
+            skipped.append({"src": src, "why": why})
     json.dump({"photos": got, "skipped": skipped}, open(os.path.join(out, "credits.json"), "w"), indent=2)
     for c in got:
         print(f"photo {c['src']}: {c['title']!r} by {c['creator'] or 'unknown'} ({c['license']}, {c['source']}) {c['page']}")
     for s in skipped:
         print(f"photo {s['src']}: left out, {s['why']}")
-    if len(items) < len([1 for b in json.load(open(sf)).get("beats", []) for i in b.get("items", []) if i.get("k") == "photo"]):
-        print(f"more than {cfg['maxPerVideo']} photo items: the rest were not fetched and draw nothing")
+    if len(items) < total:
+        print(f"more than {len(items)} photo items: the rest were not fetched and draw nothing")
 
 
 if __name__ == "__main__":

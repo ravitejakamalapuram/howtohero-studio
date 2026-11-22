@@ -195,6 +195,7 @@ test('photo item: a short name, never a URL, and not more than 60% of the box', 
   good({ k: 'photo', src: 'hubble-1', q: 'Hubble Space Telescope', x: 0.1, y: 0.25, w: 0.8, h: 0.38 });
   bad({ k: 'photo', src: 'https://x.org/a.jpg', x: 0.1, y: 0.25, w: 0.8, h: 0.38 }, /never a URL/);
   bad({ k: 'photo', src: 'hubble-1', x: 0, y: 0, w: 1, h: 0.8 }, /at most 60%/);
+  bad({ k: 'photo', src: 'hubble-1', x: 0.6, y: 0.1, w: 0.5, h: 0.3 }, /inside the drawing box/);
   bad({ k: 'photo', src: 'hubble-1', q: 5, x: 0.1, y: 0.25, w: 0.5, h: 0.3 }, /search words/);
   bad({ k: 'photo', x: 0.1, y: 0.25, w: 0.5, h: 0.3 }, /missing "src"/);
 });

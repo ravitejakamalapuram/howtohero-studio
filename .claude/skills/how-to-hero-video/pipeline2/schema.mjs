@@ -93,6 +93,7 @@ export function validateScenes(s, v) {
       if (it.k === 'icon' && !(Array.isArray(it.box) && it.box.length === 3 && it.box.every(isNum)) && !['x', 'y', 's'].every(f => isNum(it[f]))) e.push(`${w}: needs "box": [x, y, size] or x, y, s`);
       for (const f of ['name', 'icon']) if (it[f] !== undefined && !ICONS.includes(it[f]) && need.includes(f)) e.push(`${w}: unknown icon "${it[f]}"; have ${ICONS.join(', ')}`);
       if (it.k === 'photo' && !/^[a-z0-9-]+$/.test(it.src || '')) e.push(`${w}: "src" must be a short name like "hubble-1" (a-z, 0-9, -), never a URL`);
+      if (it.k === 'photo' && isNum(it.x) && isNum(it.y) && isNum(it.w) && isNum(it.h) && (it.x < 0 || it.y < 0 || it.w <= 0 || it.h <= 0 || it.x + it.w > 1 || it.y + it.h > 1)) e.push(`${w}: a photo box must stay inside the drawing box (x, y >= 0, x+w <= 1, y+h <= 1)`);
       if (it.k === 'photo' && isNum(it.w) && isNum(it.h) && it.w * it.h > 0.6) e.push(`${w}: a photo may cover at most 60% of the drawing box (w x h <= 0.6), so the captions stay readable`);
       if (it.q !== undefined && !isStr(it.q)) e.push(`${w}: "q" must be search words in quotes`);
       for (const f of ['txt', 'label']) if (it[f] !== undefined && !isStr(it[f])) e.push(`${w}: "${f}" must be text in quotes`);
