@@ -17,6 +17,9 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'   # the version the tools were tested on; bootstrap.sh refuses others
       - run: ops/bootstrap.sh
       - run: ops/doctor.sh --no-keys
       - run: . ops/env.sh && node .claude/skills/how-to-hero-video/pipeline2/flow.mjs check
