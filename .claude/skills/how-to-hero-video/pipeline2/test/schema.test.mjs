@@ -183,7 +183,7 @@ test('cast: a map of name to one description', () => {
 test('build: page.json carries camera and framing only, never the words of the shot', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p2-')), v = video({ id: 't-shot', style: { primary: 'whiteboard' } });
   fs.writeFileSync(path.join(dir, 't-shot.json'), JSON.stringify(v));
-  fs.writeFileSync(path.join(dir, 't-shot.scenes.json'), JSON.stringify({ beats: [{ beat: 1, intent: 'object', shot: { camera: 'push-in', subject: 'PROMPT-XYZ' }, items: [] }] }));
+  fs.writeFileSync(path.join(dir, 't-shot.scenes.json'), JSON.stringify({ beats: [{ beat: 1, intent: 'object', shot: { camera: 'push-in', subject: 'PROMPT-XYZ' }, items: [{ k: 'icon', name: 'gear', x: 0.5, y: 0.5, s: 0.3 }] }] }));
   execFileSync('node', [path.join(ROOT, 'build.mjs'), path.join(dir, 't-shot.json'), '--estimate', '--out', dir]);
   const raw = fs.readFileSync(path.join(dir, 'page.json'), 'utf8');
   assert.deepEqual(JSON.parse(raw).beats[0].shot, { camera: 'push-in' });
