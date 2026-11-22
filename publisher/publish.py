@@ -322,8 +322,15 @@ def run_series(name, group=''):
     if group != cfg.get('group', ''):
         cfg.update(SERIES[name]['groups'][group])
         name = f'{name}/{group}'
-    items = [i for i in inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
-             if series_name(i) == name.split('/')[0] and group_of(i, name.split('/')[0]) == group and episode_of(i)]
+    channel = name.split('/')[0]
+    every = [i for i in inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
+             if series_name(i) == channel]
+    if group == SERIES[channel].get('group', ''):  # once per channel: a mistyped data.group would never post
+        for i in every:
+            if i['status'] == 'approved' and group_of(i, channel) is None and not DRY:
+                alert(f"alert-{i['id']}-group", f"{channel}: unknown group on \"{i.get('title')}\"",
+                      f"data.group is \"{i['data'].get('group')}\"; use one of {', '.join(series_groups(channel))}. It will not post until fixed.")
+    items = [i for i in every if group_of(i, channel) == group and episode_of(i)]
     last_ep = cfg['after']['episode']
     last_at = dt.datetime.fromisoformat(cfg['after']['publishAt'])
     for i in items:
