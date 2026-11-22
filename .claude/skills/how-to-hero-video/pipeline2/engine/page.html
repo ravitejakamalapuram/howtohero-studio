@@ -3,12 +3,13 @@
 <body><canvas id="c"></canvas>
 <script type="module">
 // Served by render.cjs. boot() loads the page data and the kit(s), then window.seek(t) draws one frame.
-import { loadVideo, seek } from '/engine/engine.js';
+import { loadVideo, loadPhotos, seek } from '/engine/engine.js';
 window.boot = async (over = {}) => {
   const v = await (await fetch('/__data.json')).json(), st = { ...v.style, ...over };
   const kit = async s => s && s !== 'none' ? (await import(`/styles/${s}/kit.js`)).default : null;
   await Promise.all([...document.fonts].map(f => f.load()));
   if (over.accent) for (const b of v.beats) b.accent = over.accent !== 'none' && ['chart', 'map', 'timeline'].includes(b.intent);
+  await loadPhotos(v);
   loadVideo(v, await kit(st.primary), await kit(st.accent));
   window.seek = seek; return v.dur;
 };

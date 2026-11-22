@@ -90,6 +90,16 @@ const DEF = {
   circle: (it, p) => polys([circlePts(it.x, it.y, it.r, it.a0, it.a1)], p, it),
   ell: (it, p) => polys([ellPts(it.x, it.y, it.rx, it.ry, it.rot || 0, it.a0 || 0, it.a1 || Math.PI * 2.05)], p, it),
   rect: (it, p) => polys([rectPts(it.x, it.y, it.w, it.h)], p, it),
+  photo(it, p, lt) { // a real photo (photos.py fetched it) inside a hand-drawn frame in the kit's pen; no file = nothing drawn, the beat's other items stay
+    const im = PHOTOS[it.src]; if (!im) return;
+    const a = clamp(p * 2, 0, 1), z = 1 + ((it.zoom || 1.08) - 1) * clamp((lt - (it.at || 0)) / 6, 0, 1); // slow push-in
+    const k = Math.max(it.w / im.naturalWidth, it.h / im.naturalHeight) * z, dw = im.naturalWidth * k, dh = im.naturalHeight * k;
+    ctx.save(); ctx.globalAlpha = a; ctx.beginPath(); ctx.rect(it.x, it.y, it.w, it.h); ctx.clip();
+    ctx.drawImage(im, it.x + (it.w - dw) / 2, it.y + (it.h - dh) / 2, dw, dh);
+    ctx.globalAlpha = 0.18 * a; ctx.fillStyle = C('paper'); ctx.fillRect(it.x, it.y, it.w, it.h); // a light wash of the kit's paper colour ties the photo to the style
+    ctx.restore();
+    polys([rectPts(it.x, it.y, it.w, it.h)], p, { ...it, role: it.role || 'ink' });
+  },
   icon: (it, p) => polys(iconPolys(it.name, it.x, it.y, it.s, it.rot || 0), p, it),
   move(it, p) { // an icon travelling along a path over d seconds
     const path = resample(it.path, 4), i = Math.min(path.length - 1, Math.floor(p * (path.length - 1))), a = path[Math.max(0, i - 1)], b = path[i];
@@ -172,6 +182,11 @@ function useKit(k) {
   if (k.api !== 1 || !k.tokens || !k.pen || !k.bg) throw new Error(`kit ${k.slug}: needs api 1, tokens, bg and pen`);
   for (const m in BASE) if (!k[m]) k[m] = BASE[m];
   return k;
+}
+const PHOTOS = {}; // src name -> loaded image; a missing file stays out, so the item draws nothing
+export async function loadPhotos(v) {
+  const names = new Set(v.beats.flatMap(b => (b.items || []).filter(it => it.k === 'photo').map(it => it.src)));
+  await Promise.all([...names].map(n => new Promise(r => { const im = new Image(); im.onload = () => { PHOTOS[n] = im; r(); }; im.onerror = r; im.src = `/videos/${v.id}.photos/${n}.jpg`; })));
 }
 export function loadVideo(v, primary, accent) {
   V = v; Object.assign(F, FORMATS[v.format || 'short']); cv.width = F.W; cv.height = F.H;

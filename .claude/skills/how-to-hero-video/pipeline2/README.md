@@ -15,6 +15,7 @@ engine/                   engine.js draws; brand.js keeps hook, captions, end ca
 
 ```
 node build.mjs <id> --audio <voice.m4a>      # checks the files, picks a style if none is set, writes work/<id>/page.json
+python3 photos.py videos/<id>.json                # news Shorts only, before build.mjs: fetch the photos the scenes ask for (Openverse, cc0/pdm only); see NEWS.md
 python3 sfx.py work/<id>/page.json           # sound pass (earshot): whooshes, hits, end bell, ambience bed under the voice; flow.json "sound"
 node render.cjs work/<id>/page.json out.mp4  # about 3 minutes for a 60 s Short; run one render at a time
 node render.cjs work/<id>/page.json /tmp/x --frames 0.5,12,58   # stills: /tmp/x-0.5.png ...

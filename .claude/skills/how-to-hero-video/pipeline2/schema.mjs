@@ -12,10 +12,10 @@ export const ICONS = Object.keys(ICON);
 // item kind -> required fields
 export const KINDS = {
   text: ['txt', 'x', 'y', 's'], num: ['to', 'x', 'y', 's'], hl: ['x', 'y', 'w', 'h'], line: ['pts'], arrow: ['pts'], circle: ['x', 'y', 'r'], ell: ['x', 'y', 'rx', 'ry'],
-  rect: ['x', 'y', 'w', 'h'], icon: ['name'], move: ['icon', 'path', 's'], dim: ['x1', 'y1', 'x2', 'y2', 'label'], mk: ['x', 'y'], banner: ['x', 'y', 'w', 'txt'], label: ['txt'],
+  rect: ['x', 'y', 'w', 'h'], photo: ['src', 'x', 'y', 'w', 'h'], icon: ['name'], move: ['icon', 'path', 's'], dim: ['x1', 'y1', 'x2', 'y2', 'label'], mk: ['x', 'y'], banner: ['x', 'y', 'w', 'txt'], label: ['txt'],
   bars: ['x', 'y', 'w', 'h', 'vals'], box: ['gx', 'gy', 'w', 'dp', 'h'], tower: ['gx', 'gy', 'h'], slab: ['gx', 'gy', 'w', 'dp'], dishsite: ['gx', 'gy'], link: ['a', 'b'], iplane: ['a', 's'], custom: ['fn'],
 };
-const NUMS = ['x', 'y', 's', 'r', 'r1', 'rx', 'ry', 'w', 'h', 'lw', 'x1', 'y1', 'x2', 'y2', 'gx', 'gy', 'gz', 'dp', 'd', 'to', 'from', 'fly', 'max', 'fit', 'rot', 'a0', 'a1'];
+const NUMS = ['x', 'y', 's', 'r', 'r1', 'rx', 'ry', 'w', 'h', 'lw', 'x1', 'y1', 'x2', 'y2', 'gx', 'gy', 'gz', 'dp', 'd', 'to', 'from', 'fly', 'max', 'fit', 'rot', 'a0', 'a1', 'zoom'];
 const norm = w => w.toLowerCase().replace(/[^a-z0-9]/g, '');
 const isStr = v => typeof v === 'string' && v.length > 0, isNum = v => typeof v === 'number' && Number.isFinite(v);
 const isPts = v => Array.isArray(v) && v.length >= 2 && v.every(p => Array.isArray(p) && p.length === 2 && p.every(isNum));
@@ -92,6 +92,9 @@ export function validateScenes(s, v) {
       for (const f of ['a', 'b']) if (it[f] !== undefined && !(Array.isArray(it[f]) && it[f].length === 3 && it[f].every(isNum))) e.push(`${w}: "${f}" must be [gx, gy, gz]`);
       if (it.k === 'icon' && !(Array.isArray(it.box) && it.box.length === 3 && it.box.every(isNum)) && !['x', 'y', 's'].every(f => isNum(it[f]))) e.push(`${w}: needs "box": [x, y, size] or x, y, s`);
       for (const f of ['name', 'icon']) if (it[f] !== undefined && !ICONS.includes(it[f]) && need.includes(f)) e.push(`${w}: unknown icon "${it[f]}"; have ${ICONS.join(', ')}`);
+      if (it.k === 'photo' && !/^[a-z0-9-]+$/.test(it.src || '')) e.push(`${w}: "src" must be a short name like "hubble-1" (a-z, 0-9, -), never a URL`);
+      if (it.k === 'photo' && isNum(it.w) && isNum(it.h) && it.w * it.h > 0.6) e.push(`${w}: a photo may cover at most 60% of the drawing box (w x h <= 0.6), so the captions stay readable`);
+      if (it.q !== undefined && !isStr(it.q)) e.push(`${w}: "q" must be search words in quotes`);
       for (const f of ['txt', 'label']) if (it[f] !== undefined && !isStr(it[f])) e.push(`${w}: "${f}" must be text in quotes`);
       if (it.k === 'label' && !(isNum(it.x) && isNum(it.y)) && !(isNum(it.gx) && isNum(it.gy))) e.push(`${w}: needs x, y or gx, gy`);
       if (it.k === 'bars' && it.vals !== undefined && !(Array.isArray(it.vals) && it.vals.length && it.vals.every(isNum))) e.push(`${w}: "vals" must be a list of numbers`);

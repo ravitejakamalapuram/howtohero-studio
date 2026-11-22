@@ -31,3 +31,8 @@ The fonts in `fonts/` and their copyright notices are listed in `fonts/OFL.txt`.
 
 `sfx.py` calls the earshot command line (https://github.com/Leonxlnx/earshot) to render its sound effects.
 No earshot code is copied here. Sounds earshot renders belong to whoever renders them, free for commercial use without credit.
+
+## Openverse (service, used by photos.py)
+
+`photos.py` searches the Openverse API (api.openverse.org) for CC0 and public-domain photos only. No credit is required for these;
+each photo's source is still saved in `videos/<id>.photos/credits.json`.
