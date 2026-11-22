@@ -29,7 +29,8 @@ export function flowErrors(flow) {
   const obj = (v, at) => { if (!v || typeof v !== 'object' || Array.isArray(v)) { e.push(`${at} must be an object`); return false; } return true; };
   const known = (o, keys, at) => Object.keys(o).filter(k => !keys.includes(k)).forEach(k => e.push(`${at}.${k} is not a known setting (${keys.join(', ')})`));
   if (!obj(flow, 'flow.json')) return e;
-  known(flow, ['_about', 'channel', 'scout', 'fix', 'build', 'style', 'voice', 'sound', 'photos'], 'flow');
+  if (flow.pipeline !== undefined && !['v1', 'v2'].includes(flow.pipeline)) e.push('flow.pipeline must be "v1" (the original look) or "v2" (pipeline2)');
+  known(flow, ['_about', 'channel', 'pipeline', 'scout', 'fix', 'build', 'style', 'voice', 'sound', 'photos'], 'flow');
   if (typeof flow.channel !== 'string' || !/^[a-z0-9-]+$/.test(flow.channel)) e.push('channel must be a short id like "how-to-hero"');
   if (obj(flow.scout, 'scout')) {
     for (const k of ['newsMin', 'newsMax', 'newsWindowHours', 'newsWindowWeekendHours', 'weekFallbackDays', 'maxPendingIdeas', 'maxIdeaBacklog', 'ideasWhenBacklogged', 'docsPerWeek', 'maxOpenDocs']) num(flow.scout[k], `scout.${k}`);
