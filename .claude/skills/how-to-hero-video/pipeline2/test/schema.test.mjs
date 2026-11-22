@@ -199,3 +199,14 @@ test('photo item: a short name, never a URL, and not more than 60% of the box', 
   bad({ k: 'photo', src: 'hubble-1', q: 5, x: 0.1, y: 0.25, w: 0.5, h: 0.3 }, /search words/);
   bad({ k: 'photo', x: 0.1, y: 0.25, w: 0.5, h: 0.3 }, /missing "src"/);
 });
+
+import { richnessErrors } from '../schema.mjs';
+test('richness gate: words-only beats and a one-picture video fail, a drawn video passes', () => {
+  const t = (k, o = {}) => ({ k, txt: 'x', x: 0.5, y: 0.5, s: 0.05, ...o });
+  const plain = { beats: [1, 2, 3, 4].map(beat => ({ beat, items: [t('text'), t('banner', { w: 0.5 })] })) };
+  assert.equal(richnessErrors(plain).length, 5); // 4 plain beats + too few pictures
+  const icons = ['plane', 'tower', 'gear', 'bulb'];
+  const rich = { beats: icons.map((name, i) => ({ beat: i + 1, items: [t('text'), { k: 'icon', name, x: 0.5, y: 0.5, s: 0.3 }] })) };
+  assert.deepEqual(richnessErrors(rich), []);
+  assert.equal(richnessErrors({ beats: rich.beats.map(b => ({ ...b, items: [b.items[0], { k: 'icon', name: 'gear', x: 0.5, y: 0.5, s: 0.3 }] })) }).length, 1); // same picture every beat
+});

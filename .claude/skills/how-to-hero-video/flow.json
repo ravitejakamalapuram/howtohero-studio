@@ -37,7 +37,7 @@
     "kits": {
       "whiteboard": {
         "weight": 1.0,
-        "status": "core"
+        "status": "paused"
       },
       "chalkboard": {
         "weight": 1.0,

@@ -11,7 +11,7 @@ import { pickStyle } from './pickstyle.mjs';
 const ROOT = path.dirname(fileURLToPath(import.meta.url));
 export const FLOW = path.join(ROOT, '..', 'flow.json');
 const rd = p => JSON.parse(fs.readFileSync(p, 'utf8'));
-export const STATUSES = ['core', 'trial', 'accent-only', 'retired'];
+export const STATUSES = ['core', 'trial', 'accent-only', 'paused', 'retired'];
 
 export function loadFlow(file = FLOW) { return rd(file); }
 // the registry holds what a kit is (fit, formats, colours); flow.json holds how often to use it (weight, status)
