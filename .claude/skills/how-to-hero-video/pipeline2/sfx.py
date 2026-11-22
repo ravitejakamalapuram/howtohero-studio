@@ -25,8 +25,9 @@ def sound(words, cache):
     os.makedirs(cache, exist_ok=True)
     f = os.path.join(cache, words.replace(" ", "_") + ".wav")
     if not os.path.exists(f):
-        run(["earshot", "make", words, "-o", f + ".part"])  # a killed render never lands in the cache
-        os.replace(f + ".part", f)
+        tmp = f[:-4] + ".part.wav"  # earshot picks the format from the extension, so it must end in .wav
+        run(["earshot", "make", words, "-o", tmp])  # a killed render never lands in the cache
+        os.replace(tmp, f)
     return f
 
 
