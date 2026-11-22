@@ -235,11 +235,18 @@ def job_exists(key):
         return False
 
 
+def fallback_text(item, data):
+    """Public text for a card that has no caption of its own. Built from the title and the card's hook/aha lines,
+    never from the card's summary or note, which are internal."""
+    lines = [str(data.get(k) or '').strip() for k in ('hook', 'aha')]
+    return '\n'.join([(item.get('title') or '').strip()] + [l for l in lines if l] + ['Follow @howtohero.official #shorts']).strip()
+
+
 def post_for(platform, item, data, cache):
     # data.meta.<platform> (written by the build from platforms/<platform>.json "metadata") wins over the shared yt/ig text
     meta = ((data.get('meta') or {}).get(platform) or {}) if isinstance(data.get('meta'), dict) else {}
     title = (meta.get('title') or data.get('yt') or item.get('title') or '').strip()
-    caption = (meta.get('text') or data.get('ig') or item.get('summary') or title).strip()
+    caption = (meta.get('text') or data.get('ig') or fallback_text(item, data)).strip()
     file_id = platform_file(platform, item, data, cache)
     key = f"{item['id']}-{platform}" + ('-version' if file_id != item['driveId'] else '')  # its own job
     video = {'driveFileId': file_id}
@@ -353,7 +360,7 @@ def run_series(name, group=''):
     post = {'action': 'publish', 'platform': 'youtube', 'account': cfg['account'], 'key': f"{item['id']}-youtube",
             'video': {'driveFileId': item['driveId']},
             'title': (meta.get('title') or item.get('title') or '')[:100],
-            'description': (meta.get('text') or item.get('summary') or '')[:5000],
+            'description': (meta.get('text') or fallback_text(item, data))[:5000],
             'privacy': 'private', 'publishAt': at.isoformat(), 'categoryId': cfg['categoryId'],
             'language': cfg['language'], 'aiGenerated': cfg['aiGenerated'], 'madeForKids': False}
     if data.get('thumb'):
