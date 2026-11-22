@@ -28,7 +28,9 @@ python3 -m venv .venv
 
 # render.cjs does require('playwright'): install it for this user (no sudo, so it lands in the active Node's global folder),
 # with its Chromium. sudo is only for the system libraries Chromium needs.
-npm ls -g playwright@1.63.0 >/dev/null 2>&1 || npm i -g playwright@1.63.0
+export NODE_PATH="$(npm root -g)${NODE_PATH:+:$NODE_PATH}"
+node -e "require('playwright')" 2>/dev/null || npm i -g playwright@1.63.0
+node -e "require('playwright')" || { echo "playwright installed but node cannot load it (npm root -g = $(npm root -g))" >&2; exit 1; }
 if [ -z "${PLAYWRIGHT_BROWSERS_PATH:-}" ] || [ ! -d "$PLAYWRIGHT_BROWSERS_PATH" ]; then
   npx --yes playwright@1.63.0 install chromium
 fi
