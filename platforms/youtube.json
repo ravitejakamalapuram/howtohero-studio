@@ -31,7 +31,25 @@
         "episode": 4,
         "publishAt": "2026-11-23T19:30:00+05:30"
       },
-      "playlist": "సృష్టి · Season 1: Srishti"
+      "playlist": "సృష్టి · Season 1: Srishti",
+      "group": "saga",
+      "_groups": "Categories on the channel. A card names its group in data.group; no data.group means the main group above ('saga', Mahagatha: the continuous story, one playlist per season). Every group numbers its own episodes from 1 (data.episode), posts in that order at its own timeIST every everyDays, and fills its own playlist. A card with an unknown group never posts.",
+      "groups": {
+        "lokas": {
+          "_about": "Lokalu: the worlds of the Puranas (14 lokas, Bhu Mandala, Meru, Vaikuntha, Kailasa...).",
+          "timeIST": "12:30",
+          "everyDays": 3,
+          "after": {"episode": 0, "publishAt": "2026-11-22T12:30:00+05:30"},
+          "playlist": "లోకాలు · Lokas: Worlds of the Puranas"
+        },
+        "divya": {
+          "_about": "Divya Sampada: divine weapons, vahanas and treasures (Sudarshana, Vajra, Garuda, Airavata, Kamadhenu, Kaustubha...).",
+          "timeIST": "16:30",
+          "everyDays": 3,
+          "after": {"episode": 0, "publishAt": "2026-11-22T16:30:00+05:30"},
+          "playlist": "దివ్య సంపద · Divine Weapons & Vahanas"
+        }
+      }
     }
   }
 }
