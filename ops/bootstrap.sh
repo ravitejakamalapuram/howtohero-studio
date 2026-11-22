@@ -20,9 +20,9 @@ fi
 command -v node >/dev/null || { echo "Node 22 is needed (https://nodejs.org); install it and run again" >&2; exit 1; }
 
 # the Python tools were tested on 3.13; newer ones may have no wheels yet (onnxruntime), older ones fail on the pins
-python3 -c 'import sys; sys.exit(0 if sys.version_info[:2] == (3, 13) else 1)' || {
-  echo "Python 3.13 is needed (found $(python3 -V)); put python3.13 first on PATH and run again" >&2; exit 1; }
-python3 -m venv .venv
+PY=$(for c in python3.13 python3; do command -v "$c" >/dev/null && "$c" -c 'import sys; sys.exit(0 if sys.version_info[:2] == (3, 13) else 1)' && { command -v "$c"; break; }; done || true)
+[ -n "$PY" ] || { echo "Python 3.13 is needed (apt install python3.13 python3.13-venv, or uv python install 3.13) and none was found" >&2; exit 1; }
+"$PY" -m venv .venv
 .venv/bin/pip install -q --upgrade pip
 .venv/bin/pip install -q -r requirements.txt
 
