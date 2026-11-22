@@ -10,7 +10,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { validateVideo, validateScenes, findWord, ACCENT_INTENTS } from './schema.mjs';
+import { validateVideo, validateScenes, richnessErrors, findWord, ACCENT_INTENTS } from './schema.mjs';
 import { pickStyle } from './pickstyle.mjs';
 import { loadFlow, kits, pickOpts, flowSha, voiceFor } from './flow.mjs';
 
@@ -22,7 +22,7 @@ const src = args[0].endsWith('.json') ? path.resolve(args[0]) : path.join(ROOT, 
 const sf = src.replace(/\.json$/, '.scenes.json');
 for (const f of [src, sf]) if (!fs.existsSync(f)) { console.error('not found: ' + f); process.exit(1); }
 const V = rd(src), S = rd(sf);
-const errs = [...validateVideo(V), ...validateScenes(S, V)];
+const errs = [...validateVideo(V), ...validateScenes(S, V), ...richnessErrors(S)];
 if (errs.length) { console.error(errs.join('\n')); process.exit(1); }
 const out = path.resolve(opt('out') || path.join(ROOT, 'work', V.id)); fs.mkdirSync(out, { recursive: true });
 

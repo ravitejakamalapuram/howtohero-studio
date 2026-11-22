@@ -119,7 +119,6 @@ export function validateScenes(s, v) {
       if (it.k === 'mk' && !(isNum(it.rx) && isNum(it.ry)) && !(isNum(it.w) && isNum(it.h))) e.push(`${w}: needs rx, ry (ellipse) or w, h (rect)`);
     });
   }
-  e.push(...richnessErrors(s));
   // one primary style per video and at most one other
   const prim = v.style && v.style.primary, other = new Set(s.beats.map(b => b.shot && b.shot.style).filter(x => isStr(x) && x !== prim));
   if (v.style && v.style.accent) other.add(v.style.accent);
@@ -129,6 +128,6 @@ export function validateScenes(s, v) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const f = process.argv[2], rd = p => JSON.parse(fs.readFileSync(p, 'utf8')), v = rd(f), sf = f.replace(/\.json$/, '.scenes.json');
-  const errs = [...validateVideo(v), ...(fs.existsSync(sf) ? validateScenes(rd(sf), v) : [`${sf}: not found`])];
+  const errs = [...validateVideo(v), ...(fs.existsSync(sf) ? [...validateScenes(rd(sf), v), ...richnessErrors(rd(sf))] : [`${sf}: not found`])];
   console.log(errs.length ? errs.join('\n') : 'ok'); process.exit(errs.length ? 1 : 0);
 }

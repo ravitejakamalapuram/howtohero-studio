@@ -13,7 +13,7 @@ const share = (reg, slug, opts) => ids(1000).filter(id => pickStyle({ id }, reg,
 test('registry: 5 kits, each with what the picker and verify.py read', () => {
   assert.equal(REG.length, 5);
   for (const k of REG) {
-    assert.ok(['trial', 'core', 'accent-only', 'retired'].includes(k.status), k.slug);
+    assert.ok(['trial', 'core', 'accent-only', 'paused', 'retired'].includes(k.status), k.slug);
     assert.ok(['light', 'dark'].includes(k.luma), k.slug);
     assert.match(k.paper, /^#[0-9a-f]{6}$/i, k.slug);
     assert.ok(fs.existsSync(new URL(`../styles/${k.slug}/kit.js`, import.meta.url)), k.slug + '/kit.js');
