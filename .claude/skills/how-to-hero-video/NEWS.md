@@ -10,11 +10,13 @@ Every finished video goes to the person as type `video`, `pending`, with a `slot
 
 ## Finding stories
 
-Look at the last 48 hours in both lanes.
+Look at the last `scout.newsWindowHours` (48) hours in both lanes. On Saturday, Sunday and Monday (the person's time) lane B uses `scout.newsWindowWeekendHours` (72) instead, because labs and agencies publish little at weekends; lane A stays at 48, since it is about what people felt today.
 - A. A trending tech or infrastructure story that lots of people felt today: a big app or cloud outage, airline or air-traffic IT failure, power grid failure, a major phone, chip or AI launch. Explain the engineering, not the drama. Facts about the event itself must come from the company's own status page or incident report, or an official body (FAA, DOT, a grid operator). If the cause isn't officially stated, say "the company hasn't said exactly what broke" and explain how this kind of failure usually happens. Skip it if people were hurt or killed, or if it is mainly a strike, lawsuit or political fight.
-- B. Science, space or tech news from primary sources: nasa.gov, science.nasa.gov, jpl.nasa.gov, esa.int, isro.gov.in, noaa.gov, nature.com news, science.org, eurekalert.org, university or lab press releases. The source page must be dated within the last 48 hours (a republished old study does not count).
+- B. Science, space or tech news from primary sources: nasa.gov, science.nasa.gov, jpl.nasa.gov, esa.int, isro.gov.in, noaa.gov, nature.com news, science.org, eurekalert.org, university or lab press releases. The source page must be dated inside the lane B window (a republished old study does not count).
 - Never: politics, wars, disasters with victims, crime, health scares, celebrity or market news, other people's footage or logos. Open each source with WebFetch and write down every number and date you will say, with its URL. Leave out anything not on such a page.
 - Skip duplicates: before proposing a story, run `dupcheck.py "<story in a few words>"` (next to this file). It compares with every Inbox item: earlier news, stories and the regular explainers, in every status. Drop the story on a DUPLICATE, or when a CHECK item is the same event or finding.
+
+- **Best of the week fallback.** If fewer than `scout.newsMin` stories qualify, look back `scout.weekFallbackDays` (7) days in lane B only (never lane A: a week-old outage is stale) with the same source and number rules, except that the source page may be up to that many days old, and take the strongest unused ones to reach `newsMin`. Their cards say "Best of the week" instead of "Trending", and they rank below every fresh story, whatever their virality. No card is padded: if nothing from the week passes the source rules, fewer is fine.
 
 Rank what qualifies by likely virality, highest first: how many people felt it or are talking about it today (trending lists, front pages of big tech and science sites, Hacker News, Reddit r/technology, r/space, r/science), how surprising the one-line claim is, and whether it draws well as simple shapes. Lane A usually ranks first.
 
