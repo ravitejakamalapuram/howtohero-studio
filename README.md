@@ -27,6 +27,20 @@ The old How To Hero artifact queue is retired. Its unposted cards moved to the I
 - `.claude/skills/how-to-hero-video/pipeline/`: HyperFrames + Kokoro TTS + ffmpeg renderer, `verify.py`, and worked examples in `videos/` (`v*` shorts, `n*` news, `d*` 16:9 documentaries).
 - `publisher/publish.py`: the auto-publisher.
 
+## Set up this studio on a new account (same quality videos)
+
+Do these in order. Nothing here needs the old accounts, and no token or link is ever stored in git.
+
+1. **Accounts you need:** GitHub, Google (the Inbox Sheet and Drive), Telegram (a bot for approvals), Claude (scheduled routines), and the platforms you post to (YouTube, Instagram and Facebook through a Meta app). `SETUP.md` lists every key and where it lives.
+2. **Fork or clone the three repos:** `howtohero-studio` (this one), `inbox` (approvals app) and `social-manager` (posting service). Each has a `docs/FAQ.md` section "What is not in git" that says what to redo on a new Google account (Sheet, Script Properties, consent screens, the new `/exec` URL).
+3. **Make the tokens and set the GitHub secrets** (`INBOX_URL`, `INBOX_TOKEN`, `SOCIAL_URL`, `SOCIAL_TOKEN`) as in `SETUP.md`. Use `.env.example` for the names.
+4. **Set up the build machine:** run `ops/bootstrap.sh` once, then `. ops/env.sh` in each shell (pinned Node, Python and font tools; `ops/doctor.sh` says what is missing).
+5. **Prove the look before any real video:** run `ops/golden-check.sh`. It rebuilds the worked example v17 (Rajasaurus) from git and prints a contact sheet. It must match `ops/golden/v1-look-reference.jpg` (indigo background, Anton headline with one yellow word, a drawn picture on every beat, caption below, mascot end card). `ops/golden/v1-posted-originals.jpg` shows two posted originals next to rebuilt frames. If the sheet differs, stop: something in the setup is wrong.
+6. **Create the two routines** from `ops/jobs/scout.md` and `ops/jobs/build.md` (paste the short prompt shown in each, nothing else), with the schedule and environment variables each file lists.
+7. **Optional, Anaadi:** restore the character art from the backup described in `ops/ASSETS.md` and run `ops/bootstrap.sh --anaadi`.
+
+The default look is the original v1 pipeline (`.claude/skills/how-to-hero-video/pipeline/`). The multi-style renderer (`pipeline2/`) is used only when a card's note asks for it. Do not change the v1 look without the owner's say.
+
 Tokens and URLs come from the scheduled tasks' prompts or environment. Never commit them.
 
 ## Platforms
