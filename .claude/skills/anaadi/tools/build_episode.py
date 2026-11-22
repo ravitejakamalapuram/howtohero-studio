@@ -13,13 +13,16 @@ EPISODE_DIR holds script.json ([{id, te}]), wav/<id>.wav, the clips and build.js
 "episode" shows a title card for the first 3 seconds and adds the label to the end card;
 "top" (pixels, default 300) moves the card when it would cover a face.
 A segment may carry "sfx": "ocean" | "shimmer" | "deep" | "wind", a soft code-made sound under the voice.
+Any other "sfx" value is a request in words for earshot (github.com/Leonxlnx/earshot, MIT; what it renders
+is ours), such as "fire crackle" or "night crickets": a long sound is a bed under the whole segment, a short
+one plays once at the cut. "sfxVol" (default 0.3) sets its level. Without earshot the segment has no sound.
 A segment lasts as long as its lines. A clip that is too short is slowed (up to 1.4x)
 or, with "pingpong", played backwards then forwards (only for shots with no characters).
 Captions change at the real pauses in the voice.
 Lines play in script.json order, so a segment's lines must follow the previous segment's lines.
 The result must run 55 to 65 seconds; outside that the build exits with an error after writing the file.
 """
-import json, os, re, subprocess, sys, tempfile, wave
+import json, os, re, shutil, subprocess, sys, tempfile, wave
 
 HERE = os.path.dirname(os.path.abspath(__file__))
 GAP, LEAD, TAIL, XF = 0.35, 0.3, 0.8, 0.4
@@ -144,6 +147,16 @@ def main(ep):
             d = cut[i + 1] - cut[i] + 0.6; a = max(cut[i] - 0.3, 0)
             fc.append(SFX[sg['sfx']].format(d=f'{d:.2f}') + f",afade=t=in:d=0.8,afade=t=out:st={d - 0.9:.2f}:d=0.9,"
                       f"adelay={int(a * 1000)}:all=1[fx{i}]"); am.append(f'[fx{i}]')
+        elif sg.get('sfx') and shutil.which('earshot'):
+            f = f"{tmp}/fx{i}.wav"
+            if subprocess.run(['earshot', 'make', sg['sfx'], '-o', f], capture_output=True).returncode or not os.path.exists(f):
+                print('no earshot sound for', sg['sfx']); continue
+            d = cut[i + 1] - cut[i] + 0.6; a = max(cut[i] - 0.3, 0); k = inp.count('-i'); v = sg.get('sfxVol', 0.3)
+            inp += ['-i', f]
+            bed = f"aloop=loop=-1:size=2e9,atrim=0:{d:.2f},afade=t=in:d=0.8,afade=t=out:st={d - 0.9:.2f}:d=0.9," if wav_len(f) > 4 else ''
+            fc.append(f"[{k}:a]aresample=48000,{bed}volume={v},adelay={int(a * 1000)}:all=1[fx{i}]"); am.append(f'[fx{i}]')
+        elif sg.get('sfx'):
+            print('earshot not installed, no sound for', sg['sfx'])
     fc.append(''.join(am) + f"[mus]amix=inputs={len(am) + 1}:normalize=0,alimiter=limit=0.95,apad,atrim=0:{total}[aout]")
     out = f"{ep}/{cfg.get('out', 'episode.mp4')}"
     subprocess.run(['ffmpeg', '-v', 'error', '-y'] + inp + ['-filter_complex', ';'.join(fc), '-map', f'[{cur}]', '-map', '[aout]',
