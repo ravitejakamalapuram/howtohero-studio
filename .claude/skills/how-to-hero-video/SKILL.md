@@ -42,7 +42,9 @@ Make exactly the claimed item, using "Build one video" below. Length cap: `data.
 - Publish kit: `yt` = the title, at most 70 characters, the claim first and the searchable noun in it ("India Had Its Own Horned Killer Dinosaur: Rajasaurus"), no "in 60 Seconds", ending in ` #shorts`; `ig` = first line holds the topic keywords, second line one extra fact, then `Sources: <names>`, then `Follow @howtohero.official` and 3 to 5 specific hashtags (never #reels, #explore, #viral); `pin` = one specific question the video raises, for the pinned comment. The auto-publisher uses these as captions. Also write `meta` = `{"youtube": {"title", "text"}, "instagram": {"text"}, "facebook": {"title", "text"}}`, each written to the `metadata` rules in that platform's `platforms/<platform>.json`; the publisher posts `meta.<platform>` and falls back to `yt`/`ig` when it is missing. Same video everywhere, only the words change.
 - Never touch other items.
 
-## Build one video (id vN: one more than the highest vN in `pipeline/videos/` and `pipeline2/videos/`)
+## Build one video (id: the Inbox item's own id, e.g. `story-2026-11-22-mars-twilight-clouds`; `vN` below means that id)
+
+The id is the Inbox item id, cut to 60 characters (a-z, 0-9 and `-` only; if `videos/<id>.json` already exists, add `-2`). It is never a counter, so two runs, two machines or a run that cannot push to git can never pick the same id. The old `v1`..`v17` files keep their names.
 
 Default: the v1 pipeline in `pipeline/` (steps below). The pipeline2 steps follow after them and apply only when the card's `note` asks for a pipeline2 style. On a fresh machine run `ops/bootstrap.sh` once and `. ops/env.sh` in each shell first (pinned tools; `ops/doctor.sh` says what is missing).
 

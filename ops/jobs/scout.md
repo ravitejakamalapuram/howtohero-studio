@@ -4,7 +4,7 @@ Git owns this job. The routine itself only says "clone the repo and follow this 
 
 | Setting | Value |
 | --- | --- |
-| Where it runs | A Claude scheduled routine ("How To Hero daily scout (news + ideas)"), cloud container with the full-access environment |
+| Where it runs | A Claude scheduled routine ("How To Hero daily scout (git prompt)"; the older "news + ideas" routine is kept switched off), cloud container with the full-access environment |
 | When | Every day 05:47 Asia/Kolkata (`CRON_TZ=Asia/Kolkata 47 5 * * *`) |
 | Model | The project's model (Opus). The user chose this on 2026-11-16 |
 | Environment | `INBOX_URL`, `INBOX_TOKEN`; optional `HTH_ADVISOR_KEY` (see `.env.example`) |
