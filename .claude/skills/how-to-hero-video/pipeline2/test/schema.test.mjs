@@ -183,7 +183,7 @@ test('cast: a map of name to one description', () => {
 test('build: page.json carries camera and framing only, never the words of the shot', () => {
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'p2-')), v = video({ id: 't-shot', style: { primary: 'whiteboard' } });
   fs.writeFileSync(path.join(dir, 't-shot.json'), JSON.stringify(v));
-  fs.writeFileSync(path.join(dir, 't-shot.scenes.json'), JSON.stringify({ beats: [{ beat: 1, intent: 'object', shot: { camera: 'push-in', subject: 'PROMPT-XYZ' }, items: [] }] }));
+  fs.writeFileSync(path.join(dir, 't-shot.scenes.json'), JSON.stringify({ beats: [{ beat: 1, intent: 'object', shot: { camera: 'push-in', subject: 'PROMPT-XYZ' }, items: [{ k: 'icon', name: 'gear', x: 0.5, y: 0.5, s: 0.3 }] }] }));
   execFileSync('node', [path.join(ROOT, 'build.mjs'), path.join(dir, 't-shot.json'), '--estimate', '--out', dir]);
   const raw = fs.readFileSync(path.join(dir, 'page.json'), 'utf8');
   assert.deepEqual(JSON.parse(raw).beats[0].shot, { camera: 'push-in' });
@@ -198,4 +198,15 @@ test('photo item: a short name, never a URL, and not more than 60% of the box', 
   bad({ k: 'photo', src: 'hubble-1', x: 0.6, y: 0.1, w: 0.5, h: 0.3 }, /inside the drawing box/);
   bad({ k: 'photo', src: 'hubble-1', q: 5, x: 0.1, y: 0.25, w: 0.5, h: 0.3 }, /search words/);
   bad({ k: 'photo', x: 0.1, y: 0.25, w: 0.5, h: 0.3 }, /missing "src"/);
+});
+
+import { richnessErrors } from '../schema.mjs';
+test('richness gate: words-only beats and a one-picture video fail, a drawn video passes', () => {
+  const t = (k, o = {}) => ({ k, txt: 'x', x: 0.5, y: 0.5, s: 0.05, ...o });
+  const plain = { beats: [1, 2, 3, 4].map(beat => ({ beat, items: [t('text'), t('banner', { w: 0.5 })] })) };
+  assert.equal(richnessErrors(plain).length, 5); // 4 plain beats + too few pictures
+  const icons = ['plane', 'tower', 'gear', 'bulb'];
+  const rich = { beats: icons.map((name, i) => ({ beat: i + 1, items: [t('text'), { k: 'icon', name, x: 0.5, y: 0.5, s: 0.3 }] })) };
+  assert.deepEqual(richnessErrors(rich), []);
+  assert.equal(richnessErrors({ beats: rich.beats.map(b => ({ ...b, items: [b.items[0], { k: 'icon', name: 'gear', x: 0.5, y: 0.5, s: 0.3 }] })) }).length, 1); // same picture every beat
 });

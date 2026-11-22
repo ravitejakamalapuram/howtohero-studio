@@ -69,6 +69,21 @@ export function validateVideo(v) {
   return e;
 }
 
+// Richness gate: a beat of only words and a few boxes is the "plain video" the user keeps rejecting.
+// A beat needs a real picture (icon, custom drawing, photo, bars, a moving icon, a 3D piece) or at least 3 drawn shapes besides its words;
+// and the video as a whole needs at least 4 different pictures, so it is not the same icon over and over.
+const WORDS = new Set(['text', 'num', 'label', 'banner', 'hl']), SHAPES = new Set(['line', 'arrow', 'circle', 'ell', 'rect', 'dim', 'mk', 'link']);
+export function richnessErrors(s) {
+  const e = [], pics = new Set();
+  for (const b of s.beats || []) {
+    const items = Array.isArray(b.items) ? b.items : [], drawing = i => i && (i.k === 'line' || i.k === 'arrow') && Array.isArray(i.pts) && i.pts.length >= 8, // a long outline is a drawing, not a rule
+      hero = items.filter(i => i && ((!WORDS.has(i.k) && !SHAPES.has(i.k)) || drawing(i))), shapes = items.filter(i => i && SHAPES.has(i.k) && !drawing(i));
+    for (const i of hero) pics.add(`${i.k}:${i.name || i.icon || i.fn || i.src || (i.pts ? b.beat : '')}`);
+    if (!hero.length && shapes.length < 3) e.push(`scenes beat ${b.beat}: only words${shapes.length ? ' and ' + shapes.length + ' shape(s)' : ''}; add a picture (an icon, a custom drawing, bars or a photo) or draw it with at least 3 shapes`);
+  }
+  if (s.beats && s.beats.length >= 4 && pics.size < 4) e.push(`scenes: only ${pics.size} different picture(s) in the whole video; use at least 4 (different icons or drawings)`);
+  return e;
+}
 export function validateScenes(s, v) {
   const e = [], n = v.beats.length - 1, seen = new Set();
   if (!s || !Array.isArray(s.beats)) return ['scenes: needs "beats": [...]'];
@@ -113,6 +128,6 @@ export function validateScenes(s, v) {
 
 if (process.argv[1] === fileURLToPath(import.meta.url)) {
   const f = process.argv[2], rd = p => JSON.parse(fs.readFileSync(p, 'utf8')), v = rd(f), sf = f.replace(/\.json$/, '.scenes.json');
-  const errs = [...validateVideo(v), ...(fs.existsSync(sf) ? validateScenes(rd(sf), v) : [`${sf}: not found`])];
+  const errs = [...validateVideo(v), ...(fs.existsSync(sf) ? [...validateScenes(rd(sf), v), ...richnessErrors(rd(sf))] : [`${sf}: not found`])];
   console.log(errs.length ? errs.join('\n') : 'ok'); process.exit(errs.length ? 1 : 0);
 }

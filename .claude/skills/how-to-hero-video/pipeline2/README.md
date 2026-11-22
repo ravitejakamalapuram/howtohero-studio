@@ -58,6 +58,8 @@ node --test && python3 -m unittest discover -s test   # tests for the picker, th
 - `cast` in the video json maps a character to one description (`{ "mascot": "small hero, red cape, round head" }`). Use those exact words wherever the character is described, so it never drifts between beats.
 - When the video has a `hook`, keep beat 1 below y 0.28.
 - Item kinds and their fields are listed in `schema.mjs`; icons in `engine/icons.js`.
+- Richness gate (`schema.mjs`): a beat needs a picture (icon, `custom`, `bars`, `photo`, a long `line`/`arrow` outline) or 3+ drawn shapes besides its text, and the video needs 4+ different pictures. A video of only words fails `node schema.mjs`.
+- Kit status in `flow.json`: `core` and `trial` are picked at random; `paused` is never picked at random but still works when a card names it.
 
 ## Add a style
 
