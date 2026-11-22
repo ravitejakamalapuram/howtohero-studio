@@ -140,5 +140,6 @@
       "noaa",
       "usgs"
     ]
-  }
+  },
+  "pipeline": "v1"
 }
