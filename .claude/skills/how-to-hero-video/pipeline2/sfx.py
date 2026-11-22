@@ -77,7 +77,11 @@ def main():
         lab.append(f"[s{i}]")
     fc.append("".join(lab) + f"amix=inputs={len(lab)}:normalize=0,atrim=0:{dur},loudnorm=I=-14:TP=-1.5,aresample=48000[a]")
     out = os.path.join(os.path.dirname(pf), "mix.wav")
-    run(["ffmpeg", "-y", "-v", "error", *ins, "-filter_complex", ";".join(fc), "-map", "[a]", out])
+    try:
+        run(["ffmpeg", "-y", "-v", "error", *ins, "-filter_complex", ";".join(fc), "-map", "[a]", out])
+    except subprocess.CalledProcessError as err:  # a failed mix keeps the plain voice, like a missing earshot
+        print("mix failed (" + (err.stderr.decode(errors="replace").strip().splitlines() or ["?"])[-1][:200] + "): plain voice track")
+        return
     page["voice"], page["audio"] = voice, out
     json.dump(page, open(pf, "w"))
     print(f"sound pass: {len(cues)} effects + bed '{bed_for(page.get('topic'), cfg)}' -> {out}")
