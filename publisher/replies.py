@@ -74,7 +74,7 @@ def pull_new():
             print(f'{platform}: comments skipped: {e}')
             continue
         for c in comments:
-            if c['replied'] or when(c['at']) < since:
+            if c['replied'] or when(c['at']) < since or not c.get('text'):  # a sticker or photo comment has no text
                 continue
             item = {'action': 'add', 'id': item_id(platform, c['id']), 'type': 'reply', 'status': 'building',
                     'title': f"Reply to {c['author']} on \"{c['videoTitle']}\" ({platform})"[:200], 'summary': c['text'][:3000], 'link': c['url'],
