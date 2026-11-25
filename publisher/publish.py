@@ -93,8 +93,12 @@ def slot_unslotted(items):
         while day in taken:
             day += dt.timedelta(days=1)
         i['slot'] = dt.datetime.combine(day, DAILY_SLOT, IST).isoformat()
-        fresh = inbox({'action': 'get', 'id': i['id']})['item']
-        inbox({'action': 'update', 'id': i['id'], 'ifVersion': fresh['version'], 'set': {'slot': i['slot']}})
+        try:
+            fresh = inbox({'action': 'get', 'id': i['id']})['item']
+            inbox({'action': 'update', 'id': i['id'], 'ifVersion': fresh['version'], 'set': {'slot': i['slot']}})
+        except (RuntimeError, OSError, KeyError) as e:  # never let slotting stop a post; the next run tries again
+            print(f"not slotted {i['id']}: {e}")
+            continue
         print(f"slotted {i['id']} for {i['slot']}")
 
 
