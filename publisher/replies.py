@@ -15,6 +15,8 @@ Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. Covers the platforms 
 fails (say, Meta before the comment permissions are granted) is skipped with a note, and the others still run.
 """
 import datetime as dt
+import hashlib
+import re
 import sys
 
 from publish import inbox, social, DRY
@@ -55,6 +57,13 @@ def post_approved():
     return failed
 
 
+def item_id(platform, comment_id):
+    """Inbox ids allow only lowercase letters, digits and dashes (max 100), but comment ids carry capitals and
+    underscores. The hash keeps ids that differ only in case apart, and is the same on every run."""
+    slug = re.sub(r'[^a-z0-9]+', '-', str(comment_id).lower()).strip('-')[:60]
+    return f"reply-{SHORT[platform]}-{slug}-{hashlib.sha1(str(comment_id).encode()).hexdigest()[:8]}"
+
+
 def pull_new():
     since = dt.datetime.now(dt.timezone.utc) - dt.timedelta(days=MAX_AGE_DAYS)
     added = 0
@@ -67,7 +76,7 @@ def pull_new():
         for c in comments:
             if c['replied'] or when(c['at']) < since:
                 continue
-            item = {'action': 'add', 'id': f"reply-{SHORT[platform]}-{c['id']}", 'type': 'reply', 'status': 'building',
+            item = {'action': 'add', 'id': item_id(platform, c['id']), 'type': 'reply', 'status': 'building',
                     'title': f"Reply to {c['author']} on \"{c['videoTitle']}\" ({platform})"[:200], 'summary': c['text'][:3000], 'link': c['url'],
                     'data': {'app': 'How To Hero', 'icon': '🦸', 'platform': platform, 'commentId': c['id'], 'author': c['author'],
                              'comment': c['text'], 'videoId': c['videoId'], 'videoTitle': c['videoTitle'], 'url': c['url'], 'at': c['at']}}
