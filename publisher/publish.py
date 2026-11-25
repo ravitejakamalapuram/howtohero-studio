@@ -2,7 +2,7 @@
 """Posts approved How To Hero videos from the Inbox through Social Manager.
 
 Each run takes the first approved news video (its slot is ignored), else the first approved video whose slot
-has passed (by slot), publishes it to
+has passed (by slot; a video with no slot first gets the next free day at 19:30 IST), publishes it to
 every platform in PLATFORMS that is connected, waits for the jobs, then marks the item "posted" in the Inbox
 with the post links in data.posted. One video per run, so a backlog goes out one run apart.
 
@@ -72,6 +72,40 @@ def when(item):
         return None
 
 
+IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
+DAILY_SLOT = dt.time(19, 30)  # where a video without a slot goes: the next day nobody else has
+
+
+def slot_unslotted(items):
+    """Give every approved non-news video that has no slot the next free day at 19:30 IST, and save it on the
+    Inbox card, so it waits its turn like the rest instead of posting at the very next run."""
+    todo = [i for i in items if when(i) is None and not is_news(i)]
+    if not todo or POST_NOW or DRY:
+        return
+    taken = set()
+    for st in ('approved', 'pending'):
+        for i in inbox({'action': 'list', 'status': st, 'type': 'video', 'limit': 1000})['items']:
+            if when(i) and not series_name(i):
+                taken.add(when(i).astimezone(IST).date())
+    day = dt.datetime.now(IST).date()  # empty days first, so a new video does not wait behind months of queue
+    for i in sorted(todo, key=lambda i: i.get('createdAt') or ''):
+        day += dt.timedelta(days=1)
+        while day in taken:
+            day += dt.timedelta(days=1)
+        i['slot'] = dt.datetime.combine(day, DAILY_SLOT, IST).isoformat()
+        try:
+            fresh = inbox({'action': 'get', 'id': i['id']})['item']
+            inbox({'action': 'update', 'id': i['id'], 'ifVersion': fresh['version'], 'set': {'slot': i['slot']}})
+        except (RuntimeError, OSError, KeyError) as e:  # never let slotting stop a post; the next run tries again
+            print(f"not slotted {i['id']}: {e}")
+            continue
+        print(f"slotted {i['id']} for {i['slot']}")
+
+
+def is_news(i):
+    return i.get('source') == 'news' or str(i['id']).startswith('news-')
+
+
 def due_items():
     now = dt.datetime.now(dt.timezone.utc)
     if ITEM_ID:  # a manual run that names one video posts it now; a posted one gets its missing platforms
@@ -82,7 +116,7 @@ def due_items():
     if res.get('total', 0) > len(res['items']):
         print(f"WARNING: {res['total']} approved videos but only {len(res['items'])} read; the rest are skipped")
     items = [i for i in res['items'] if not series_name(i)]  # serialized channels go through run_series, never to How To Hero
-    is_news = lambda i: i.get('source') == 'news' or str(i['id']).startswith('news-')
+    slot_unslotted([i for i in items if i.get('driveId')])
     # News goes out at the next run whatever its slot says: a story a day late has lost most of its reach.
     due = [i for i in items if i.get('driveId') and (POST_NOW or is_news(i) or when(i) is None or when(i) <= now)]
     return sorted(due, key=lambda i: (not is_news(i), when(i) or now))
