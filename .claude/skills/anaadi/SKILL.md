@@ -58,6 +58,8 @@ Most Shorts views come from the feed, which plays the video and never shows the 
 
 To change the thumbnail of a video already on YouTube, upload the new file and send Social Manager `publish` with `"platform": "youtube"`, `"account": "anaadi"`, the `videoId` and `thumbnail` only, then set the card's `data.thumb` to the same file.
 
+Custom thumbnails need the channel's "intermediate features" (YouTube Studio, Settings, Channel, Feature eligibility, which asks for a phone number once). Without them YouTube answers 403 "doesn't have permissions to upload and set custom video thumbnails"; the video still posts, and the job only carries a warning, so read the job's `warnings` after the first upload of a new channel (found 2026-11-25 on Anaadi).
+
 ## Moving files out of Gemini
 
 Gemini runs in the browser and the build runs in the cloud. `tools/gemini_pull.py` moves an image or clip across without a download on the person's computer and without a public link: `link NAME` gives a one-time upload link, the Gemini tab posts the file to it, and `get NAME OUT` saves it. The link is a secret: never log, commit or post it. Needs `INBOX_URL` and `INBOX_TOKEN` in the environment.
