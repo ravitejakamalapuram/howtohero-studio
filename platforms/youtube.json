@@ -27,10 +27,7 @@
       "categoryId": 27,
       "language": "te",
       "aiGenerated": true,
-      "after": {
-        "episode": 4,
-        "publishAt": "2026-11-23T19:30:00+05:30"
-      },
+      "after": {"episode": 4, "publishAt": "2026-11-23T19:30:00+05:30"},
       "playlist": "సృష్టి · Season 1: Srishti",
       "group": "saga",
       "_groups": "Categories on the channel. A card names its group in data.group; no data.group means the main group above ('saga', Mahagatha: the continuous story, one playlist per season). Every group numbers its own episodes from 1 (data.episode), posts in that order at its own timeIST every everyDays, and fills its own playlist. A card with an unknown group never posts.",
@@ -49,7 +46,22 @@
           "after": {"episode": 0, "publishAt": "2026-11-22T16:30:00+05:30"},
           "playlist": "దివ్య సంపద · Divine Weapons & Vahanas"
         }
-      }
+      },
+      "app": "Anaadi"
+    },
+    "thelastsignal": {
+      "_about": "Serialized channel (The Last Signal, wordless stickman animation, @TheLastSignalAnimated). Its Inbox cards carry data.app \"The Last Signal\", data.channel \"thelastsignal\" and data.episode. Same rules as anaadi: strict episode order, one every everyDays days at timeIST after the latest scheduled one. Episode 1 was scheduled by hand in YouTube Studio.",
+      "app": "The Last Signal",
+      "account": "thelastsignal",
+      "timeIST": "19:30",
+      "everyDays": 21,
+      "categoryId": 1,
+      "language": "en",
+      "aiGenerated": false,
+      "after": {"episode": 1, "publishAt": "2026-11-28T19:30:00+05:30"},
+      "playlist": "The Last Signal: Season 1",
+      "group": "season1",
+      "_groups": "One group for now: the main story. Add a group here if Shorts or a second season ever post through the publisher."
     }
   }
 }
