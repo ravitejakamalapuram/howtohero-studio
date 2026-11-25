@@ -17,4 +17,4 @@ jobs:
           INBOX_TOKEN: ${{ secrets.INBOX_TOKEN }}
           SOCIAL_URL: ${{ secrets.SOCIAL_URL }}
           SOCIAL_TOKEN: ${{ secrets.SOCIAL_TOKEN }}
-          PLATFORMS: instagram,facebook
+          PLATFORMS: instagram,facebook,youtube
