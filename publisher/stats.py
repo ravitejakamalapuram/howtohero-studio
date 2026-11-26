@@ -73,6 +73,17 @@ def main():
         except Exception as e:  # a channel not connected yet should not stop the others
             failed += 1
             print(f'{name} FAILED: {e}')
+    for account, app in RULES.get('youtube', {}).get('statsOnly', {}).items():  # channels made elsewhere: stats only
+        if account.startswith('_'):
+            continue
+        try:
+            s = social({'action': 'stats', 'platform': 'youtube', 'account': account, 'limit': 50})
+            r = inbox({'action': 'channelStats', 'app': app, 'platform': 'youtube', 'followers': s.get('followers'),
+                       'posts': s.get('posts', [])})
+            print(f"{app}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
+        except Exception as e:  # not connected yet should not stop the others
+            failed += 1
+            print(f'{app} FAILED: {e}')
     try:
         snapshot(views)
     except Exception as e:  # the daily numbers above are already sent
