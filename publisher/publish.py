@@ -335,7 +335,7 @@ def post_for(platform, item, data, cache):
         key += f"-{ACCOUNTS[platform]}"
     video = {'driveFileId': file_id}
     if platform == 'instagram' and file_id == item['driveId']:
-        key = f"{item['id']}-instagram-link"
+        key = f"{item['id']}-instagram-link" + (f"-{ACCOUNTS['instagram']}" if ACCOUNTS.get('instagram') else '')
         if not job_exists(key):  # a job from an earlier run carries on with the video it has
             video = instagram_video(item, data)
     if platform == 'instagram':
@@ -554,14 +554,14 @@ def run_channel(app):
     platforms, down = live_platforms()
     print(f"posting {item['id']} (slot {item.get('slot')}) to {', '.join(platforms) or 'nothing'}; {len(items) - 1} more due")
     if DRY or not platforms:
-        return 0 if platforms else 1
+        return 0 if platforms or not down else 1  # no post_to at all is a setup step, not a failure
 
     # A platform whose channel is down counts as a failed post, so the video stays approved and the
     # next run tries it again instead of marking it posted without that platform.
     jobs = {p: {'id': None, 'status': 'failed', 'error': e} for p, e in down.items()}
     cache, no_version = {}, {}
     for p in platforms:
-        if (data.get('posted') or {}).get(p):
+        if any(k.lower() == p and u for k, u in (data.get('posted') or {}).items()):  # "+ Posted" by hand writes "YouTube"
             continue  # already there: never post a platform twice, whatever key its job had
         try:
             if platform_file(p, item, data, cache) is None:
