@@ -12,7 +12,7 @@ So the first 2 to 3 seconds are the hook's words plus the opening picture, and t
 
 ## How a video gets its parts
 
-1. Run `node pipeline2/pickparts.mjs <item id> '<the card's data as JSON, or leave out>'` from the skill folder. It prints `hookPattern`, `opening` and `endCard`. Most videos get the default; about 4 in 10 get a trial shape for a part (`flow.json` "parts").
+1. Run `node pipeline2/pickparts.mjs <item id>` from the skill folder. It prints `hookPattern`, `opening` and `endCard`. About half the videos get all three defaults; the other half try a trial shape for exactly one part, the hook twice as often as the others (`flow.json` "parts"). One trial part a video keeps the comparison clean.
 2. Write the video with those shapes. If the story can't carry one honestly (see "Use when" below), use that part's default instead. Never bend a fact to fit a shape.
 3. Put the three values you actually used in the card's `data` at hand-in: `hookPattern`, `opening`, `endCard`.
 
@@ -41,7 +41,7 @@ Every shape keeps the cover rule: the picture and headline are fully drawn at fr
 | --- | --- | --- |
 | `big-subject` (default) | One big drawing of the subject (500 px or more across) doing the surprising thing. | Always possible. |
 | `in-motion` | The subject is already mid-action at frame 0 and keeps moving for the whole first beat (falling, spinning, breaking, flowing), not a still that starts moving. | The surprising thing is a movement. |
-| `before-after` | The frame is split: the expected state on the left, the real one on the right, both drawn at frame 0. The right half is the surprise. | The hook is a change or a comparison (usually with `contrast`). |
+| `before-after` | The frame is split: the expected state on the left, the real one on the right, both drawn at frame 0, each about 400 px across (this shape replaces the one-big-drawing rule in `SKILL.md`). The right half is the surprise. | The hook is a change or a comparison (usually with `contrast`). |
 
 ## End card: the silent last beat
 
@@ -57,4 +57,4 @@ Asking for a follow, a share or a comment is allowed on every platform. Never of
 
 ## How a shape wins
 
-The weekly report (`publisher/learn.py`, Mondays) ranks `hookPattern` and `opening` by the share of viewers who left in the first 3 seconds on Instagram and by the share of engaged views on YouTube, and `endCard` by Instagram shares per 1,000 views. A shape needs 8 videos before it is ranked. When a trial shape has clearly beaten the default for 3 weeks running, swap the two names in `flow.json` "parts" (the flow check runs on the change). Lower `parts.trialShare` once the defaults have settled.
+The weekly report (`publisher/learn.py`, Mondays) ranks `hookPattern` and `opening` by the share of viewers who left in the first 3 seconds on Instagram and by the share of engaged views on YouTube, and `endCard` by Instagram shares per 1,000 views. A shape needs 8 videos before it is ranked; at 3 videos a day a hook shape gets there in about a month, an opening or end card shape in about two. When a trial shape has clearly beaten the default for 3 weeks running, swap the two names in `flow.json` "parts" (the flow check runs on the change). Lower `parts.trialShare` once the defaults have settled.

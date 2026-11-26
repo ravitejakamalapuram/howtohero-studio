@@ -73,10 +73,18 @@ class ReplyAccounts(unittest.TestCase):
             'Anaadi': {'postTo': {'youtube': 'anaadi'}},
             'Broken': {'postTo': {'youtube': ''}},
             'Empty': {}})
-        self.assertEqual(got, [('How To Hero', '🦸', 'youtube', ''), ('How To Hero', '🦸', 'instagram', ''), ('Anaadi', '💬', 'youtube', 'anaadi')])
+        self.assertIn(('How To Hero', '🦸', 'youtube', ''), got)
+        self.assertIn(('How To Hero', '🦸', 'instagram', ''), got)
+        self.assertNotIn('linkedin', [a[2] for a in got])
+        self.assertIn(('Anaadi', '💬', 'youtube', 'anaadi'), got)
+        self.assertFalse([a for a in got if a[0] in ('Broken', 'Empty')])
+        self.assertFalse([a for a in got if a[0] != 'How To Hero' and not a[3]])
 
-    def test_without_a_config_the_main_accounts(self):
-        self.assertEqual([a[2:] for a in replies.accounts({})], [('youtube', ''), ('instagram', ''), ('facebook', '')])
+    def test_the_default_channel_keeps_its_main_accounts_when_its_post_to_is_empty(self):
+        for channels in ({}, {'How To Hero': {'postToError': 'bad cell'}, 'Chinni Slokalu': {'postTo': {'youtube': 'chitti'}}}):
+            got = replies.accounts(channels)
+            self.assertEqual(sorted(a[2] for a in got if a[0] == 'How To Hero'), ['facebook', 'instagram', 'youtube'])
+        self.assertIn(('Chinni Slokalu', '💬', 'youtube', 'chitti'), got)
 
 
 if __name__ == '__main__':

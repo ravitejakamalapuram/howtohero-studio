@@ -19,10 +19,11 @@ a note, and the others still run.
 """
 import datetime as dt
 import hashlib
+import os
 import re
 import sys
 
-from publish import inbox, social, DEFAULT_APP, DRY
+from publish import inbox, social, DEFAULT_APP, DRY, SERIES
 
 MAX_AGE_DAYS = 14
 COMMENT_PLATFORMS = ['youtube', 'instagram', 'facebook']
@@ -69,15 +70,18 @@ def item_id(platform, comment_id):
 
 
 def accounts(channels):
-    """[(channel, icon, platform, account)] to read comments from: every channel's post_to in the Inbox Channel
-    config ('' is a platform's main account, which only the default channel may use), else the default channel's
-    main accounts. channels: the "channels" of the Inbox's channelConfig answer."""
-    out = []
+    """[(channel, icon, platform, account)] to read comments from, built as stats.py plans its reads. The default
+    channel starts with PLATFORMS on the main accounts and each serialized channel (platforms/youtube.json) with
+    its own YouTube account; a channel's post_to in the Inbox Channel config then replaces its entry. '' is a
+    platform's main account, which only the default channel may use. channels: the Inbox's channelConfig "channels"."""
+    plan = {DEFAULT_APP: {p.strip(): '' for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()}}
+    plan.update({c['app']: {'youtube': c['account']} for c in SERIES.values() if c.get('app') and c.get('account')})
     for app, c in (channels or {}).items():
-        for platform, account in (c.get('postTo') or {}).items():
-            if platform in COMMENT_PLATFORMS and (account or app == DEFAULT_APP):
-                out.append((app, c.get('icon') or ('🦸' if app == DEFAULT_APP else '💬'), platform, account or ''))
-    return out or [(DEFAULT_APP, '🦸', p, '') for p in COMMENT_PLATFORMS]
+        wanted = {p: a or '' for p, a in (c.get('postTo') or {}).items() if a or app == DEFAULT_APP}
+        if wanted:
+            plan[app] = wanted
+    icon = lambda app: (channels or {}).get(app, {}).get('icon') or ('🦸' if app == DEFAULT_APP else '💬')
+    return [(app, icon(app), p, a) for app, wanted in plan.items() for p, a in wanted.items() if p in COMMENT_PLATFORMS]
 
 
 def pull_new():

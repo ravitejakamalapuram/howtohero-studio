@@ -33,8 +33,8 @@
     "maxQueueDays": 14
   },
   "parts": {
-    "_about": "The opening and ending parts of a video (HOOKS.md says what each value is). pipeline2/pickparts.mjs gives most videos the default and about trialShare of them a trial value, so the weekly report can compare them. To make a winner the default, swap the names here.",
-    "trialShare": 0.4,
+    "_about": "The opening and ending parts of a video (HOOKS.md says what each value is). pipeline2/pickparts.mjs gives about trialShare of the videos a trial value for one part (the hook twice as often as the others) and every other part its default, so the weekly report can compare them. To make a winner the default, swap the names here.",
+    "trialShare": 0.5,
     "hook": {
       "default": "claim",
       "trial": ["open-loop", "number", "contrast"]

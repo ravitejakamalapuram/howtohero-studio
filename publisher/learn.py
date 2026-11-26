@@ -83,9 +83,8 @@ def watch(d, platform):
 
 
 def skipped(d):
-    """Instagram: percent of first views that left in the first 3 seconds (the API may give 0-1 or 0-100)."""
-    v = watch(d, 'instagram').get('skipRate')
-    return None if v is None else v * 100 if v <= 1 else v
+    """Instagram: the share of first views that left in the first 3 seconds, as Instagram reports it."""
+    return watch(d, 'instagram').get('skipRate')
 
 
 def stayed(d):
@@ -101,7 +100,7 @@ def shared(d):
 
 
 # (report label, what is measured, the parts it is reported for, True when higher is better, number format)
-WATCHED = [('Left in the first 3 s on Instagram', skipped, ('hookPattern', 'opening'), False, '{:.0f}%'),
+WATCHED = [('Left in the first 3 s on Instagram (skip rate)', skipped, ('hookPattern', 'opening'), False, '{:.3g}'),
            ('Stayed to watch on YouTube', stayed, ('hookPattern', 'opening'), True, '{:.0f}%'),
            ('Instagram shares per 1,000 views', shared, ('endCard',), True, '{:.1f}')]
 

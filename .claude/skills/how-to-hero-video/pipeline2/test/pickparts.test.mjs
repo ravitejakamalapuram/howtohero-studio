@@ -12,18 +12,20 @@ test('the same id always gets the same parts', () => {
   assert.deepEqual(pickParts('story-2026-11-26-x', P), pickParts('story-2026-11-26-x', P));
 });
 
-test('about trialShare of videos get a trial value, spread over the trial values', () => {
-  for (const [name, field] of Object.entries(PARTS)) {
-    const got = ids.map(id => pickParts(id, P)[field]);
-    const trial = got.filter(v => v !== P[name].default).length / ids.length;
-    assert.ok(Math.abs(trial - 0.4) < 0.05, `${name}: ${trial}`);
-    for (const v of P[name].trial) assert.ok(got.filter(x => x === v).length > ids.length * 0.4 / P[name].trial.length * 0.7, `${name} ${v}`);
-  }
+const trials = p => Object.entries(PARTS).filter(([name, field]) => p[field] !== P[name].default).length;
+
+test('about trialShare of videos try one part, and never two', () => {
+  const got = ids.map(id => pickParts(id, P));
+  assert.ok(got.every(p => trials(p) <= 1));
+  assert.ok(Math.abs(got.filter(p => trials(p) === 1).length / ids.length - 0.4) < 0.04);
 });
 
-test('the parts are drawn separately', () => {
-  const both = ids.filter(id => { const p = pickParts(id, P); return p.hookPattern !== 'claim' && p.endCard !== 'follow'; }).length / ids.length;
-  assert.ok(Math.abs(both - 0.16) < 0.04, String(both));
+test('the hook is tried twice as often as the other parts, over all its trial shapes', () => {
+  const got = ids.map(id => pickParts(id, P)), n = f => got.filter(f).length / ids.length;
+  assert.ok(Math.abs(n(p => p.hookPattern !== 'claim') - 0.2) < 0.03);
+  assert.ok(Math.abs(n(p => p.opening !== 'big-subject') - 0.1) < 0.03);
+  assert.ok(Math.abs(n(p => p.endCard !== 'follow') - 0.1) < 0.03);
+  for (const v of P.hook.trial) assert.ok(n(p => p.hookPattern === v) > 0.04, v);
 });
 
 test('a value the card names wins; an unknown one is ignored', () => {

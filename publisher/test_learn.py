@@ -15,7 +15,6 @@ def video(hook, skip=None, engaged=None, end='follow', shares=None, views=1000):
 
 class Watch(unittest.TestCase):
     def test_measures(self):
-        self.assertEqual(skipped(video('claim', skip=0.62)), 62)
         self.assertEqual(skipped(video('claim', skip=62)), 62)
         self.assertIsNone(skipped({'metrics': {'instagram': {'d7': 5}}}))
         self.assertEqual(stayed(video('claim', engaged=330)), 33)
@@ -26,7 +25,7 @@ class Watch(unittest.TestCase):
         datas = [video('claim', skip=60, engaged=200) for _ in range(8)] + [video('open-loop', skip=45, engaged=400) for _ in range(8)]
         datas += [video('number', skip=10, engaged=900) for _ in range(7)]
         lines = watch_lines(datas)
-        self.assertIn('Left in the first 3 s on Instagram, by hookPattern: open-loop 45% (8), claim 60% (8)', lines)
+        self.assertIn('Left in the first 3 s on Instagram (skip rate), by hookPattern: open-loop 45 (8), claim 60 (8)', lines)
         self.assertIn('Stayed to watch on YouTube, by hookPattern: open-loop 40% (8), claim 20% (8)', lines)
         self.assertFalse(any('number' in l for l in lines))
 

@@ -1,8 +1,8 @@
 // Picks the three opening and ending parts of a video: the hook's shape, the opening picture and the end card
 // (what each one is: ../HOOKS.md). Same item id -> same answer, every time.
-// Most videos get each part's "default" (what works today). About `trialShare` of them get one of the other
-// values instead, so the weekly report (publisher/learn.py) has something to compare. Each part is drawn
-// separately, so two trial parts rarely land on the same video.
+// About `trialShare` of the videos get a trial value for ONE part (the hook twice as often as the opening or the
+// end card, because it has the most shapes to compare); every other part is its default. One trial part a video
+// keeps the comparison clean: a video's result is never the mix of two experiments.
 // A value the card already names (data.hookPattern, data.opening, data.endCard) wins.
 // CLI: node pickparts.mjs <item id> ['<card data as JSON>']   prints {"hookPattern","opening","endCard"}
 import { pathToFileURL } from 'node:url';
@@ -16,14 +16,15 @@ function rng(str) { // small seeded generator (FNV-1a hash -> mulberry32), as in
 }
 
 // parts: flow.json "parts" ({ trialShare, hook: { default, trial: [] }, opening: {...}, endCard: {...} })
+const WEIGHT = { hook: 2, opening: 1, endCard: 1 };
 export function pickParts(id, parts, data = {}) {
-  const out = {};
-  for (const [name, field] of Object.entries(PARTS)) {
-    const p = parts[name], all = [p.default, ...p.trial];
-    if (all.includes(data[field])) { out[field] = data[field]; continue; }
-    const rand = rng(`${id}:${name}`);
-    out[field] = p.trial.length && rand() < parts.trialShare ? p.trial[Math.floor(rand() * p.trial.length)] : p.default;
-  }
+  const names = Object.keys(PARTS), asked = n => [parts[n].default, ...parts[n].trial].includes(data[PARTS[n]]);
+  const out = Object.fromEntries(names.map(n => [PARTS[n], asked(n) ? data[PARTS[n]] : parts[n].default]));
+  const rand = rng(id), open = names.filter(n => !asked(n) && parts[n].trial.length);
+  if (!open.length || rand() >= parts.trialShare) return out;
+  let r = rand() * open.reduce((a, n) => a + WEIGHT[n], 0);
+  const n = open.find(k => (r -= WEIGHT[k]) < 0) || open[open.length - 1];
+  out[PARTS[n]] = parts[n].trial[Math.floor(rand() * parts[n].trial.length)];
   return out;
 }
 

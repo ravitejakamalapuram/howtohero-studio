@@ -1,6 +1,6 @@
 # Daily scout: propose news and ideas, build nothing
 
-One run a day. It only adds cards to the Inbox for the user to approve or reject on Telegram; the build run (`SKILL.md` "Build run") makes the videos later. Building nothing keeps this run cheap. Read the numbers from `flow.json` next to this file (`scout`). What makes a good idea, the kinds of video and the daily mix are in `IDEAS.md`; follow it. Call the Inbox only through `inbox.sh`; never print the Inbox URL, the token or an upload link. If the first Inbox call is refused (for example by a permission check) or fails twice, stop and say so.
+One run a day. It only adds cards to the Inbox for the user to approve or reject on Telegram (one news story a day goes in already approved, see "Fast lane" in step 1); the build run (`SKILL.md` "Build run") makes the videos later. Building nothing keeps this run cheap. Read the numbers from `flow.json` next to this file (`scout`). What makes a good idea, the kinds of video and the daily mix are in `IDEAS.md`; follow it. Call the Inbox only through `inbox.sh`; never print the Inbox URL, the token or an upload link. If the first Inbox call is refused (for example by a permission check) or fails twice, stop and say so.
 
 Two card types, never mixed up:
 - `story` = a news card (`source` "news"). Approving it means "build this news video".

@@ -24,9 +24,12 @@ class Aged(unittest.TestCase):
         self.assertEqual(m7['watch']['day'], 7)
         self.assertIsNone(aged(m7, 20, dict(post, skipRate=40)))
 
-    def test_a_number_missing_at_day_7_keeps_its_day_2_value(self):
-        m = aged({'d2': 5, 'watch': {'skipRate': 61.5, 'shares': 4, 'day': 2}}, 7, {'views': 9, 'shares': 6})
-        self.assertEqual(m['watch'], {'skipRate': 61.5, 'shares': 6, 'day': 7, 'views': 9})
+    def test_a_less_complete_day_7_reading_keeps_the_day_2_one_whole(self):
+        old = {'d2': 5, 'watch': {'skipRate': 61.5, 'shares': 4, 'day': 2, 'views': 5}}
+        m = aged(old, 7, {'views': 9, 'shares': 6})
+        self.assertEqual(m['watch'], old['watch'])  # shares 6 with views 9 would sit beside a day-2 skip rate
+        self.assertEqual(m['d7'], 9)
+        self.assertEqual(aged(old, 7, {'views': 9, 'shares': 6, 'skipRate': 50})['watch'], {'skipRate': 50, 'shares': 6, 'day': 7, 'views': 9})
 
     def test_youtube_engaged_views_are_kept_with_the_views_of_that_reading(self):
         m = aged({}, 7, {'views': 200, 'engagedViews': 64})
