@@ -1,4 +1,4 @@
-# Sends followers, likes and views to the Inbox Channels page once a day (see publisher/stats.py).
+# Sends every Inbox channel's followers, likes and views to the Inbox Channels page once a day (see publisher/stats.py).
 # Uses the same repository secrets as publish.yml. Read-only on the social accounts.
 name: stats
 on:
@@ -17,4 +17,4 @@ jobs:
           INBOX_TOKEN: ${{ secrets.INBOX_TOKEN }}
           SOCIAL_URL: ${{ secrets.SOCIAL_URL }}
           SOCIAL_TOKEN: ${{ secrets.SOCIAL_TOKEN }}
-          PLATFORMS: instagram,facebook
+          PLATFORMS: instagram,facebook,youtube

@@ -50,7 +50,9 @@ Numbers live in `flow.json` under `scout`:
 
 ## Card fields (ideas)
 
-`data`: `kind`, `topic`, `angle`, `hook`, `why`, `sources` (URLs), `fact` ("K" when any number or date must be checked, "C" when contested), `maxSeconds` (from the table), `rank`. For `doc` also `series` "DOC" and the card id `doc-<slug>`. Leave out `series` for the other kinds.
+`data`: `kind`, `topic`, `angle`, `hook`, `search`, `why`, `sources` (URLs), `fact` ("K" when any number or date must be checked, "C" when contested), `maxSeconds` (from the table), `rank`. For `doc` also `series` "DOC" and the card id `doc-<slug>`. Leave out `series` for the other kinds.
+
+`search` is the phrase a curious person would type to find this video, 3 to 7 lowercase words in their words, not ours ("how do black holes form", "rajasaurus dinosaur india", "why is the sea salty"). Check it against the search box suggestions on YouTube or Google when you can, and prefer the wording that appears there. It is for captions and titles only; the hook still comes first in the video, and `search` never replaces it. In captions it takes normal capitals ("India").
 
 ## Build notes per kind (read by the build run)
 

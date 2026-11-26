@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Posts approved How To Hero videos from the Inbox through Social Manager.
+"""Posts approved How To Hero videos from the Inbox through Social Media Publisher.
 
 Each run takes the first approved news video (its slot is ignored), else the first approved video whose slot
 has passed (by slot; a video with no slot first gets the next free day at 19:30 IST), publishes it to
@@ -11,10 +11,14 @@ run's retries leaves the item approved, so the next run tries that platform agai
 return their first job and don't post twice). After MAX_RUNS failed runs on one platform the publisher gives
 up on it, marks the item posted (or "ready" if nothing posted) and says why in the note.
 
-Safe to run again at any time: each post uses the key "<item id>-<platform>", so Social Manager returns
+Safe to run again at any time: each post uses the key "<item id>-<platform>", so Social Media Publisher returns
 the first job instead of posting twice.
 
-Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. PLATFORMS defaults to "instagram,facebook,youtube". LinkedIn is left out: the connected account is a personal profile.
+Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. Where to post comes from the Inbox: "post_to" in the
+How To Hero row of its Channel config tab (platform, or platform:account for a Social Media Publisher account other than
+the main one; YouTube only). When that is empty, or the Inbox has no channelConfig yet, PLATFORMS is used, default
+"instagram,facebook,youtube". Any other Inbox error, or a post_to cell it can't read, stops the run instead of guessing.
+LinkedIn is left out: the connected account is a personal profile.
 YouTube uploads go out public (tested 16 Nov 2026: no API audit needed).
 Each run first writes data.links on pending and approved videos: the main video plus one Drive link per platform
 version, so the Inbox card and Telegram message offer every version (LINKS_ONLY=true stops after that).
@@ -46,6 +50,8 @@ PLATFORM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'p
 RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.listdir(PLATFORM_DIR) if f.endswith('.json')}
 
 SERIES = RULES.get('youtube', {}).get('channels', {})  # serialized channels, e.g. anaadi
+APP = 'How To Hero'  # this channel's row in the Inbox Channel config tab
+ACCOUNTS = {}  # {platform: Social Media Publisher account} from post_to; '' or missing means the main account
 
 def call(url, token, body):
     body = dict(body, token=token)
@@ -122,18 +128,41 @@ def due_items():
     return sorted(due, key=lambda i: (not is_news(i), when(i) or now))
 
 
-# Platforms not posted to yet and why, shown on the Inbox card. Drop one here when it goes live in PLATFORMS.
+# Platforms not posted to yet and why, shown on the Inbox card. Drop one here when it goes live in post_to (or PLATFORMS).
 NOT_YET = {
     'linkedin': 'Page posting not approved yet',
 }
 
 
+def post_to():
+    """{platform: account} from the Inbox Channel config (post_to), else from PLATFORMS with the main accounts.
+
+    PLATFORMS is used only when post_to is empty or the Inbox is too old to have channelConfig. Any other error,
+    or a post_to cell the Inbox can't read, stops the run: guessing could post to the wrong account."""
+    try:
+        cfg = inbox({'action': 'channelConfig'}).get('channels', {}).get(APP) or {}
+    except RuntimeError as e:
+        if 'unknown_action' not in str(e):
+            raise
+        print('this Inbox has no channelConfig yet; using PLATFORMS')
+        cfg = {}
+    if cfg.get('postToError'):
+        raise RuntimeError(f"post_to for {APP} in the Inbox Channel config can't be read: {cfg['postToError']}")
+    wanted = cfg.get('postTo') or {}
+    if wanted:
+        print(f"posting where the Inbox says: {', '.join(p + (':' + a if a else '') for p, a in wanted.items())}")
+        return wanted
+    return {p.strip(): '' for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()}
+
+
 def live_platforms():
-    wanted = [p.strip() for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()]
+    wanted = post_to()
+    ACCOUNTS.clear()
+    ACCOUNTS.update({p: a for p, a in wanted.items() if a})
     live, down = [], {}
     for p in wanted:
         try:
-            social({'action': 'channel', 'platform': p})
+            social(dict({'action': 'channel', 'platform': p}, **({'account': ACCOUNTS[p]} if p in ACCOUNTS else {})))
             live.append(p)
         except RuntimeError as e:
             print(f'{p} is not connected: {e}')
@@ -283,6 +312,8 @@ def post_for(platform, item, data, cache):
     caption = (meta.get('text') or data.get('ig') or fallback_text(item, data)).strip()
     file_id = platform_file(platform, item, data, cache)
     key = f"{item['id']}-{platform}" + ('-version' if file_id != item['driveId'] else '')  # its own job
+    if ACCOUNTS.get(platform):  # another account is another post: never reuse the main channel's job
+        key += f"-{ACCOUNTS[platform]}"
     video = {'driveFileId': file_id}
     if platform == 'instagram' and file_id == item['driveId']:
         key = f"{item['id']}-instagram-link"
@@ -399,7 +430,7 @@ def run_series(name, group=''):
             'language': cfg['language'], 'aiGenerated': cfg['aiGenerated'], 'madeForKids': False}
     if data.get('thumb'):
         post['thumbnail'] = {'driveFileId': data['thumb']}
-    if cfg.get('playlist'):  # Social Manager makes it on first use; a failure is only a warning
+    if cfg.get('playlist'):  # Social Media Publisher makes it on first use; a failure is only a warning
         post['playlists'] = [cfg['playlist']]
     print(f"{name}: uploading episode {episode_of(item)} ({item['id']}), goes live {at.isoformat()}")
     if DRY:
@@ -503,7 +534,10 @@ def run():
                 no_version[p] = f"needs its own {p} version of {RULES[p]['versionSeconds']} s or less (the video build makes it)"
                 print(f'skip {p}: {no_version[p]}')
                 continue
-            jobs[p] = social(dict(post_for(p, item, data, cache), action='publish'))['job']
+            body = dict(post_for(p, item, data, cache), action='publish')
+            if p in ACCOUNTS:
+                body['account'] = ACCOUNTS[p]
+            jobs[p] = social(body)['job']
         except (RuntimeError, OSError, subprocess.CalledProcessError, ValueError, KeyError) as e:
             jobs[p] = {'id': None, 'status': 'failed', 'error': f'not started: {e}'}
     retries = {}

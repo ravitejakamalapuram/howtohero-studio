@@ -1,9 +1,14 @@
 #!/usr/bin/env python3
-"""Sends How To Hero's and each serialized channel's daily numbers to the Inbox Channels page.
+"""Sends every channel's daily numbers to the Inbox Channels page: the one stats job for all channels.
 
-For each platform in PLATFORMS it reads followers and the newest posts' likes, comments and views from
-Social Manager (action "stats") and passes them to the Inbox (action "channelStats"). Running it twice on
-one day replaces that day's numbers. Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN.
+The channels come from the Inbox Channel config (action "channelConfig"). Each channel's numbers are read from the
+Social Media Publisher accounts in its stats_from cell, else its post_to cell (platform, or youtube:account), with
+action "stats", and passed to the Inbox (action "channelStats"). Until a row says, How To Hero reads PLATFORMS on the
+main accounts and each serialized channel in platforms/youtube.json reads its own YouTube account. A channel with no
+accounts is skipped, and so is another channel's account the publisher says is not connected yet; any other error,
+or How To Hero's own accounts not connected, fails the run after the other channels are done. Other channels only
+read named accounts (youtube:name): the main accounts are How To Hero's. Running it twice on one day replaces that day's numbers.
+Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN.
 """
 import datetime as dt
 import os
@@ -44,35 +49,51 @@ def snapshot(views):
             inbox({'action': 'update', 'id': item['id'], 'ifVersion': item['version'], 'set': {'data': dict(data, metrics=metrics)}})
 
 
+def plan():
+    """{Inbox channel: {platform: Social Media Publisher account}}, '' for a platform's main account."""
+    out = {APP: {p.strip(): '' for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()}}
+    out.update({c['app']: {'youtube': c['account']} for c in SERIES.values() if c.get('app') and c.get('account')})
+    try:
+        channels = inbox({'action': 'channelConfig'}).get('channels', {})
+    except Exception as e:  # an older Inbox: the defaults above still send today's numbers
+        print(f'channelConfig unavailable, using the defaults: {e}')
+        channels = {}
+    for app, c in channels.items():
+        if c.get('statsFromError'):
+            print(f"{app}: stats_from can't be read ({c['statsFromError']}); using post_to")
+        wanted = c.get('statsFrom') or c.get('postTo') or {}
+        if app != APP:  # a main account is How To Hero's: reading it here would file its numbers under another channel
+            wanted = {p: a for p, a in wanted.items() if a}
+        if wanted:
+            out[app] = wanted
+        elif app not in out:
+            print(f'{app}: skipped, no stats_from or post_to in the Inbox Channel config')
+    return out
+
+
 def main():
     failed, views = 0, {}
-    for p in [x.strip() for x in os.environ.get('PLATFORMS', 'instagram,facebook').split(',') if x.strip()]:
-        try:
-            s = social({'action': 'stats', 'platform': p, 'limit': 50})
-            views.update({x['url']: (x.get('views'), x.get('at')) for x in s.get('posts', []) if x.get('url')})
-            body = {'action': 'channelStats', 'app': APP, 'platform': p, 'followers': s.get('followers'), 'posts': s.get('posts', []),
-                    'sources': SOURCES}
-            if os.environ.get('GITHUB_REPOSITORY'):  # lets the dashboard's "Post now" start publish.yml here,
-                # and the Inbox's timer start it at the daily slots in TIMES (IST), since GitHub's schedule never fired
-                body['publish'] = {'repo': os.environ['GITHUB_REPOSITORY'], 'workflow': 'publish.yml',
-                                   'times': TIMES, 'first': ['news']}
-            r = inbox(body)
-            print(f"{p}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
-        except Exception as e:  # one platform failing should not stop the others
-            failed += 1
-            print(f'{p} FAILED: {e}')
-    for name, cfg in SERIES.items():  # each serialized channel's own YouTube account, under its own Inbox channel
-        if not cfg.get('app'):
-            continue
-        try:
-            s = social({'action': 'stats', 'platform': 'youtube', 'account': cfg['account'], 'limit': 50})
-            views.update({x['url']: (x.get('views'), x.get('at')) for x in s.get('posts', []) if x.get('url')})
-            r = inbox({'action': 'channelStats', 'app': cfg['app'], 'platform': 'youtube', 'followers': s.get('followers'),
-                       'posts': s.get('posts', [])})
-            print(f"{name}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
-        except Exception as e:  # a channel not connected yet should not stop the others
-            failed += 1
-            print(f'{name} FAILED: {e}')
+    for app, accounts in plan().items():
+        for p, account in accounts.items():
+            name = f"{app} {p}" + (f':{account}' if account else '')
+            try:
+                s = social(dict({'action': 'stats', 'platform': p, 'limit': 50}, **({'account': account} if account else {})))
+                views.update({x['url']: (x.get('views'), x.get('at')) for x in s.get('posts', []) if x.get('url')})
+                body = {'action': 'channelStats', 'app': app, 'platform': p, 'followers': s.get('followers'), 'posts': s.get('posts', [])}
+                if app == APP:
+                    body['sources'] = SOURCES
+                    if os.environ.get('GITHUB_REPOSITORY'):  # lets the dashboard's "Post now" start publish.yml here,
+                        # and the Inbox's timer start it at the daily slots in TIMES (IST), since GitHub's schedule never fired
+                        body['publish'] = {'repo': os.environ['GITHUB_REPOSITORY'], 'workflow': 'publish.yml',
+                                           'times': TIMES, 'first': ['news']}
+                r = inbox(body)
+                print(f"{name}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
+            except Exception as e:  # one account failing should not stop the others
+                if app != APP and 'not_connected' in str(e):  # How To Hero's own accounts dropping out still fail the run
+                    print(f'{name}: skipped, not connected in the Social Media Publisher yet')
+                    continue
+                failed += 1
+                print(f'{name} FAILED: {e}')
     try:
         snapshot(views)
     except Exception as e:  # the daily numbers above are already sent

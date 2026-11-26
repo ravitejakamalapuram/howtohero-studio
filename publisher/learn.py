@@ -20,7 +20,7 @@ import re
 import statistics
 import sys
 
-from publish import inbox
+from publish import inbox, social
 
 FLOW = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', '.claude', 'skills', 'how-to-hero-video', 'flow.json')
 MIN_N = 8        # videos a value needs before it counts (length needs 15)
@@ -97,6 +97,21 @@ def proposal(flow, t):
     return new
 
 
+def monetisation():
+    """One line on the YouTube Partner Programme thresholds for Shorts: 500 subscribers and 3M Shorts views in 90 days
+    for the lower tier (fan funding), 1,000 and 10M for ad revenue. Channel views are lifetime, so they match the
+    90-day window only while the channel is under 90 days old."""
+    try:
+        y = social({'action': 'stats', 'platform': 'youtube', 'limit': 1})
+    except Exception as e:  # the rest of the report still goes out
+        return f'YouTube monetisation: numbers not available ({e}).'
+    subs, views = y.get('followers'), y.get('channelViews')
+    if subs is None or views is None:
+        return 'YouTube monetisation: subscriber or view count hidden.'
+    return (f'YouTube monetisation: {subs:,} subscribers (500 for the lower tier, 1,000 for ads), '
+            f'{views:,} channel views (3M Shorts views in 90 days for the lower tier, 10M for ads).')
+
+
 def main():
     flow = json.load(open(FLOW))
     if apply_approved(flow) and not DRY:
@@ -114,6 +129,7 @@ def main():
             lines.append(f'{lever}: ' + ', '.join(f'{v} {pct(sc)} ({n})' for v, (n, sc) in ranked))
         else:
             lines.append(f"{lever}: not enough data yet ({15 if lever == 'length' else MIN_N} videos per value)")
+    lines.append(monetisation())
     new = {s: w for s, w in proposal(flow, t).items() if w != flow['style']['kits'][s]['weight']}
     if new:
         lines.append('Proposed style weights: ' + ', '.join(f"{s} {flow['style']['kits'][s]['weight']} -> {w}" for s, w in new.items()) +

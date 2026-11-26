@@ -28,5 +28,5 @@ The 1.5 GB zip has no copy of its own yet; mirror it to the backup destination s
 ## Not in git and not reproducible from this repo
 
 - Claude environment settings: env vars, the network allowlist, the proxy-injected `GEMINI_API_KEY`, the two routines' schedule. `ops/jobs/*.md` says what they must be.
-- Google-side state of the Inbox and Social Manager (Script Properties, time triggers, Sheet, OAuth consents). Each repo's FAQ has a "start from scratch" answer.
+- Google-side state of the Inbox and Social Media Publisher (Script Properties, time triggers, Sheet, OAuth consents). Each repo's FAQ has a "start from scratch" answer.
 - Browser-only steps: Gemini art and Veo clips for Anaadi, YouTube/Meta consent screens.

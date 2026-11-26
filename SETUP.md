@@ -12,17 +12,17 @@ This page lists every key the How To Hero jobs use, where each one lives today a
 | Auto-publisher (`publisher/publish.py`) | GitHub Actions (`publish.yml`), 3 times a day | `INBOX_URL`, `INBOX_TOKEN`, `SOCIAL_URL`, `SOCIAL_TOKEN` |
 | Daily stats (`publisher/stats.py`) | GitHub Actions (`stats.yml`), once a day | same four as the publisher |
 
-The scout and the build run only talk to the Inbox. Video uploads also go through the Inbox: `inbox.sh up` asks it for a one-time Drive upload link (`uploadUrl`), so the build run needs no Google or Drive key of its own. Only the publisher talks to Social Manager.
+The scout and the build run only talk to the Inbox. Video uploads also go through the Inbox: `inbox.sh up` asks it for a one-time Drive upload link (`uploadUrl`), so the build run needs no Google or Drive key of its own. Only the publisher talks to Social Media Publisher.
 
 ## What each key is
 
 - **`INBOX_URL`**: the Inbox web app's API link (the `/exec` URL, no login). The same for every job.
 - **`INBOX_TOKEN`**: a client token for the Inbox. Each job or platform gets its own, with its own name.
-- **`SOCIAL_URL`**: the Social Manager web app's `/exec` URL.
-- **`SOCIAL_TOKEN`**: a client token for Social Manager. Only the publisher needs one.
+- **`SOCIAL_URL`**: the Social Media Publisher web app's `/exec` URL.
+- **`SOCIAL_TOKEN`**: a client token for Social Media Publisher. Only the publisher needs one.
 - **`HTH_ADVISOR_KEY`**: an Anthropic API key (console.anthropic.com > API keys) for `advisor.py`, the second opinion at the scout's cards and each script (`SKILL.md` "Advisor"). Optional: without it, or once the credits run out, the jobs ask a stronger model in-session instead. Use this name, never `ANTHROPIC_API_KEY`, which Claude Code itself would pick up and bill.
 
-Keys that stay inside the two Apps Script projects (Script Properties) and never go to a job: `TELEGRAM_BOT_TOKEN` (Inbox), and the YouTube, Meta and LinkedIn app secrets and sign-ins (Social Manager). Moving a job to another platform never touches them.
+Keys that stay inside the two Apps Script projects (Script Properties) and never go to a job: `TELEGRAM_BOT_TOKEN` (Inbox), and the YouTube, Meta and LinkedIn app secrets and sign-ins (Social Media Publisher). Moving a job to another platform never touches them.
 
 ## Where they live today
 
@@ -37,7 +37,7 @@ GitHub secrets can only be read by GitHub Actions runs in this repo. A Claude, C
 Give every platform its own named token, so one can be revoked without breaking the others.
 
 1. With the Inbox admin token, call `{"action":"createToken","token":"<admin token>","name":"scout-chatgpt"}`. The new token is shown once; paste it straight into the new platform. (See the inbox repo's `docs/FAQ.md`, "Tokens and safety".)
-2. For Social Manager (publisher only), the same call with its admin token.
+2. For Social Media Publisher (publisher only), the same call with its admin token.
 3. To rotate or cut off a platform: `revokeToken` with its name, then make a new one. Nothing else stops working.
 
 **Warning:** don't use `createTokenForClaude` in the Apps Script editor for this. It deletes every existing token named "claude", which breaks the running Claude tasks and the publisher secret if they share that name.
