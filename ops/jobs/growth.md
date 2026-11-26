@@ -1,8 +1,8 @@
 # Job: daily manager run (growth to-dos, comment replies, promotion)
 
-One run a day. This is the social media manager for every channel: it reads where each one stands, checks what the platforms currently reward, and hands the user a short, deduplicated list of to-dos in the Inbox, each one a thing only the user can do. It also drafts the replies to viewer comments on every channel, writes one promotion pack a week, and watches the festival calendar for the two Telugu channels. It adds at most a few new to-dos, closes the ones that are done or stale, and never builds a video, posts anything or changes a setting.
+One run a day. This is the social media manager for every channel: it reads where each one stands, checks what the platforms currently reward, and hands the user a short, deduplicated list of to-dos in the Inbox, each one a step only the user can do (see 4b). It also drafts the replies to viewer comments on every channel, writes one promotion pack a week, and watches the festival calendar for the two Telugu channels. It adds at most a few new to-dos, closes the ones that are done or stale, and never builds a video or posts anything. Settings a browser can change are done in the user's Chrome when this run has it (4b), otherwise named in the final reply.
 
-The user's rule (26 Nov 2026): the manager gives the user tasks; the user does not chase the manager. So anything a job could do itself is not a to-do. This run cannot change git, so name it in the final reply instead, for a thread to pick up.
+The user's rule (26 Nov 2026): the manager gives the user tasks; the user does not chase the manager. So anything a job or Claude in the user's Chrome could do itself is not a to-do. This run cannot change git, so name code changes in the final reply instead, for a thread to pick up; the same goes for Chrome work it could not do (4b).
 
 Git owns this job. The scheduled task only says "clone the repo and follow this file", so changing the job means changing git.
 
@@ -67,7 +67,7 @@ Find the current monetisation thresholds and recent official advice. Prefer offi
 
 ### 4. Pick at most 3 new to-dos
 
-For each channel and each platform it posts to, compare where it stands with the nearest threshold and ask: what one action this week moves it closest? Good to-dos are concrete, doable in one sitting by the user (or by asking Claude in this project), and tied to a number: "Turn on the YouTube channel trailer and add a subscribe end screen to the 5 top Shorts", not "post consistently".
+For each channel and each platform it posts to, compare where it stands with the nearest threshold and ask: what one action this week moves it closest? Good to-dos are concrete, doable in one sitting (mostly by Claude in the user's Chrome, see 4b), and tied to a number: "Turn on the YouTube channel trailer and add a subscribe end screen to the 5 top Shorts", not "post consistently".
 
 Drop a candidate when:
 
@@ -75,16 +75,31 @@ Drop a candidate when:
 - a `rejected` one, or one archived as "stale", says the same thing (the user did not want it; read its `note` for why). One archived as "replaced" does not block;
 - it is a video idea, a weekly report or stats work (see "What this job does not do");
 - it needs breaking a platform's rules (buying followers, follow-for-follow, automatic follows or likes, engagement pods, reuploading others' content);
-- a job or a code change could do it without the user (then it is not the user's task: name it in the final reply).
+- a job, a code change or Claude in Chrome could do it without the user (then it is not the user's task: do it or name it in the final reply, see 4b).
 
 Rank the rest: P1 moves a threshold this month, P2 helps within the quarter, P3 is nice to have. Keep at least 2 of every 3 for How To Hero. If 6 growth to-dos are already open, add one only if it beats the lowest ranked open one, and archive that one in step 2's way. Zero new to-dos is a fine result.
 
+### 4b. Who does each step (Claude first, the user only for the last click)
+
+The user's standing rule (26 Nov 2026): every step a browser can do is Claude's, done in the user's own Chrome (Claude in Chrome, signed in to every channel). A to-do hands the user only what a browser agent may not or cannot do:
+
+- a Google or Meta permission screen (OAuth "Allow" or "Continue", the account or brand-channel picker inside it), accepting a site's terms, or creating an account or profile;
+- copying or pasting a secret (token, password, one-time code);
+- phone-only actions (pinning Instagram posts; Instagram web has no pin);
+- content decisions (approving Chinni Slokalu or any other video stays the user's), and anything that publishes content: Claude never posts publicly from Chrome.
+
+Everything else (YouTube Studio settings, featured channels, related videos, playlists, Cloud console switches, Apps Script runs, Script properties, following accounts on a profile that exists) is "Chrome work", and Chrome work is never a to-do:
+
+1. If this run has the Chrome tools (ToolSearch `mcp__claude-in-chrome__`), do the Chrome work now and list what changed in the final reply.
+2. Without them (the usual scheduled cloud run), list the Chrome work in the final reply under "Chrome work for a thread", with the channel and exact steps, and add no to-do for it. It does not count toward the caps.
+3. Only a user-only step left over becomes a to-do, written as one line of clicks naming the page ("On threads.com in Chrome, press Join"). A Google sign-in link from `connectYouTube` lasts 10 minutes, so a Claude thread opens it while the user is there; never paste one into a to-do.
+
 ### 4a. Standing checks (they share the cap of 3 new to-dos)
 
-- **Related video, Mondays.** YouTube lets each Short link one related video, only in Studio (there is no API, and the channel needs advanced features turned on). On Monday, for How To Hero, pick this week's best Short by day-7 views (from the weekly card or `channels`) and add one to-do: link it as the related video on the Shorts posted in the last 7 days, with the titles listed. Id `growth-how-to-hero-youtube-related-<YYYY>-w<week>`. Skip it while an older one is still open.
-- **Promotion pack, Thursdays.** Follow `ops/PROMO.md`: one pack for How To Hero's best video of the last 7 days. Add a pack for Anaadi or Chinni Slokalu only in a week when a festival to-do (below) is open for it. Before the first pack, the Threads profile must exist: if no growth to-do with id `growth-how-to-hero-threads-create-profile` is `done`, add that to-do instead ("Create the How To Hero profile on Threads from the Instagram app, same name and bio; mark this done") and write no pack. A pack the user rejects with a note changes the next ones as the note says; two packs archived as stale in a row mean stop writing them and say so in the final reply.
-- **Festival watch, every run.** Anaadi and Chinni Slokalu ride festivals the way How To Hero rides news. Look up the Hindu festivals of the next 14 days on drikpanchang.com (name the page in `sources`; never take a date from memory). Only 3 to 14 days ahead, because a to-do older than 14 days is archived as stale. Chinni Slokalu posts one video at a time, so for a festival it has a fitting video for, in its approved queue or pending review (list `type` video, `data.app` "Chinni Slokalu"), add one to-do: which video, and the slot to give it, 1 to 2 days before the festival. If it has none, the to-do asks the user to approve a card for it instead (name the sloka). Anaadi posts strictly in episode order, so never ask to move an episode: its to-do only suggests a festival line for that week's Threads post or community post, or is skipped when no episode in the window fits. Id `growth-<channel-slug>-festival-<festival-slug>-<YYYY>`. One festival to-do per channel at a time.
-- **Same-genre cross-promotion.** Anaadi and Chinni Slokalu may point to each other; How To Hero and they never do (`ops/PROMO.md`). Never describe Anaadi as a kids' channel: it is Telugu mythology for every age (the user's correction, 26 Nov 2026). While either Telugu channel is under 100 subscribers, the only step worth the user's time is adding the other as a featured channel in YouTube Studio: one to-do, once (id `growth-anaadi-youtube-feature-chinni-slokalu`). Above 100, say in the final reply that a line in each channel's descriptions is now worth adding; that is a code change, not a to-do.
+- **Related video, Mondays.** YouTube lets each Short link one related video, only in Studio (there is no API, and the channel needs advanced features turned on). On Monday, for How To Hero, pick this week's best Short by day-7 views (from the weekly card or `channels`) and set it as the related video on the Shorts posted in the last 7 days. This is Chrome work (4b), not a to-do.
+- **Promotion pack, Thursdays.** Follow `ops/PROMO.md`: one pack for How To Hero's best video of the last 7 days. Add a pack for Anaadi or Chinni Slokalu only in a week when a festival to-do (below) is open for it. Before the first pack, the Threads profile must exist: if no growth to-do with id `growth-how-to-hero-threads-create-profile` is `done`, add that to-do instead (the user's one step: "On threads.com in Chrome press Join using your Meta account howtohero.official, then mark this done", `doneWhen` "threads.com/@howtohero.official exists"; following 10 to 20 science accounts afterwards is Chrome work and does not gate the pack) and write no pack. A pack the user rejects with a note changes the next ones as the note says; two packs archived as stale in a row mean stop writing them and say so in the final reply.
+- **Festival watch, every run.** Anaadi and Chinni Slokalu ride festivals the way How To Hero rides news. Look up the Hindu festivals of the next 14 days on drikpanchang.com (name the page in `sources`; never take a date from memory). Only 3 to 14 days ahead, because a to-do older than 14 days is archived as stale. Chinni Slokalu posts one video at a time, so for a festival it has a fitting video for, in its approved queue or pending review (list `type` video, `data.app` "Chinni Slokalu"), add one to-do: which video, and the slot to give it, 1 to 2 days before the festival. If it has none, the to-do asks the user to approve a card for it instead (name the sloka). Anaadi posts strictly in episode order, so never ask to move an episode: its to-do only suggests a festival line for that week's Threads post or community post, which the user posts, or is skipped when no episode in the window fits. Id `growth-<channel-slug>-festival-<festival-slug>-<YYYY>`. One festival to-do per channel at a time.
+- **Same-genre cross-promotion.** Anaadi and Chinni Slokalu may point to each other; How To Hero and they never do (`ops/PROMO.md`). Never describe Anaadi as a kids' channel: it is Telugu mythology for every age (the user's correction, 26 Nov 2026). While either Telugu channel is under 100 subscribers, the only step worth doing is each featuring the other in YouTube Studio, which is Chrome work (4b). It was done on 26 Nov 2026 (to-do `growth-anaadi-youtube-feature-chinni-slokalu` is done); redo it only if a channel page lost the section. Above 100, say in the final reply that a line in each channel's descriptions is now worth adding; that is a code change, not a to-do.
 
 ### 5. Add them
 
@@ -100,4 +115,4 @@ Follow `.claude/skills/how-to-hero-video/SKILL.md` "Comment replies" for every `
 
 ### 7. Final reply
 
-One short message: how many to-dos were added, closed and archived, the titles of the new ones, how many growth to-dos are open per channel, and how many replies were drafted or skipped as spam.
+One short message: how many to-dos were added, closed and archived, the titles of the new ones, how many growth to-dos are open per channel, and how many replies were drafted or skipped as spam. Then any "Chrome work for a thread" (4b) and code changes a thread should pick up.
