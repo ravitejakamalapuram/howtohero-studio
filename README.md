@@ -17,7 +17,7 @@ The How To Hero video studio. Claude routines find ideas, build vertical explain
    social-manager ─► YouTube, Instagram, Facebook
 ```
 
-- [**inbox**](https://github.com/ravitejakamalapuram/inbox) holds every card (idea, story, video, reply, report), the per-channel config and the Telegram approve/reject buttons. Jobs reach it only through `.claude/skills/how-to-hero-video/inbox.sh` (Claude jobs) and `publisher/publish.py` (Actions).
+- [**inbox**](https://github.com/ravitejakamalapuram/inbox) holds every card (idea, story, video, reply, and the weekly `flow-tune` report), the per-channel config and the Telegram approve/reject buttons. Jobs reach it only through `.claude/skills/how-to-hero-video/inbox.sh` (Claude jobs) and `publisher/publish.py` (Actions).
 - [**social-manager**](https://github.com/ravitejakamalapuram/social-manager) is the posting service. This repo never talks to a platform directly; it calls Social Manager's `publish`, `stats`, `comments` and `reply` actions.
 - **This repo** owns the content rules, the renderer and the publisher.
 
