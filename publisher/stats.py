@@ -5,8 +5,9 @@ The channels come from the Inbox Channel config (action "channelConfig"). Each c
 Social Media Publisher accounts in its stats_from cell, else its post_to cell (platform, or youtube:account), with
 action "stats", and passed to the Inbox (action "channelStats"). Until a row says, How To Hero reads PLATFORMS on the
 main accounts and each serialized channel in platforms/youtube.json reads its own YouTube account. A channel with no
-accounts is skipped, and so is an account the publisher says is not connected yet; any other error fails the run
-after the other channels are done. Running it twice on one day replaces that day's numbers.
+accounts is skipped, and so is another channel's account the publisher says is not connected yet; any other error,
+or How To Hero's own accounts not connected, fails the run after the other channels are done. Other channels only
+read named accounts (youtube:name): the main accounts are How To Hero's. Running it twice on one day replaces that day's numbers.
 Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN.
 """
 import datetime as dt
@@ -60,7 +61,9 @@ def plan():
     for app, c in channels.items():
         if c.get('statsFromError'):
             print(f"{app}: stats_from can't be read ({c['statsFromError']}); using post_to")
-        wanted = c.get('statsFrom') or c.get('postTo')
+        wanted = c.get('statsFrom') or c.get('postTo') or {}
+        if app != APP:  # a main account is How To Hero's: reading it here would file its numbers under another channel
+            wanted = {p: a for p, a in wanted.items() if a}
         if wanted:
             out[app] = wanted
         elif app not in out:
@@ -86,7 +89,7 @@ def main():
                 r = inbox(body)
                 print(f"{name}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
             except Exception as e:  # one account failing should not stop the others
-                if 'not_connected' in str(e):
+                if app != APP and 'not_connected' in str(e):  # How To Hero's own accounts dropping out still fail the run
                     print(f'{name}: skipped, not connected in the Social Media Publisher yet')
                     continue
                 failed += 1
