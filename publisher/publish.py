@@ -696,7 +696,7 @@ def run_channel(app):
         time.sleep(30)
 
     # Instagram and Threads fetch the same copy: remove it once every one of them that posted this run is up.
-    fetchers = [jobs[p] for p in ('instagram', 'threads') if p in jobs]
+    fetchers = [jobs[p] for p in ('instagram', 'threads') if p in jobs and jobs[p].get('id')]  # a platform that never started fetches nothing
     if fetchers and all(j['status'] == 'done' for j in fetchers) and os.environ.get('GITHUB_TOKEN'):
         remove_public_link(f"{item['id']}-instagram.mp4")
     posted = dict(data.get('posted') or {})
