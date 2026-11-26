@@ -341,7 +341,8 @@ def limit(platform, name):
 def fit(text, most, what, unit='chars'):
     """Last resort for text a build wrote too long: cut at the last line break that fits, and say so.
     YouTube counts descriptions in UTF-8 bytes (Telugu takes 3 a letter), so unit='bytes' measures those."""
-    size = (lambda t: len(t.encode())) if unit == 'bytes' else len
+    # 'chars' counts as Social Media Publisher does (JavaScript length: an emoji is 2), so a cut text always passes
+    size = (lambda t: len(t.encode())) if unit == 'bytes' else (lambda t: len(t.encode('utf-16-le')) // 2)
     if size(text) <= most:
         return text
     cut = text
@@ -389,14 +390,14 @@ def post_for(platform, item, data, cache):
             post['coverUrl'] = cover
         return post
     if platform == 'facebook':
-        return {'platform': platform, 'key': key, 'video': video, 'title': title.replace('#shorts', '').strip()[:limit('facebook', 'titleMax')],
+        return {'platform': platform, 'key': key, 'video': video, 'title': fit(title.replace('#shorts', '').strip(), limit('facebook', 'titleMax'), f"{item['id']} Facebook title"),
                 'description': fit(caption, limit('facebook', 'captionMax'), f"{item['id']} Facebook description")}
     if platform == 'linkedin':
         text = '\n'.join(l for l in caption.splitlines() if not l.startswith('Follow @'))
         return {'platform': platform, 'key': key, 'video': video, 'text': text[:3000]}
     if platform == 'youtube':
         yt = CHANNELS[APP].get('youtube') or {}
-        post = {'platform': platform, 'key': key, 'video': video, 'title': title[:limit('youtube', 'titleMax')],
+        post = {'platform': platform, 'key': key, 'video': video, 'title': fit(title, limit('youtube', 'titleMax'), f"{item['id']} YouTube title"),
                 'description': fit(caption, limit('youtube', 'descriptionMaxBytes'), f"{item['id']} YouTube description", 'bytes'),
                 'privacy': 'public', 'categoryId': yt.get('categoryId', 28), 'madeForKids': bool(yt.get('madeForKids', False))}
         for k in ('tags', 'language'):  # optional per-channel defaults, e.g. Chinni Slokalu's tags and Telugu audio
@@ -493,7 +494,7 @@ def run_series(name, group=''):
     meta = (data.get('meta') or {}).get('youtube') or {}
     post = {'action': 'publish', 'platform': 'youtube', 'account': cfg['account'], 'key': f"{item['id']}-youtube",
             'video': {'driveFileId': item['driveId']},
-            'title': (meta.get('title') or item.get('title') or '')[:limit('youtube', 'titleMax')],
+            'title': fit(meta.get('title') or item.get('title') or '', limit('youtube', 'titleMax'), f"{item['id']} YouTube title"),
             'description': fit(meta.get('text') or fallback_text(item, data), limit('youtube', 'descriptionMaxBytes'),
                                f"{item['id']} YouTube description", 'bytes'),
             'privacy': 'private', 'publishAt': at.isoformat(), 'categoryId': cfg['categoryId'],
