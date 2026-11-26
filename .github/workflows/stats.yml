@@ -3,7 +3,9 @@
 name: stats
 on:
   schedule:
-    - cron: '23 1 * * *'  # about 06:53 IST
+    # The Inbox timer starts this at 06:53 IST (JOBS in publisher/stats.py). This schedule stays as a fallback: it runs
+    # hours late, a second run only refreshes the day's numbers, and it sends the Inbox its job list again if that is lost.
+    - cron: '23 1 * * *'
   workflow_dispatch:
 jobs:
   stats:
