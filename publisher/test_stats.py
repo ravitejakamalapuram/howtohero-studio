@@ -24,6 +24,10 @@ class Aged(unittest.TestCase):
         self.assertEqual(m7['watch']['day'], 7)
         self.assertIsNone(aged(m7, 20, dict(post, skipRate=40)))
 
+    def test_a_number_missing_at_day_7_keeps_its_day_2_value(self):
+        m = aged({'d2': 5, 'watch': {'skipRate': 61.5, 'shares': 4, 'day': 2}}, 7, {'views': 9, 'shares': 6})
+        self.assertEqual(m['watch'], {'skipRate': 61.5, 'shares': 6, 'day': 7})
+
     def test_a_platform_without_watch_numbers_stores_none(self):
         self.assertEqual(aged({}, 7, {'views': 10, 'skipRate': None}), {'d2': 10, 'd7': 10})
 

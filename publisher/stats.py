@@ -45,7 +45,7 @@ def aged(m, age, post):
     watch = {k: post[k] for k in WATCH if post.get(k) is not None}
     day = 7 if age >= 7 else 2 if age >= 2 else 0
     if watch and day > (m.get('watch') or {}).get('day', 0):
-        m['watch'] = dict(watch, day=day)
+        m['watch'] = dict(m.get('watch') or {}, **watch, day=day)  # a number missing at day 7 keeps its day-2 value
         changed = True
     return m if changed else None
 
