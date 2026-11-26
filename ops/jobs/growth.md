@@ -51,7 +51,7 @@ Call the Inbox with `I=.claude/skills/how-to-hero-video/inbox.sh; $I call '<json
 
 For each open growth to-do (status `pending`):
 
-- If its `data.doneWhen` can be checked from step 1 (for example "How To Hero Instagram followers at least 150" or "Chitti Slokalu has 0 cards pending"), and it is now true, set it `done` with `note` "done: <what you saw>".
+- If its `data.doneWhen` can be checked from step 1 (for example "How To Hero Instagram followers at least 150" or "Chinni Slokalu has 0 cards pending"), and it is now true, set it `done` with `note` "done: <what you saw>".
 - If its `createdAt` is more than 14 days ago, set it `archived` with `note` "stale: not picked up in 14 days".
 - If a newer to-do replaces it (step 4, at most one a run), set it `archived` with `note` "replaced by <new title>".
 
