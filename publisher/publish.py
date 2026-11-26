@@ -85,11 +85,11 @@ def when(item):
 
 
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
-DAILY_SLOT = dt.time(19, 30)  # where a video without a slot goes: the next day nobody else has
+DAILY_SLOT = '19:30'  # where a video without a slot goes: the next day nobody else has (a channel's "time" wins)
 
 
 def slot_unslotted(items):
-    """Give every approved non-news video that has no slot the next free day at 19:30 IST, and save it on the
+    """Give every approved non-news video that has no slot the next free day at its channel's time (IST), and save it on the
     Inbox card, so it waits its turn like the rest instead of posting at the very next run."""
     todo = [i for i in items if when(i) is None and not is_news(i)]
     if not todo or POST_NOW or DRY:
@@ -104,7 +104,8 @@ def slot_unslotted(items):
         day += dt.timedelta(days=1)
         while day in taken:
             day += dt.timedelta(days=1)
-        i['slot'] = dt.datetime.combine(day, DAILY_SLOT, IST).isoformat()
+        at = dt.time.fromisoformat(CHANNELS[APP].get('time') or DAILY_SLOT)
+        i['slot'] = dt.datetime.combine(day, at, IST).isoformat()
         try:
             fresh = inbox({'action': 'get', 'id': i['id']})['item']
             inbox({'action': 'update', 'id': i['id'], 'ifVersion': fresh['version'], 'set': {'slot': i['slot']}})

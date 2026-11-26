@@ -1,11 +1,12 @@
 {
-  "_about": "The channels this publisher posts one video at a time, by their Inbox app name (data.app). An approved video whose app is not listed here (and is not a serialized channel in platforms/youtube.json) is never posted. Where each channel posts comes from post_to in the Inbox Channel config; only the default channel falls back to PLATFORMS when that is empty. follow ends the caption when a card has none of its own; youtube holds that channel's upload settings.",
+  "_about": "The channels this publisher posts one video at a time, by their Inbox app name (data.app). An approved video whose app is not listed here (and is not a serialized channel in platforms/youtube.json) is never posted. Where each channel posts comes from post_to in the Inbox Channel config; only the default channel falls back to PLATFORMS when that is empty. follow ends the caption when a card has none of its own; youtube holds that channel's upload settings. time (IST, HH:MM) is when its videos go out each day; without it, 19:30.",
   "How To Hero": {
     "default": true,
     "follow": "Follow @howtohero.official #shorts",
     "youtube": {"categoryId": 28, "madeForKids": false}
   },
   "Chinni Slokalu": {
+    "time": "18:30",
     "follow": "Follow @chinnislokalu for a new sloka every day 🪔",
     "youtube": {"categoryId": 27, "madeForKids": false}
   }
