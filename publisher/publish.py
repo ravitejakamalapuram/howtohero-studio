@@ -559,6 +559,98 @@ def run_series(name, group=''):
     return 1 if job['status'] == 'failed' else 0
 
 
+IG_SERIES = {k: v for k, v in RULES.get('instagram', {}).get('channels', {}).items() if not k.startswith('_')}
+
+
+def ig_series_caption(item, data, cfg):
+    """An episode's Instagram caption: data.meta.instagram.text, else its YouTube title and description, then the
+    channel's follow line. Hashtags beyond Instagram's limit are cut (with a warning), never the story."""
+    meta = (data.get('meta') or {}) if isinstance(data.get('meta'), dict) else {}
+    ig, yt = meta.get('instagram') or {}, meta.get('youtube') or {}
+    if ig.get('text'):
+        text = ig['text'].strip()
+    else:
+        title = re.sub(r'\s*#shorts\b', '', yt.get('title') or item.get('title') or '', flags=re.I).strip()
+        body = '\n'.join(l for l in (yt.get('text') or '').splitlines() if 'http' not in l)  # links don't open on Instagram
+        text = '\n\n'.join(t for t in (title, body.strip()) if t)
+    if cfg.get('follow') and cfg['follow'] not in text:
+        text += '\n\n' + cfg['follow']
+    what = f"{item['id']} Instagram caption"
+    return fit(cap_hashtags(text, limit('instagram', 'hashtagsMax'), what), limit('instagram', 'captionMax'), what)
+
+
+def ig_series_due(posts, cfg, now):
+    """True when a new Instagram post is due: the latest of the channel's timesIST that has passed is later than
+    its last Instagram post (posts: the datetimes of earlier ones)."""
+    ist_now = now.astimezone(IST)
+    slots = [dt.datetime.combine(ist_now.date() - dt.timedelta(days=d), dt.time.fromisoformat(t), IST)
+             for d in (0, 1) for t in cfg['timesIST']]
+    slot = max(s for s in slots if s <= ist_now)
+    return not posts or max(posts) < slot
+
+
+def run_ig_series(name):
+    """Posts the oldest episode of a serialized channel that is live on YouTube but not yet on Instagram, when one of
+    the channel's Instagram times has passed since its last Instagram post. Returns 1 on a failed post."""
+    cfg = IG_SERIES[name]
+    now = dt.datetime.now(dt.timezone.utc)
+    every = [i for i in inbox({'action': 'list', 'status': 'posted', 'type': 'video', 'limit': 1000})['items']
+             if series_name(i) == name]
+    done = [dt.datetime.fromisoformat(i['data']['igPostedAt']) for i in every if (i.get('data') or {}).get('igPostedAt')]
+    live = [i for i in every if i.get('driveId') and not ((i['data'].get('posted') or {}).get('instagram'))
+            and i['data'].get('publishAt') and dt.datetime.fromisoformat(i['data']['publishAt']) <= now]
+    if not live:
+        print(f'{name} instagram: nothing new on YouTube to post')
+        return 0
+    item = min(live, key=lambda i: dt.datetime.fromisoformat(i['data']['publishAt']))
+    if not ig_series_due(done, cfg, now):
+        print(f"{name} instagram: next is {item['id']}, waiting for the next of {', '.join(cfg['timesIST'])} IST")
+        return 0
+    try:
+        social({'action': 'channel', 'platform': 'instagram', 'account': cfg['account']})
+    except RuntimeError as e:  # not connected yet is a setup step, not a failed run
+        print(f"{name} instagram: account {cfg['account']} not usable ({e}); {len(live)} episodes wait")
+        return 0
+    data = dict(item['data'])
+    key = f"{item['id']}-instagram-link-{cfg['account']}"
+    print(f"{name} instagram: posting {item['id']} to account {cfg['account']}; {len(live) - 1} more waiting")
+    if DRY:
+        print(ig_series_caption(item, data, cfg))
+        return 0
+    post = {'action': 'publish', 'platform': 'instagram', 'account': cfg['account'], 'key': key,
+            'caption': ig_series_caption(item, data, cfg)}
+    if job_exists(key):  # a job from an earlier run carries on with the video it has
+        post['video'] = {'driveFileId': data.get('igDriveId') or item['driveId']}
+    else:
+        post['video'] = instagram_video(item, data)
+        cover = instagram_cover(item, data)
+        if cover:
+            post['coverUrl'] = cover
+    job = social(post)['job']
+    deadline = time.time() + WAIT_SECONDS
+    while job['status'] in ('queued', 'running') and time.time() < deadline:
+        time.sleep(20)
+        job = social({'action': 'get', 'id': job['id']})['job']
+    fresh = inbox({'action': 'get', 'id': item['id']})['item']
+    data = dict(fresh['data'], **({'igDriveId': data['igDriveId']} if data.get('igDriveId') else {}))
+    if job['status'] == 'done':
+        remove_public_link(f"{item['id']}-instagram.mp4")
+        url = (job.get('result') or {}).get('url')
+        inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {
+            'data': dict(data, posted=dict(data.get('posted') or {}, instagram=url), igPostedAt=now.isoformat())}})
+        print(f'{name} instagram: posted {url}')
+        return 0
+    fails = int(data.get('igFails', 0)) + (job['status'] == 'failed')
+    inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {
+        'data': dict(data, igFails=fails), 'note': f"Publisher: Instagram {job['status']}: {job.get('error') or 'still running'}"}})
+    if fails >= MAX_RUNS:
+        alert(f"alert-{item['id']}-instagram-{fails}", f"{name}: episode {episode_of(item)} will not post on Instagram",
+              f"Instagram failed {fails} runs in a row: {job.get('error')}. Later episodes wait until it goes out.")
+    if job['status'] == 'failed' and job.get('id'):
+        social({'action': 'retry', 'id': job['id']})
+    return 1 if job['status'] == 'failed' else 0
+
+
 LATE_HOURS = 3  # a video still unposted this long after its slot means publish runs were missed
 
 
@@ -608,6 +700,12 @@ def run():
                 except (RuntimeError, OSError, KeyError, ValueError) as e:  # never let it stop How To Hero's post
                     print(f'{name}/{group}: {e}')
                     series_failed = 1
+        for name in IG_SERIES:
+            try:
+                series_failed |= run_ig_series(name)
+            except (RuntimeError, OSError, KeyError, ValueError) as e:  # never let it stop another channel's post
+                print(f'{name} instagram: {e}')
+                series_failed = 1
     failed = series_failed
     for app in CHANNELS:
         try:
