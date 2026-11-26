@@ -15,7 +15,7 @@ An honest expectation: a new account with no followers reaches almost nobody on 
 | Chinni Slokalu | Yes (for parents) | No | No |
 | The Last Signal | Not until it posts regularly | No | No |
 
-Cross-promotion between our own channels only when the genre matches: Anaadi and Chinni Slokalu may mention each other (Telugu, devotional, family). How To Hero never promotes them and they never promote it: a viewer who follows for engineering and gets a sloka unfollows, and the platforms read that as a bad recommendation.
+Cross-promotion between our own channels only when the genre matches: Anaadi and Chinni Slokalu may mention each other, because both are Telugu and devotional. They are not the same audience, so word each one as what it is: Anaadi is mythology told in Telugu for every age, never "for kids"; Chinni Slokalu is slokas for children and their parents. On Chinni Slokalu, Anaadi is offered to the parents ("Mythology stories in Telugu"); on Anaadi, Chinni Slokalu is offered as "slokas for the children at home". How To Hero never promotes them and they never promote it: a viewer who follows for engineering and gets a sloka unfollows, and the platforms read that as a bad recommendation.
 
 ## Rules per platform
 
