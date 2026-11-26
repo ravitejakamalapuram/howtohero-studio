@@ -1,6 +1,6 @@
 # Daily scout: propose news and ideas, build nothing
 
-One run a day. It only adds cards to the Inbox for the user to approve or reject on Telegram; the build run (`SKILL.md` "Build run") makes the videos later. Building nothing keeps this run cheap. Read the numbers from `flow.json` next to this file (`scout`). What makes a good idea, the kinds of video and the daily mix are in `IDEAS.md`; follow it. Call the Inbox only through `inbox.sh`; never print the Inbox URL, the token or an upload link. If the first Inbox call is refused (for example by a permission check) or fails twice, stop and say so.
+One run a day. It only adds cards to the Inbox for the user to approve or reject on Telegram (one news story a day goes in already approved, see "Fast lane" in step 1); the build run (`SKILL.md` "Build run") makes the videos later. Building nothing keeps this run cheap. Read the numbers from `flow.json` next to this file (`scout`). What makes a good idea, the kinds of video and the daily mix are in `IDEAS.md`; follow it. Call the Inbox only through `inbox.sh`; never print the Inbox URL, the token or an upload link. If the first Inbox call is refused (for example by a permission check) or fails twice, stop and say so.
 
 Two card types, never mixed up:
 - `story` = a news card (`source` "news"). Approving it means "build this news video".
@@ -19,13 +19,15 @@ News goes stale, so do it before ideas. Find stories with `NEWS.md` "Finding sto
 
 For lane A also set `"note":"Trending: approve today, it goes stale."`. A `conflict` error means it already exists: skip it.
 
+Fast lane: news lost about 40 hours between the card and the post (26 videos measured on 26 Nov 2026), most of it waiting for two approvals. So the best `scout.fastLane` stories of the run (1; 0 turns it off) skip the first one. Take them in rank order, lane A first, and only a story the advisor (step 3) passed with no open FACTS point. Add each with `"status":"approved"` instead of `"pending"` and `"note":"Fast lane: built today without waiting for your OK. You approve the finished video."`, and set `data.fastLane` true. The build run claims approved stories first, so it is built the same morning, and the user still approves the video before anything is posted. If no story qualifies, use no fast lane that day. Say which story took it in the final reply.
+
 ## 2. Then ideas
 
 Read `IDEAS.md` first: it defines the idea kinds (`explainer`, `fact`, `curiosity`, `doc`), the quality bar every card must pass, the daily mix and the card fields. Read `platforms/*.json` (repo root) for the length limits it refers to.
 
 Viewer questions: list viewer comments tagged `question` or `idea` from the last 30 days: `inbox.sh call '{"action":"list","type":"reply","limit":200}'` and keep those whose `data.tag` is `question` or `idea`. When the same question or topic appears twice or more and no card covers it (dupcheck), propose it as an idea card with `"why":"asked by <n> viewers"`.
 
-What is working: read the newest weekly report, `inbox.sh call '{"action":"list","type":"flow-tune","limit":5}'` (the card with the latest id; its `summary` ranks `kind`, `hookPattern` and `length` by day-7 views). Where it ranks a value ahead with enough videos, lean this run toward it: more cards of the winning `kind` within the `scout.mix` limits, and hooks written in the winning pattern. Never drop a kind to zero, and ignore values it marks "not enough data". With no report yet, skip this.
+What is working: read the newest weekly report, `inbox.sh call '{"action":"list","type":"flow-tune","limit":5}'` (the card with the latest id; its `summary` ranks `kind`, `hookPattern` and `length` by day-7 views, and the hook and opening shapes of `HOOKS.md` by how many viewers stayed). Where it ranks a value ahead with enough videos, lean this run toward it: more cards of the winning `kind` within the `scout.mix` limits, and hooks written in the winning pattern. Never drop a kind to zero, and ignore values it marks "not enough data". With no report yet, skip this.
 
 Count the backlog: `inbox.sh call '{"action":"list","type":"idea","status":"pending,approved","limit":1000}'` and count pending and approved separately. Apply the backlog rule in `IDEAS.md` "The daily mix" to decide how many idea cards to propose this run, then fill each kind of `scout.mix` with the best cards that pass the bar. Draft the ideas, don't add them yet. For each, run `dupcheck.py "<topic>"` and drop the idea on a DUPLICATE, or when a CHECK item already covers the same subject (a plain `list` sees only 100 items, so don't rely on it). Each is added later as:
 

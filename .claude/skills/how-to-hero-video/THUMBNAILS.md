@@ -10,7 +10,7 @@ unless the user asks). The build makes it; the publisher sends it to each platfo
   part that grows with the library). `thumbnails.set` works on Shorts (tested 19 Nov 2026, see platforms/youtube.json).
 - **YouTube long-form (documentaries):** the thumbnail is most of the click decision. Give every doc one.
 - **Instagram Reels:** the cover shows on the profile grid (cropped to 3:4) and the Reels tab: sent as `coverUrl`.
-- **Facebook Reels:** no thumbnail in the Reels API; Facebook picks a frame.
+- **Facebook Reels:** the publisher sets the thumbnail as the Reel's cover after upload (`thumbnail`); if Facebook refuses it, Facebook picks a frame.
 - The first frame still matters more for Shorts and Reels: it is what the feed shows. Thumbnails don't replace the hook.
 
 ## What works (study, 19 Nov 2026)

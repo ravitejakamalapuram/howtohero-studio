@@ -367,6 +367,25 @@ def cap_hashtags(text, most, what):
     return out
 
 
+def first_comment(platform, data):
+    """The channel's own first comment under the post: the card's data.pin question. None when there is none, or on
+    Instagram when it holds a hashtag (Social Media Publisher refuses the whole post then, by the same test:
+    Instagram counts those with the caption toward its limit of 5)."""
+    pin = (data.get('pin') or '').strip() if isinstance(data.get('pin'), str) else ''
+    if not pin or (platform == 'instagram' and re.search(r'(?<!\S)#[^\s#]+', pin)):
+        return None
+    return fit(pin, 2000, f'{platform} first comment')
+
+
+def playlist_for(item, data):
+    """The YouTube playlist a video joins: the card's data.playlist, else the channel's playlist for its kind
+    (channels.json youtube.playlists: {"news": ..., "default": ...}). None for a channel without playlists."""
+    lists = (CHANNELS[APP].get('youtube') or {}).get('playlists') or {}
+    if isinstance(data.get('playlist'), str) and data['playlist'].strip():
+        return data['playlist'].strip()
+    return lists.get('news' if is_news(item) else data.get('kind')) or lists.get('default')
+
+
 def post_for(platform, item, data, cache):
     # data.meta.<platform> (written by the build from platforms/<platform>.json "metadata") wins over the shared yt/ig text
     meta = ((data.get('meta') or {}).get(platform) or {}) if isinstance(data.get('meta'), dict) else {}
@@ -388,10 +407,15 @@ def post_for(platform, item, data, cache):
         cover = None if job_exists(key) else instagram_cover(item, data)
         if cover:
             post['coverUrl'] = cover
+        if first_comment(platform, data):  # a refused comment is only a warning on the job
+            post['firstComment'] = first_comment(platform, data)
         return post
     if platform == 'facebook':
-        return {'platform': platform, 'key': key, 'video': video, 'title': fit(title.replace('#shorts', '').strip(), limit('facebook', 'titleMax'), f"{item['id']} Facebook title"),
+        post = {'platform': platform, 'key': key, 'video': video, 'title': fit(title.replace('#shorts', '').strip(), limit('facebook', 'titleMax'), f"{item['id']} Facebook title"),
                 'description': fit(caption, limit('facebook', 'captionMax'), f"{item['id']} Facebook description")}
+        if data.get('thumb'):  # the Reel's cover; a refused one is only a warning on the job
+            post['thumbnail'] = {'driveFileId': data['thumb']}
+        return post
     if platform == 'linkedin':
         text = '\n'.join(l for l in caption.splitlines() if not l.startswith('Follow @'))
         return {'platform': platform, 'key': key, 'video': video, 'text': text[:3000]}
@@ -405,6 +429,10 @@ def post_for(platform, item, data, cache):
                 post[k] = yt[k]
         if data.get('thumb'):  # custom thumbnail (pipeline2/thumb.mjs); a refused one is only a warning on the job
             post['thumbnail'] = {'driveFileId': data['thumb']}
+        if first_comment(platform, data):  # the video goes up public, so it can take a comment at once
+            post['firstComment'] = first_comment(platform, data)
+        if playlist_for(item, data):  # Social Media Publisher makes it on first use; a failure is only a warning
+            post['playlists'] = [playlist_for(item, data)]
         return post
     raise ValueError(platform)
 

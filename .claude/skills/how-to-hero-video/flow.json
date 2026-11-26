@@ -4,6 +4,7 @@
   "scout": {
     "newsMin": 3,
     "newsMax": 10,
+    "fastLane": 1,
     "newsWindowHours": 48,
     "newsWindowWeekendHours": 72,
     "weekFallbackDays": 7,
@@ -30,6 +31,22 @@
     "paused": false,
     "budgetMinutes": 300,
     "maxQueueDays": 14
+  },
+  "parts": {
+    "_about": "The opening and ending parts of a video (HOOKS.md says what each value is). pipeline2/pickparts.mjs gives about trialShare of the videos a trial value for one part (the hook twice as often as the others) and every other part its default, so the weekly report can compare them. To make a winner the default, swap the names here.",
+    "trialShare": 0.5,
+    "hook": {
+      "default": "claim",
+      "trial": ["open-loop", "number", "contrast"]
+    },
+    "opening": {
+      "default": "big-subject",
+      "trial": ["in-motion", "before-after"]
+    },
+    "endCard": {
+      "default": "follow",
+      "trial": ["send", "question"]
+    }
   },
   "style": {
     "trialShare": 0.2,

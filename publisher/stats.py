@@ -29,14 +29,17 @@ TIMES = sorted({t for r in RULES.values() for t in r.get('postTimesIST', [])}
 JOBS = [{'workflow': 'stats.yml', 'time': '06:53'}, {'workflow': 'learn.yml', 'time': '09:11', 'day': 'mon'}]
 
 
-WATCH = ('skipRate', 'avgWatchTime', 'shares', 'saves')  # how a Reel was watched, as Social Media Publisher returns it
+# How a video was watched, as Social Media Publisher returns it: Instagram's skip rate, watch time, shares and saves,
+# and YouTube's engaged views (the ones that kept playing; the only Shorts views the Partner Programme counts).
+WATCH = ('skipRate', 'avgWatchTime', 'shares', 'saves', 'engagedViews')
 
 
 def aged(m, age, post):
     """One platform's stored numbers for a video (data.metrics.<platform>) after today's reading, or None when
     nothing new is due. Views are kept once at day 2 and once at day 7. The watch numbers (WATCH: the share that
-    left in the first 3 seconds, average watch time, shares and saves; Instagram only today) are kept as
-    m['watch'] with the day they were read: at day 2 for an early look, replaced once at day 7."""
+    left in the first 3 seconds, average watch time, shares and saves on Instagram; engaged views on YouTube) are
+    kept as m['watch'] with the day they were read and the views at that reading (so a share of views can be worked
+    out): at day 2 for an early look, replaced once at day 7 by a reading that is at least as complete."""
     m, changed = dict(m or {}), False
     for day in (2, 7):
         if age >= day and f'd{day}' not in m and post.get('views') is not None:
@@ -44,8 +47,11 @@ def aged(m, age, post):
             changed = True
     watch = {k: post[k] for k in WATCH if post.get(k) is not None}
     day = 7 if age >= 7 else 2 if age >= 2 else 0
-    if watch and day > (m.get('watch') or {}).get('day', 0):
-        m['watch'] = dict(m.get('watch') or {}, **watch, day=day)  # a number missing at day 7 keeps its day-2 value
+    old = m.get('watch') or {}
+    # One reading is kept whole, so its numbers and its views belong together: the day-7 reading replaces the
+    # day-2 one only when it has every number that one had (a refused metric at day 7 keeps the day-2 reading).
+    if watch and day > old.get('day', 0) and all(k in watch for k in WATCH if k in old):
+        m['watch'] = dict(watch, day=day, **({'views': post['views']} if post.get('views') is not None else {}))
         changed = True
     return m if changed else None
 
