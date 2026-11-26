@@ -51,7 +51,9 @@ TASKS = {
         "Check every factual claim, number and date against a source. Then reply:\n"
         "FACTS: OK, or one line per problem: <beat number> | <what is wrong> | <correct wording> | <source URL>\n"
         "HOOK: OK, or a better 2-line hook (max 22 chars per line) and why\n"
-        "SCRIPT: OK, or at most 3 concrete fixes (beat number + new wording) for clarity or retention\n"
+        "SCRIPT: OK, or at most 3 concrete fixes (beat number + new wording) for clarity or retention. "
+        "Always fix a first line that opens with who found it or when (\"Scientists found\", a date), "
+        "a news-label topic (\"SPACE NEWS:\"), and beats about how it was measured that add no surprise.\n"
         "VERDICT: RENDER, or FIX (apply the fixes above, then render), or STOP (the core claim is wrong)."
     ),
 }
