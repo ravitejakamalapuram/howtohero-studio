@@ -112,6 +112,15 @@ def monetisation():
             f'{views:,} channel views (3M Shorts views in 90 days for the lower tier, 10M for ads).')
 
 
+def instagram():
+    """One line on Instagram followers against the growth plan's goal of 500 (the 12-week plan that starts 30 Nov 2026)."""
+    try:
+        n = social({'action': 'stats', 'platform': 'instagram', 'limit': 1}).get('followers')
+    except Exception as e:  # the rest of the report still goes out
+        return f'Instagram: numbers not available ({e}).'
+    return 'Instagram: follower count hidden.' if n is None else f'Instagram: {n:,} followers (plan goal 500).'
+
+
 def main():
     flow = json.load(open(FLOW))
     if apply_approved(flow) and not DRY:
@@ -130,6 +139,7 @@ def main():
         else:
             lines.append(f"{lever}: not enough data yet ({15 if lever == 'length' else MIN_N} videos per value)")
     lines.append(monetisation())
+    lines.append(instagram())
     new = {s: w for s, w in proposal(flow, t).items() if w != flow['style']['kits'][s]['weight']}
     if new:
         lines.append('Proposed style weights: ' + ', '.join(f"{s} {flow['style']['kits'][s]['weight']} -> {w}" for s, w in new.items()) +
