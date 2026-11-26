@@ -29,27 +29,44 @@ TIMES = sorted({t for r in RULES.values() for t in r.get('postTimesIST', [])}
 JOBS = [{'workflow': 'stats.yml', 'time': '06:53'}, {'workflow': 'learn.yml', 'time': '09:11', 'day': 'mon'}]
 
 
-def snapshot(views):
-    """Stores each posted video's views at day 2 and day 7 in data.metrics.<platform>.{d2,d7}, once, so the weekly
-    learn.py compares every video at the same age. views: {post url: (views, posted at)}."""
+WATCH = ('skipRate', 'avgWatchTime', 'shares', 'saves')  # how a Reel was watched, as Social Media Publisher returns it
+
+
+def aged(m, age, post):
+    """One platform's stored numbers for a video (data.metrics.<platform>) after today's reading, or None when
+    nothing new is due. Views are kept once at day 2 and once at day 7. The watch numbers (WATCH: the share that
+    left in the first 3 seconds, average watch time, shares and saves; Instagram only today) are kept as
+    m['watch'] with the day they were read: at day 2 for an early look, replaced once at day 7."""
+    m, changed = dict(m or {}), False
+    for day in (2, 7):
+        if age >= day and f'd{day}' not in m and post.get('views') is not None:
+            m[f'd{day}'] = post['views']
+            changed = True
+    watch = {k: post[k] for k in WATCH if post.get(k) is not None}
+    day = 7 if age >= 7 else 2 if age >= 2 else 0
+    if watch and day > (m.get('watch') or {}).get('day', 0):
+        m['watch'] = dict(m.get('watch') or {}, **watch, day=day)  # a number missing at day 7 keeps its day-2 value
+        changed = True
+    return m if changed else None
+
+
+def snapshot(posts):
+    """Stores each posted video's numbers at day 2 and day 7 in data.metrics.<platform> (see aged), so the weekly
+    learn.py compares every video at the same age. posts: {post url: that post from Social Media Publisher's stats}."""
     now = dt.datetime.now(dt.timezone.utc)
     for item in inbox({'action': 'list', 'type': 'video', 'status': 'posted', 'limit': 1000})['items']:
         data = item.get('data') if isinstance(item.get('data'), dict) else {}
         metrics, changed = dict(data.get('metrics') or {}), False
         for platform, url in (data.get('posted') or {}).items():
-            if url not in views:
+            if url not in posts:
                 continue
-            v, at = views[url]
             try:
-                age = (now - dt.datetime.fromisoformat(str(at).replace('Z', '+00:00'))).days
+                age = (now - dt.datetime.fromisoformat(str(posts[url].get('at')).replace('Z', '+00:00'))).days
             except ValueError:
                 continue
-            m = dict(metrics.get(platform) or {})
-            for day in (2, 7):
-                if age >= day and f'd{day}' not in m and v is not None:
-                    m[f'd{day}'] = v
-                    changed = True
-            metrics[platform] = m
+            m = aged(metrics.get(platform), age, posts[url])
+            if m:
+                metrics[platform], changed = m, True
         if changed:
             inbox({'action': 'update', 'id': item['id'], 'ifVersion': item['version'], 'set': {'data': dict(data, metrics=metrics)}})
 
@@ -77,13 +94,13 @@ def plan():
 
 
 def main():
-    failed, views = 0, {}
+    failed, posts = 0, {}
     for app, accounts in plan().items():
         for p, account in accounts.items():
             name = f"{app} {p}" + (f':{account}' if account else '')
             try:
                 s = social(dict({'action': 'stats', 'platform': p, 'limit': 50}, **({'account': account} if account else {})))
-                views.update({x['url']: (x.get('views'), x.get('at')) for x in s.get('posts', []) if x.get('url')})
+                posts.update({x['url']: x for x in s.get('posts', []) if x.get('url')})
                 body = {'action': 'channelStats', 'app': app, 'platform': p, 'followers': s.get('followers'), 'posts': s.get('posts', [])}
                 if app == APP:
                     body['sources'] = SOURCES
@@ -101,7 +118,7 @@ def main():
                 failed += 1
                 print(f'{name} FAILED: {e}')
     try:
-        snapshot(views)
+        snapshot(posts)
     except Exception as e:  # the daily numbers above are already sent
         failed += 1
         print(f'day 2 / day 7 snapshot FAILED: {e}')
