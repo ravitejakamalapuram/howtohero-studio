@@ -8,8 +8,8 @@
     "21:00"
   ],
   "metadata": {
-    "title": "At most 70 characters (YouTube allows 100): the claim first with the searchable noun in it, ending in \" #shorts\". No \"in 60 Seconds\".",
-    "text": "2-3 plain sentences: what the video shows and one extra fact, then \"Sources: <names>\", then 3 hashtags. No @handles (they are Instagram handles)."
+    "title": "At most 70 characters (YouTube allows 100): the claim first with the main noun of the card's `search` phrase in it, ending in \" #shorts\". No \"in 60 Seconds\".",
+    "text": "2-3 plain sentences, the first holding the card's `search` phrase (How To Hero cards; verbatim when it reads as a clause, like \"why is the sea salty\", otherwise all its words in natural order): what the video shows and one extra fact, then \"Sources: <names>\", then 3 hashtags. No @handles (they are Instagram handles)."
   },
   "notes": [
     "Shorts up to 3 minutes; documentaries are 16:9 long-form and are never cut.",
