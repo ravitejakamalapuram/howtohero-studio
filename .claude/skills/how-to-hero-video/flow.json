@@ -28,7 +28,8 @@
     "claimTtlMinutes": 180,
     "maxVersionsPerRun": 6,
     "paused": false,
-    "budgetMinutes": 90
+    "budgetMinutes": 90,
+    "maxQueueDays": 14
   },
   "style": {
     "trialShare": 0.2,

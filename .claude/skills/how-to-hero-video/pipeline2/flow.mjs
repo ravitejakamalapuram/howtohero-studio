@@ -41,9 +41,10 @@ export function flowErrors(flow) {
   }
   if (flow.fix !== undefined && obj(flow.fix, 'fix')) { known(flow.fix, ['maxFixes', 'maxPerRun'], 'fix'); num(flow.fix.maxFixes, 'fix.maxFixes', 0, 10); num(flow.fix.maxPerRun, 'fix.maxPerRun', 0, 20); }
   if (obj(flow.build, 'build')) {
-    known(flow.build, ['maxPerRun', 'claimTtlMinutes', 'maxVersionsPerRun', 'paused', 'budgetMinutes'], 'build');
+    known(flow.build, ['maxPerRun', 'claimTtlMinutes', 'maxVersionsPerRun', 'paused', 'budgetMinutes', 'maxQueueDays'], 'build');
     num(flow.build.maxPerRun, 'build.maxPerRun', 0, 50); num(flow.build.claimTtlMinutes, 'build.claimTtlMinutes', 10);
     num(flow.build.maxVersionsPerRun, 'build.maxVersionsPerRun', 0, 50); num(flow.build.budgetMinutes, 'build.budgetMinutes', 10, 600);
+    if (flow.build.maxQueueDays !== undefined) num(flow.build.maxQueueDays, 'build.maxQueueDays', 1, 365);
     if (typeof flow.build.paused !== 'boolean') e.push('build.paused must be true or false');
   }
   if (obj(flow.style, 'style')) {
