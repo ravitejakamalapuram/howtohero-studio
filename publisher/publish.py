@@ -618,6 +618,23 @@ def ig_series_due(posts, cfg, now):
     return not posts or max(posts) < slot
 
 
+def ig_series_ready(item, now):
+    d = item.get('data') or {}
+    return bool(item.get('driveId') and d.get('publishAt') and dt.datetime.fromisoformat(d['publishAt']) <= now)
+
+
+def ig_series_next(items, now):
+    """The episode Instagram must post next: the lowest episode not on Instagram yet, ready or not, so episodes
+    always go out in order, even after a failure. Returns it and the ready episodes still waiting (for counts)."""
+    left = [i for i in items if not (((i.get('data') or {}).get('posted') or {}).get('instagram'))]
+    if not left:
+        return None, []
+    far = dt.datetime.max.replace(tzinfo=dt.timezone.utc)
+    key = lambda i: (episode_of(i) if episode_of(i) is not None else 10 ** 9,
+                     dt.datetime.fromisoformat(i['data']['publishAt']) if (i.get('data') or {}).get('publishAt') else far)
+    return min(left, key=key), [i for i in left if ig_series_ready(i, now)]
+
+
 def run_ig_series(name):
     """Posts the oldest episode of a serialized channel that is live on YouTube but not yet on Instagram, when one of
     the channel's Instagram times has passed since its last Instagram post. Returns 1 on a failed post."""
@@ -626,12 +643,13 @@ def run_ig_series(name):
     every = [i for i in inbox({'action': 'list', 'status': 'posted', 'type': 'video', 'limit': 1000})['items']
              if series_name(i) == name]
     done = [dt.datetime.fromisoformat(i['data']['igPostedAt']) for i in every if (i.get('data') or {}).get('igPostedAt')]
-    live = [i for i in every if i.get('driveId') and not ((i['data'].get('posted') or {}).get('instagram'))
-            and i['data'].get('publishAt') and dt.datetime.fromisoformat(i['data']['publishAt']) <= now]
-    if not live:
+    item, live = ig_series_next(every, now)
+    if not item:
         print(f'{name} instagram: nothing new on YouTube to post')
         return 0
-    item = min(live, key=lambda i: dt.datetime.fromisoformat(i['data']['publishAt']))
+    if not ig_series_ready(item, now):  # strict order: a later episode never goes out before this one
+        print(f"{name} instagram: episode {episode_of(item)} is next and not live on YouTube yet; later ones wait")
+        return 0
     if not ig_series_due(done, cfg, now):
         print(f"{name} instagram: next is {item['id']}, waiting for the next of {', '.join(cfg['timesIST'])} IST")
         return 0

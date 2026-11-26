@@ -137,6 +137,21 @@ class InstagramSeries(unittest.TestCase):
         data = {'meta': {'instagram': {'text': 'Own caption'}, 'youtube': {'title': 'x', 'text': 'y'}}}
         self.assertEqual(publish.ig_series_caption({'id': 'v', 'title': 't'}, data, self.CFG), 'Own caption\n\nFollow @anaadikatha')
 
+    def test_episodes_go_out_in_order(self):
+        now = self.at('2026-11-28T12:00:00+00:00')
+        card = lambda ep, at, ig=None, drive='d': {'id': f'v{ep}', 'driveId': drive, 'data': {
+            'episode': ep, 'publishAt': at, 'posted': {'instagram': ig} if ig else {}}}
+        items = [card(3, '2026-11-20T00:00:00+00:00'), card(1, '2026-11-22T00:00:00+00:00', ig='u1'),
+                 card(2, '2026-11-25T00:00:00+00:00'), card(4, '2026-11-26T00:00:00+00:00')]
+        item, live = publish.ig_series_next(items, now)
+        self.assertEqual(item['id'], 'v2')  # by episode, not by YouTube date
+        self.assertEqual(len(live), 3)
+        items[2] = card(2, '2026-11-29T00:00:00+00:00')  # episode 2 not live yet: nothing later may jump ahead
+        item, _ = publish.ig_series_next(items, now)
+        self.assertEqual(item['id'], 'v2')
+        self.assertFalse(publish.ig_series_ready(item, now))
+        self.assertEqual(publish.ig_series_next([card(1, '2026-11-22T00:00:00+00:00', ig='u1')], now), (None, []))
+
     def test_anaadi_is_configured(self):
         self.assertEqual(publish.IG_SERIES['anaadi']['account'], 'anaadi')
         self.assertIn('anaadi', publish.SERIES)
