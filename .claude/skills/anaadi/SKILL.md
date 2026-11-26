@@ -56,7 +56,7 @@ Most Shorts views come from the feed, which plays the video and never shows the 
 3. Move the picture with `--focus` (0 top, 1 bottom) and `--zoom` so the face fills the frame; use `--top` when the face sits low and the words would cover it.
 4. Look at the result at 160 px wide, the size it shows in search. Redo it when the words do not read or a face is covered or cut off.
 
-To change the thumbnail of a video already on YouTube, upload the new file and send Social Manager `publish` with `"platform": "youtube"`, `"account": "anaadi"`, the `videoId` and `thumbnail` only, then set the card's `data.thumb` to the same file.
+To change the thumbnail of a video already on YouTube, upload the new file and send Social Media Publisher `publish` with `"platform": "youtube"`, `"account": "anaadi"`, the `videoId` and `thumbnail` only, then set the card's `data.thumb` to the same file.
 
 Custom thumbnails need the channel's "intermediate features" (YouTube Studio, Settings, Channel, Feature eligibility, which asks for a phone number once). Without them YouTube answers 403 "doesn't have permissions to upload and set custom video thumbnails"; the video still posts, and the job only carries a warning, so read the job's `warnings` after the first upload of a new channel (found 2026-11-25 on Anaadi).
 
