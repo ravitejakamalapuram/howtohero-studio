@@ -27,6 +27,7 @@ The How To Hero video studio. Claude routines find ideas, build vertical explain
 | --- | --- | --- | --- |
 | Scout | Claude routine, `ops/jobs/scout.md` → `SCOUT.md` | 05:47 daily | Fixes rejected cards first (`FIXES.md`), then proposes news `story` cards (ranked by virality) and `idea` cards (`IDEAS.md`), each checked with `dupcheck.py`. Builds nothing. |
 | Build | Claude routine, `ops/jobs/build.md` → `SKILL.md` "Build run" | 11:03 daily | Claims approved cards (news first), builds up to 10 videos one at a time, verifies each, uploads it to the Inbox as `pending`. A claim lasts 3 hours, so a crashed run's card is picked up again. |
+| Growth to-dos | Claude routine, `ops/jobs/growth.md` | 07:17 daily | Compares every channel with the platforms' current monetisation thresholds and keeps a short, deduplicated list of growth `todo` items in the Inbox (at most 3 new a day, 6 open), closing ones that are done or stale. No ideas, no posting. |
 | Publish | `.github/workflows/publish.yml` | Started by the Inbox at `postTimesIST` in `platforms/*.json` (08:00, 13:00, 18:00, 19:30, 21:00) | `replies.py` posts approved comment replies and brings in new comments; `publish.py` posts one approved video whose slot has passed (news first) to every connected platform, then marks it `posted`. Serialized channels go out strictly in episode order. |
 | Stats | `.github/workflows/stats.yml` | 06:53 daily | `stats.py` is the one stats job for every channel: for each channel in the Inbox Channel config it reads followers, views, likes and comments from the accounts in `stats_from` (else `post_to`) and sends them to the Inbox Channels page. Accounts not connected yet are skipped. |
 | Learn | `.github/workflows/learn.yml` | Mondays 09:11 | `learn.py` sends the weekly report (including YouTube monetisation progress) and a tuning proposal as one Inbox card; once you approve it, the next run writes it into `flow.json` and commits it. |
@@ -42,7 +43,7 @@ GitHub's own cron never fired for the publish workflow here, which is why the In
 - `.claude/skills/anaadi/`: the Anaadi channel (Telugu mythology, character art made before any episode).
 - `publisher/`: `publish.py`, `replies.py`, `stats.py`, `learn.py`.
 - `platforms/*.json`: one file per platform, the single source of truth for its limits, post times and notes; `youtube.json` also lists the serialized channels.
-- `ops/`: machine setup (`bootstrap.sh`, `env.sh`, `doctor.sh`), the look check (`golden-check.sh`), the two routine files (`jobs/`) and what lives outside git (`ASSETS.md`).
+- `ops/`: machine setup (`bootstrap.sh`, `env.sh`, `doctor.sh`), the look check (`golden-check.sh`), the routine files (`jobs/`: scout, build, growth to-dos) and what lives outside git (`ASSETS.md`).
 - `SETUP.md`: every key, where it lives, and how to run a job on another AI platform. `.env.example` lists the names.
 
 ## Set up this studio on a new account (same quality videos)
@@ -54,7 +55,7 @@ Do these in order. Nothing here needs the old accounts, and no token or link is 
 3. **Make the tokens and set the GitHub secrets** (`INBOX_URL`, `INBOX_TOKEN`, `SOCIAL_URL`, `SOCIAL_TOKEN`) as in `SETUP.md`. Use `.env.example` for the names.
 4. **Set up the build machine:** run `ops/bootstrap.sh` once, then `. ops/env.sh` in each shell (pinned Node, Python and font tools; `ops/doctor.sh` says what is missing).
 5. **Prove the look before any real video:** run `ops/golden-check.sh`. It rebuilds the worked example v17 (Rajasaurus) from git and prints a contact sheet. It must match `ops/golden/v1-look-reference.jpg` (indigo background, Anton headline with one yellow word, a drawn picture on every beat, caption below, mascot end card). `ops/golden/v1-posted-originals.jpg` shows two posted originals next to rebuilt frames. If the sheet differs, stop: something in the setup is wrong.
-6. **Create the two routines** from `ops/jobs/scout.md` and `ops/jobs/build.md` (paste the short prompt shown in each, nothing else), with the schedule and environment variables each file lists.
+6. **Create the routines** from `ops/jobs/scout.md`, `ops/jobs/build.md` and `ops/jobs/growth.md` (paste the short prompt shown in each, nothing else), with the schedule and environment variables each file lists.
 7. **Optional, Anaadi:** restore the character art from the backup described in `ops/ASSETS.md` and run `ops/bootstrap.sh --anaadi`.
 
 The default look is the original v1 pipeline (`.claude/skills/how-to-hero-video/pipeline/`). The multi-style renderer (`pipeline2/`) is used only when a card's note asks for it. Do not change the v1 look without the owner's say.
