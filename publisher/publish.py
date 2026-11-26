@@ -16,7 +16,8 @@ the first job instead of posting twice.
 
 Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. Where to post comes from the Inbox: "post_to" in the
 How To Hero row of its Channel config tab (platform, or platform:account for a Social Manager account other than
-the main one). When that is empty or the Inbox can't be read, PLATFORMS is used, default "instagram,facebook,youtube".
+the main one; YouTube only). When that is empty, or the Inbox has no channelConfig yet, PLATFORMS is used, default
+"instagram,facebook,youtube". Any other Inbox error, or a post_to cell it can't read, stops the run instead of guessing.
 LinkedIn is left out: the connected account is a personal profile.
 YouTube uploads go out public (tested 16 Nov 2026: no API audit needed).
 Each run first writes data.links on pending and approved videos: the main video plus one Drive link per platform
@@ -134,12 +135,20 @@ NOT_YET = {
 
 
 def post_to():
-    """{platform: account} from the Inbox Channel config (post_to), else from PLATFORMS with the main accounts."""
+    """{platform: account} from the Inbox Channel config (post_to), else from PLATFORMS with the main accounts.
+
+    PLATFORMS is used only when post_to is empty or the Inbox is too old to have channelConfig. Any other error,
+    or a post_to cell the Inbox can't read, stops the run: guessing could post to the wrong account."""
     try:
-        wanted = (inbox({'action': 'channelConfig'}).get('channels', {}).get(APP) or {}).get('postTo') or {}
-    except (RuntimeError, OSError, ValueError) as e:
-        print(f'Inbox channel config not read ({e}); using PLATFORMS')
-        wanted = {}
+        cfg = inbox({'action': 'channelConfig'}).get('channels', {}).get(APP) or {}
+    except RuntimeError as e:
+        if 'unknown_action' not in str(e):
+            raise
+        print('this Inbox has no channelConfig yet; using PLATFORMS')
+        cfg = {}
+    if cfg.get('postToError'):
+        raise RuntimeError(f"post_to for {APP} in the Inbox Channel config can't be read: {cfg['postToError']}")
+    wanted = cfg.get('postTo') or {}
     if wanted:
         print(f"posting where the Inbox says: {', '.join(p + (':' + a if a else '') for p, a in wanted.items())}")
         return wanted
@@ -303,6 +312,8 @@ def post_for(platform, item, data, cache):
     caption = (meta.get('text') or data.get('ig') or fallback_text(item, data)).strip()
     file_id = platform_file(platform, item, data, cache)
     key = f"{item['id']}-{platform}" + ('-version' if file_id != item['driveId'] else '')  # its own job
+    if ACCOUNTS.get(platform):  # another account is another post: never reuse the main channel's job
+        key += f"-{ACCOUNTS[platform]}"
     video = {'driveFileId': file_id}
     if platform == 'instagram' and file_id == item['driveId']:
         key = f"{item['id']}-instagram-link"
