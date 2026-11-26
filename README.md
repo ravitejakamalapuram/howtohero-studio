@@ -1,31 +1,49 @@
 # howtohero-studio
 
-How To Hero video pipeline: the `how-to-hero-video` skill (`.claude/skills/how-to-hero-video`) and the auto-publisher (`publisher/publish.py`).
+The How To Hero video studio. Claude routines find ideas, build vertical explainer videos and hand them to you for approval; GitHub Actions post the approved ones, collect the numbers and propose what to change next week. The same tools also publish the serialized channels Anaadi and The Last Signal.
 
-## How it runs
+## How it fits with the other repos
 
-1. **Ideas and approvals live in the Inbox** (repo `inbox`, a Google Sheet + API + Telegram buttons). The user approves ideas and finished videos on Telegram.
-2. **Daily scout** (scheduled task) follows `SCOUT.md`: it proposes news `story` cards first (3-10 a day, ranked by virality), then `idea` cards of every kind (explainers, quick facts, curiosity stories, the odd documentary) by the rules in `IDEAS.md`. It builds nothing, so it is cheap. The user approves or rejects each card on Telegram. Every rejection carries a reason; the scout, the build run and the Anaadi builds read those reasons first, fix the item and send it back for review (`FIXES.md`, at most `fix.maxFixes` times per item).
-3. **Daily build run** (scheduled task, after the user's morning approvals) follows `SKILL.md` "Build run": it claims approved cards (news first, trending news before science), builds up to 10 videos one at a time, uploads each to the Inbox and sets it `pending` for review. The claim marks the card `building` first, so two runs never build the same one, and a card left by a crashed run is picked up again once its 3-hour claim expires.
-4. **Auto-publisher** (GitHub Action `.github/workflows/publish.yml`, started by the Inbox at the times in `postTimesIST` of `platforms/*.json` (08:00, 13:00, 18:00, 19:30 and 21:00 IST) because GitHub's schedule never fired here, or run it by hand) runs `publisher/publish.py`: it posts the first approved video whose `slot` has passed (approved news goes first whatever its slot says; a video with an empty slot is first given the next free day at 19:30 IST, so it waits its turn) through Social Manager (repo `social-manager`) and marks it `posted`. One video per run, so 5 a day. To post one now, use **Run workflow** with "post now" ticked, or give an Inbox item id; only approved videos go out and nothing posts twice. Its tokens are repo secrets. Instagram fetches its copy of each video from a public link: the publisher puts the copy on this repository's `instagram-uploads` release for the length of the post, then removes it. A video longer than a platform's limit goes there only as its own version, which the video build makes; it is never cut.
+```
+            scout (Claude, daily)          build (Claude, daily)
+                    │ idea/story cards             │ finished videos
+                    ▼                              ▼
+   inbox ─ Google Sheet + dashboard + Telegram buttons  ◄── you approve or reject
+      │ starts "publish" at the post times     ▲ stats, weekly report, comment replies
+      ▼                                        │
+   publisher/*.py (GitHub Actions, this repo) ─┘
+      │ publish, stats, comments
+      ▼
+   social-manager ─► YouTube, Instagram, Facebook
+```
 
-Platforms: Instagram, Facebook and YouTube post live (YouTube uploads are public), and LinkedIn is parked; the publisher never posts to a personal profile.
+- [**inbox**](https://github.com/ravitejakamalapuram/inbox) holds every card (idea, story, video, reply, and the weekly `flow-tune` report), the per-channel config and the Telegram approve/reject buttons. Jobs reach it only through `.claude/skills/how-to-hero-video/inbox.sh` (Claude jobs) and `publisher/publish.py` (Actions).
+- [**social-manager**](https://github.com/ravitejakamalapuram/social-manager) is the posting service. This repo never talks to a platform directly; it calls Social Manager's `publish`, `stats`, `comments` and `reply` actions.
+- **This repo** owns the content rules, the renderer and the publisher.
 
-The old How To Hero artifact queue is retired. Its unposted cards moved to the Inbox on 2026-11-15.
+## What runs, and when
+
+| Job | Where | When (IST) | What it does |
+| --- | --- | --- | --- |
+| Scout | Claude routine, `ops/jobs/scout.md` → `SCOUT.md` | 05:47 daily | Fixes rejected cards first (`FIXES.md`), then proposes news `story` cards (ranked by virality) and `idea` cards (`IDEAS.md`), each checked with `dupcheck.py`. Builds nothing. |
+| Build | Claude routine, `ops/jobs/build.md` → `SKILL.md` "Build run" | 11:03 daily | Claims approved cards (news first), builds up to 10 videos one at a time, verifies each, uploads it to the Inbox as `pending`. A claim lasts 3 hours, so a crashed run's card is picked up again. |
+| Publish | `.github/workflows/publish.yml` | Started by the Inbox at `postTimesIST` in `platforms/*.json` (08:00, 13:00, 18:00, 19:30, 21:00) | `replies.py` posts approved comment replies and brings in new comments; `publish.py` posts one approved video whose slot has passed (news first) to every connected platform, then marks it `posted`. Serialized channels go out strictly in episode order. |
+| Stats | `.github/workflows/stats.yml` | 06:53 daily | `stats.py` reads followers, views, likes and comments (Instagram, Facebook, YouTube) and sends them to the Inbox Channels page. |
+| Learn | `.github/workflows/learn.yml` | Mondays 09:11 | `learn.py` sends the weekly report (including YouTube monetisation progress) and a tuning proposal as one Inbox card; once you approve it, the next run writes it into `flow.json` and commits it. |
+| Checks | `flow-check.yml`, `bootstrap-check.yml` | On push / weekly | Validate `flow.json` and make sure a fresh machine can still render. |
+
+GitHub's own cron never fired for the publish workflow here, which is why the Inbox starts it. To post now, use **Run workflow** on `publish` with "post now" ticked, or give an Inbox item id.
 
 ## Layout
 
-- `ops/`: set up a fresh machine (`bootstrap.sh`, `doctor.sh`), the two job files (`ops/jobs/`) and what lives outside git (`ASSETS.md`). Start with `SETUP.md` "A new machine".
-- `SETUP.md`: every key the jobs use, where it lives, and how to run a job on another AI platform.
-- `.claude/skills/how-to-hero-video/SCOUT.md`: the daily scout (proposes news and ideas).
-- `.claude/skills/how-to-hero-video/IDEAS.md`: the idea rules: video kinds, quality bar, daily mix and lengths.
-- `.claude/skills/how-to-hero-video/SKILL.md`: the build run and the video rules.
-- `.claude/skills/how-to-hero-video/NEWS.md`: how to find, source and build news stories.
-- `.claude/skills/how-to-hero-video/flow.json`: the settings only (news per day, ideas per kind per day, backlog limits, videos per build run, claim time, pause switch, time budget, style weights). The steps are in `SKILL.md` and `SCOUT.md`. `node pipeline2/flow.mjs check` validates it, and the flow-check workflow runs that on every push and pull request that touches it.
-- `.claude/skills/how-to-hero-video/inbox.sh`: the only way the jobs call the Inbox.
-- `.claude/skills/how-to-hero-video/dupcheck.py`: checks a topic against every Inbox item before a job builds or proposes it, so no video is made twice.
-- `.claude/skills/how-to-hero-video/pipeline/`: HyperFrames + Kokoro TTS + ffmpeg renderer, `verify.py`, and worked examples in `videos/` (`v*` shorts, `n*` news, `d*` 16:9 documentaries).
-- `publisher/publish.py`: the auto-publisher.
+- `.claude/skills/how-to-hero-video/`: the main channel. `SCOUT.md` (scout), `SKILL.md` (build run and video rules), `IDEAS.md`, `NEWS.md`, `FIXES.md`, `THUMBNAILS.md`, and `flow.json` (settings only: daily mix, backlog limits, videos per run, claim time, pause switch, style weights).
+  - `pipeline/`: the default v1 renderer (HyperFrames + Kokoro TTS + ffmpeg), `verify.py` and worked examples in `videos/`.
+  - `pipeline2/`: the multi-style renderer (whiteboard, blueprint, chalkboard...), used only when a card asks for it.
+- `.claude/skills/anaadi/`: the Anaadi channel (Telugu mythology, character art made before any episode).
+- `publisher/`: `publish.py`, `replies.py`, `stats.py`, `learn.py`.
+- `platforms/*.json`: one file per platform, the single source of truth for its limits, post times and notes; `youtube.json` also lists the serialized channels.
+- `ops/`: machine setup (`bootstrap.sh`, `env.sh`, `doctor.sh`), the look check (`golden-check.sh`), the two routine files (`jobs/`) and what lives outside git (`ASSETS.md`).
+- `SETUP.md`: every key, where it lives, and how to run a job on another AI platform. `.env.example` lists the names.
 
 ## Set up this studio on a new account (same quality videos)
 
@@ -42,6 +60,22 @@ Do these in order. Nothing here needs the old accounts, and no token or link is 
 The default look is the original v1 pipeline (`.claude/skills/how-to-hero-video/pipeline/`). The multi-style renderer (`pipeline2/`) is used only when a card's note asks for it. Do not change the v1 look without the owner's say.
 
 Tokens and URLs come from the scheduled tasks' prompts or environment. Never commit them.
+
+## Run things by hand
+
+```bash
+ops/bootstrap.sh && . ops/env.sh      # once per machine, then in each shell
+ops/doctor.sh                         # says what is missing
+ops/golden-check.sh                   # rebuilds v17 and prints a contact sheet to compare
+node .claude/skills/how-to-hero-video/pipeline2/flow.mjs check    # validate flow.json
+
+# needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL, SOCIAL_TOKEN in the environment
+python3 publisher/publish.py --dry-run
+python3 publisher/learn.py --dry-run
+python3 publisher/stats.py
+```
+
+To build one video by hand, follow `SKILL.md` "Build one video" (v1 pipeline: write `videos/vN.json` and `vN.scenes.js`, build, `npx hyperframes render`, sound pass, `verify.py`). `stats.py` has no dry run; running it twice on one day just replaces that day's numbers.
 
 ## Platforms
 
