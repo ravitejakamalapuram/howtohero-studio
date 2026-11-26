@@ -31,8 +31,6 @@ Keep out: anything that needs footage of real people, gore, medical advice, poli
 ## The quality bar (every kind)
 
 Propose a card only if all of these hold. When in doubt, leave it out: fewer, better cards beat a full quota.
-`search` is the phrase a curious person would type to find this video, 3 to 7 lowercase words in their words, not ours ("how do black holes form", "rajasaurus dinosaur india", "why is the sea salty"). Check it against the search box suggestions on YouTube or Google when you can, and prefer the wording that appears there. It is for captions and titles only; the hook still comes first in the video, and `search` never replaces it.
-
 1. **Hook strength.** The `hook` is a surprising claim or a contradiction in at most 2 lines of 22 characters, never a question and never the topic restated. Test: cover the topic; the hook must still tell a viewer something they did not know. Weak: "How do volcanoes work?". Strong: "THIS VOLCANO IS TALLER THAN EVEREST".
 2. **One idea.** It can be said in one sentence (`summary`), and the payoff is a line a viewer would repeat to a friend.
 3. **Source.** You opened at least one credible page (agency, university, journal, museum, a named book or study) that states the key claim, and put it in `data.sources`. No source, no card.
@@ -53,6 +51,8 @@ Numbers live in `flow.json` under `scout`:
 ## Card fields (ideas)
 
 `data`: `kind`, `topic`, `angle`, `hook`, `search`, `why`, `sources` (URLs), `fact` ("K" when any number or date must be checked, "C" when contested), `maxSeconds` (from the table), `rank`. For `doc` also `series` "DOC" and the card id `doc-<slug>`. Leave out `series` for the other kinds.
+
+`search` is the phrase a curious person would type to find this video, 3 to 7 lowercase words in their words, not ours ("how do black holes form", "rajasaurus dinosaur india", "why is the sea salty"). Check it against the search box suggestions on YouTube or Google when you can, and prefer the wording that appears there. It is for captions and titles only; the hook still comes first in the video, and `search` never replaces it. In captions it takes normal capitals ("India").
 
 ## Build notes per kind (read by the build run)
 

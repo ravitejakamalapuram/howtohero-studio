@@ -8,7 +8,7 @@
     "21:00"
   ],
   "metadata": {
-    "text": "First line holds the card's `search` phrase word for word in a natural sentence (\"How do black holes form? They start with a dying star.\"), second line one extra fact, then \"Sources: <names>\", then \"Follow @howtohero.official\" and 3 to 5 specific hashtags (never #reels, #explore, #viral). At most captionMax characters and hashtagsMax hashtags."
+    "text": "First line is a plain sentence holding the card's `search` phrase (How To Hero cards; verbatim when it reads as a clause, like \"why is the sea salty\", otherwise all its words in natural order), second line one extra fact, then \"Sources: <names>\", then \"Follow @howtohero.official\" and 3 to 5 specific hashtags (never #reels, #explore, #viral). At most captionMax characters and hashtagsMax hashtags."
   },
   "maxSeconds": 90,
   "versionSeconds": 87,
