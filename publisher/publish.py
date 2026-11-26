@@ -14,7 +14,10 @@ up on it, marks the item posted (or "ready" if nothing posted) and says why in t
 Safe to run again at any time: each post uses the key "<item id>-<platform>", so Social Manager returns
 the first job instead of posting twice.
 
-Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. PLATFORMS defaults to "instagram,facebook,youtube". LinkedIn is left out: the connected account is a personal profile.
+Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. Where to post comes from the Inbox: "post_to" in the
+How To Hero row of its Channel config tab (platform, or platform:account for a Social Manager account other than
+the main one). When that is empty or the Inbox can't be read, PLATFORMS is used, default "instagram,facebook,youtube".
+LinkedIn is left out: the connected account is a personal profile.
 YouTube uploads go out public (tested 16 Nov 2026: no API audit needed).
 Each run first writes data.links on pending and approved videos: the main video plus one Drive link per platform
 version, so the Inbox card and Telegram message offer every version (LINKS_ONLY=true stops after that).
@@ -46,6 +49,8 @@ PLATFORM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'p
 RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.listdir(PLATFORM_DIR) if f.endswith('.json')}
 
 SERIES = RULES.get('youtube', {}).get('channels', {})  # serialized channels, e.g. anaadi
+APP = 'How To Hero'  # this channel's row in the Inbox Channel config tab
+ACCOUNTS = {}  # {platform: Social Manager account} from post_to; '' or missing means the main account
 
 def call(url, token, body):
     body = dict(body, token=token)
@@ -122,18 +127,33 @@ def due_items():
     return sorted(due, key=lambda i: (not is_news(i), when(i) or now))
 
 
-# Platforms not posted to yet and why, shown on the Inbox card. Drop one here when it goes live in PLATFORMS.
+# Platforms not posted to yet and why, shown on the Inbox card. Drop one here when it goes live in post_to (or PLATFORMS).
 NOT_YET = {
     'linkedin': 'Page posting not approved yet',
 }
 
 
+def post_to():
+    """{platform: account} from the Inbox Channel config (post_to), else from PLATFORMS with the main accounts."""
+    try:
+        wanted = (inbox({'action': 'channelConfig'}).get('channels', {}).get(APP) or {}).get('postTo') or {}
+    except (RuntimeError, OSError, ValueError) as e:
+        print(f'Inbox channel config not read ({e}); using PLATFORMS')
+        wanted = {}
+    if wanted:
+        print(f"posting where the Inbox says: {', '.join(p + (':' + a if a else '') for p, a in wanted.items())}")
+        return wanted
+    return {p.strip(): '' for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()}
+
+
 def live_platforms():
-    wanted = [p.strip() for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()]
+    wanted = post_to()
+    ACCOUNTS.clear()
+    ACCOUNTS.update({p: a for p, a in wanted.items() if a})
     live, down = [], {}
     for p in wanted:
         try:
-            social({'action': 'channel', 'platform': p})
+            social(dict({'action': 'channel', 'platform': p}, **({'account': ACCOUNTS[p]} if p in ACCOUNTS else {})))
             live.append(p)
         except RuntimeError as e:
             print(f'{p} is not connected: {e}')
@@ -503,7 +523,10 @@ def run():
                 no_version[p] = f"needs its own {p} version of {RULES[p]['versionSeconds']} s or less (the video build makes it)"
                 print(f'skip {p}: {no_version[p]}')
                 continue
-            jobs[p] = social(dict(post_for(p, item, data, cache), action='publish'))['job']
+            body = dict(post_for(p, item, data, cache), action='publish')
+            if p in ACCOUNTS:
+                body['account'] = ACCOUNTS[p]
+            jobs[p] = social(body)['job']
         except (RuntimeError, OSError, subprocess.CalledProcessError, ValueError, KeyError) as e:
             jobs[p] = {'id': None, 'status': 'failed', 'error': f'not started: {e}'}
     retries = {}
