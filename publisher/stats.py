@@ -21,9 +21,9 @@ APP = 'How To Hero'  # the channel name on the Inbox Channels page
 SOURCES = ['queue', 'news']
 # When the Inbox starts publish.yml (IST): every platform's postTimesIST in platforms/<name>.json, merged.
 # One run posts one video to every platform, so the platforms share these times. Each channel's own daily
-# "time" in publisher/channels.json is added, so its videos go out at that time.
+# "time" or "times" in publisher/channels.json is added, so its videos go out at that time.
 TIMES = sorted({t for r in RULES.values() for t in r.get('postTimesIST', [])}
-               | {c['time'] for c in CHANNELS.values() if c.get('time')})
+               | {t for c in CHANNELS.values() for t in (c.get('times') or [c['time']] if c.get('time') or c.get('times') else [])})
 
 
 def snapshot(views):

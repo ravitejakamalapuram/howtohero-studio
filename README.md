@@ -33,7 +33,7 @@ The How To Hero video studio. Claude routines find ideas, build vertical explain
 | Learn | `.github/workflows/learn.yml` | Mondays 09:11 | `learn.py` sends the weekly report (including YouTube monetisation progress) and a tuning proposal as one Inbox card; once you approve it, the next run writes it into `flow.json` and commits it. |
 | Checks | `flow-check.yml`, `bootstrap-check.yml` | On push / weekly | Validate `flow.json` and make sure a fresh machine can still render. |
 
-To add a one-video-a-day channel: add it to `publisher/channels.json` (its Inbox app name, caption sign-off, YouTube category, optional YouTube `tags` and `language`, and optional daily `time` in IST; default 19:30), connect its accounts in Social Media Publisher (`connectYouTube` / `connectMeta` with an account name) and set "Posts to" on the Inbox Settings page, like `youtube:chitti, instagram:chinni`. Its approved videos with that `data.app` then go out one a day at that time, by slot.
+To add a one-video-a-day channel: add it to `publisher/channels.json` (its Inbox app name, caption sign-off, YouTube category, optional YouTube `tags` and `language`, and optional daily `time` in IST, or `times` for several posts a day; default 19:30), connect its accounts in Social Media Publisher (`connectYouTube` / `connectMeta` with an account name) and set "Posts to" on the Inbox Settings page, like `youtube:chitti, instagram:chinni`. Its approved videos with that `data.app` then go out at those times, one per time, by slot.
 
 GitHub's own cron never fired for the publish workflow here, which is why the Inbox starts it. To post now, use **Run workflow** on `publish` with "post now" ticked, or give an Inbox item id.
 

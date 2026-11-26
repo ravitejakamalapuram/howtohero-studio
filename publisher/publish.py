@@ -3,7 +3,7 @@
 
 Each run does the following for each channel in turn (only that channel's cards, by data.app; a card of an app not
 listed there is never posted). It takes the first approved news video (its slot is ignored), else the first approved video whose slot
-has passed (by slot; a video with no slot first gets the next free day at 19:30 IST), publishes it to
+has passed (by slot; a video with no slot first gets the next free one of its channel's daily times, 19:30 IST by default), publishes it to
 every platform in PLATFORMS that is connected, waits for the jobs, then marks the item "posted" in the Inbox
 with the post links in data.posted. One video per run, so a backlog goes out one run apart.
 
@@ -85,27 +85,32 @@ def when(item):
 
 
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
-DAILY_SLOT = '19:30'  # where a video without a slot goes: the next day nobody else has (a channel's "time" wins)
+DAILY_SLOT = '19:30'  # a channel's daily posting time when channels.json gives it no "time" or "times"
+
+
+def daily_times(app):
+    """A channel's daily posting times (IST, HH:MM): its "times" list, else its one "time", else DAILY_SLOT."""
+    c = CHANNELS.get(app) or {}
+    return sorted(c.get('times') or [c.get('time') or DAILY_SLOT])
 
 
 def slot_unslotted(items):
-    """Give every approved non-news video that has no slot the next free day at its channel's time (IST), and save it on the
-    Inbox card, so it waits its turn like the rest instead of posting at the very next run."""
+    """Give every approved non-news video that has no slot the next free time of its channel's daily times (IST), and
+    save it on the Inbox card, so it waits its turn like the rest instead of posting at the very next run."""
     todo = [i for i in items if when(i) is None and not is_news(i)]
     if not todo or POST_NOW or DRY:
         return
     taken = set()
     for st in ('approved', 'pending'):
         for i in inbox({'action': 'list', 'status': st, 'type': 'video', 'limit': 1000})['items']:
-            if when(i) and mine(i):  # each channel fills its own days
-                taken.add(when(i).astimezone(IST).date())
-    day = dt.datetime.now(IST).date()  # empty days first, so a new video does not wait behind months of queue
+            if when(i) and mine(i):  # each channel fills its own times
+                taken.add(when(i).astimezone(IST).replace(second=0, microsecond=0))
+    times = [dt.time.fromisoformat(t) for t in daily_times(APP)]
+    free = (dt.datetime.combine(dt.datetime.now(IST).date() + dt.timedelta(days=d), t, IST)
+            for d in range(1, 3660) for t in times)  # empty times first, so a new video does not wait behind the queue
     for i in sorted(todo, key=lambda i: i.get('createdAt') or ''):
-        day += dt.timedelta(days=1)
-        while day in taken:
-            day += dt.timedelta(days=1)
-        at = dt.time.fromisoformat(CHANNELS[APP].get('time') or DAILY_SLOT)
-        i['slot'] = dt.datetime.combine(day, at, IST).isoformat()
+        at = next(f for f in free if f not in taken)
+        i['slot'] = at.isoformat()
         try:
             fresh = inbox({'action': 'get', 'id': i['id']})['item']
             inbox({'action': 'update', 'id': i['id'], 'ifVersion': fresh['version'], 'set': {'slot': i['slot']}})
