@@ -46,7 +46,7 @@ def snapshot(views):
 
 def main():
     failed, views = 0, {}
-    for p in [x.strip() for x in os.environ.get('PLATFORMS', 'instagram,facebook').split(',') if x.strip()]:
+    for p in [x.strip() for x in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if x.strip()]:
         try:
             s = social({'action': 'stats', 'platform': p, 'limit': 50})
             views.update({x['url']: (x.get('views'), x.get('at')) for x in s.get('posts', []) if x.get('url')})
