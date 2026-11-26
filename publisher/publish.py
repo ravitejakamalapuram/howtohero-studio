@@ -623,16 +623,24 @@ def ig_series_ready(item, now):
     return bool(item.get('driveId') and d.get('publishAt') and dt.datetime.fromisoformat(d['publishAt']) <= now)
 
 
-def ig_series_next(items, now):
-    """The episode Instagram must post next: the lowest episode not on Instagram yet, ready or not, so episodes
-    always go out in order, even after a failure. Returns it and the ready episodes still waiting (for counts)."""
-    left = [i for i in items if not (((i.get('data') or {}).get('posted') or {}).get('instagram'))]
+def ig_series_next(items, now, name):
+    """The episode Instagram posts next. Each group numbers its own episodes, so each group's head is its lowest
+    episode not on Instagram yet, ready or not: a group never skips ahead, even after a failure. Of the heads that
+    are live on YouTube, the earliest goes first. Returns it (or a waiting head, or None) and every ready episode."""
+    left = [i for i in items if not (((i.get('data') or {}).get('posted') or {}).get('instagram'))
+            and group_of(i, name) is not None]
     if not left:
         return None, []
     far = dt.datetime.max.replace(tzinfo=dt.timezone.utc)
-    key = lambda i: (episode_of(i) if episode_of(i) is not None else 10 ** 9,
-                     dt.datetime.fromisoformat(i['data']['publishAt']) if (i.get('data') or {}).get('publishAt') else far)
-    return min(left, key=key), [i for i in left if ig_series_ready(i, now)]
+    at = lambda i: dt.datetime.fromisoformat(i['data']['publishAt']) if (i.get('data') or {}).get('publishAt') else far
+    heads = {}
+    for i in left:
+        g, k = group_of(i, name), (episode_of(i) if episode_of(i) is not None else 10 ** 9, at(i))
+        if g not in heads or k < heads[g][0]:
+            heads[g] = (k, i)
+    heads = [i for _, i in heads.values()]
+    ready = [i for i in heads if ig_series_ready(i, now)]
+    return min(ready or heads, key=at), [i for i in left if ig_series_ready(i, now)]
 
 
 def run_ig_series(name):
@@ -643,12 +651,12 @@ def run_ig_series(name):
     every = [i for i in inbox({'action': 'list', 'status': 'posted', 'type': 'video', 'limit': 1000})['items']
              if series_name(i) == name]
     done = [dt.datetime.fromisoformat(i['data']['igPostedAt']) for i in every if (i.get('data') or {}).get('igPostedAt')]
-    item, live = ig_series_next(every, now)
+    item, live = ig_series_next(every, now, name)
     if not item:
         print(f'{name} instagram: nothing new on YouTube to post')
         return 0
     if not ig_series_ready(item, now):  # strict order: a later episode never goes out before this one
-        print(f"{name} instagram: episode {episode_of(item)} is next and not live on YouTube yet; later ones wait")
+        print(f"{name} instagram: next episodes are not live on YouTube yet (first: {item['id']}); later ones wait")
         return 0
     if not ig_series_due(done, cfg, now):
         print(f"{name} instagram: next is {item['id']}, waiting for the next of {', '.join(cfg['timesIST'])} IST")
