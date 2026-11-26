@@ -58,6 +58,25 @@ class PostFor(unittest.TestCase):
         self.assertEqual(fb['thumbnail'], {'driveFileId': 'THUMB'})
         self.assertNotIn('firstComment', fb)
 
+    def test_threads_gets_the_shared_public_link_and_one_hashtag(self):
+        made = []
+        publish.job_exists = lambda key: False
+        publish.instagram_video = lambda item, data: made.append(1) or {'driveFileId': 'IGCOPY', 'url': 'https://x/idea-gps-instagram.mp4'}
+        data = dict(self.data, meta={'threads': {'text': 'Your phone never talks to GPS satellites. #gps #science'}})
+        cache = {}
+        ig = publish.post_for('instagram', self.item, data, cache)
+        th = publish.post_for('threads', self.item, data, cache)
+        self.assertEqual(th['video'], {'url': 'https://x/idea-gps-instagram.mp4'})
+        self.assertEqual(ig['video']['url'], th['video']['url'])
+        self.assertEqual(made, [1])  # one copy for both
+        self.assertEqual(th['text'], 'Your phone never talks to GPS satellites. #gps')
+        self.assertEqual(th['key'], 'idea-gps-threads')
+
+    def test_threads_counts_emojis_as_bytes(self):
+        self.assertEqual(publish.threads_len('a🌊'), 5)
+        self.assertEqual(publish.threads_len('అఆ'), 2)
+        self.assertEqual(publish.threads_len(publish.fit('a' * 497 + '\n🌊🌊', 500, 't', 'threads')), 497)
+
     def test_a_card_without_pin_or_thumb_posts_as_before(self):
         data = {'yt': 'T #shorts', 'ig': 'c'}
         for p in ('youtube', 'instagram', 'facebook'):
