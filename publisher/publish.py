@@ -3,7 +3,7 @@
 
 Each run does the following for each channel in turn (only that channel's cards, by data.app; a card of an app not
 listed there is never posted). It takes the first approved news video (its slot is ignored), else the first approved video whose slot
-has passed (by slot; a video with no slot first gets the next free day at 19:30 IST), publishes it to
+has passed (by slot; a video with no slot first gets the next free one of its channel's daily times, 19:30 IST by default), publishes it to
 every platform in PLATFORMS that is connected, waits for the jobs, then marks the item "posted" in the Inbox
 with the post links in data.posted. One video per run, so a backlog goes out one run apart.
 
@@ -85,7 +85,7 @@ def when(item):
 
 
 IST = dt.timezone(dt.timedelta(hours=5, minutes=30))
-DAILY_SLOT = '19:30'  # where a video without a slot goes: the next day nobody else has (a channel's "time" wins)
+DAILY_SLOT = '19:30'  # a channel's daily posting time when channels.json gives it no "time" or "times"
 
 
 def daily_times(app):
