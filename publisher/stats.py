@@ -14,14 +14,16 @@ import datetime as dt
 import os
 import sys
 
-from publish import RULES, SERIES, inbox, social
+from publish import CHANNELS, RULES, SERIES, inbox, social
 
 APP = 'How To Hero'  # the channel name on the Inbox Channels page
 # The Inbox tokens that add How To Hero items. Those items carry no data.app, so the channel claims them by source.
 SOURCES = ['queue', 'news']
 # When the Inbox starts publish.yml (IST): every platform's postTimesIST in platforms/<name>.json, merged.
-# One run posts one video to every platform, so the platforms share these times.
-TIMES = sorted({t for r in RULES.values() for t in r.get('postTimesIST', [])})
+# One run posts one video to every platform, so the platforms share these times. Each channel's own daily
+# "time" in publisher/channels.json is added, so its videos go out at that time.
+TIMES = sorted({t for r in RULES.values() for t in r.get('postTimesIST', [])}
+               | {c['time'] for c in CHANNELS.values() if c.get('time')})
 
 
 def snapshot(views):
