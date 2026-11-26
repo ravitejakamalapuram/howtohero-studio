@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Posts approved How To Hero videos from the Inbox through Social Manager.
+"""Posts approved How To Hero videos from the Inbox through Social Media Publisher.
 
 Each run takes the first approved news video (its slot is ignored), else the first approved video whose slot
 has passed (by slot; a video with no slot first gets the next free day at 19:30 IST), publishes it to
@@ -11,11 +11,11 @@ run's retries leaves the item approved, so the next run tries that platform agai
 return their first job and don't post twice). After MAX_RUNS failed runs on one platform the publisher gives
 up on it, marks the item posted (or "ready" if nothing posted) and says why in the note.
 
-Safe to run again at any time: each post uses the key "<item id>-<platform>", so Social Manager returns
+Safe to run again at any time: each post uses the key "<item id>-<platform>", so Social Media Publisher returns
 the first job instead of posting twice.
 
 Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. Where to post comes from the Inbox: "post_to" in the
-How To Hero row of its Channel config tab (platform, or platform:account for a Social Manager account other than
+How To Hero row of its Channel config tab (platform, or platform:account for a Social Media Publisher account other than
 the main one; YouTube only). When that is empty, or the Inbox has no channelConfig yet, PLATFORMS is used, default
 "instagram,facebook,youtube". Any other Inbox error, or a post_to cell it can't read, stops the run instead of guessing.
 LinkedIn is left out: the connected account is a personal profile.
@@ -51,7 +51,7 @@ RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.list
 
 SERIES = RULES.get('youtube', {}).get('channels', {})  # serialized channels, e.g. anaadi
 APP = 'How To Hero'  # this channel's row in the Inbox Channel config tab
-ACCOUNTS = {}  # {platform: Social Manager account} from post_to; '' or missing means the main account
+ACCOUNTS = {}  # {platform: Social Media Publisher account} from post_to; '' or missing means the main account
 
 def call(url, token, body):
     body = dict(body, token=token)
@@ -430,7 +430,7 @@ def run_series(name, group=''):
             'language': cfg['language'], 'aiGenerated': cfg['aiGenerated'], 'madeForKids': False}
     if data.get('thumb'):
         post['thumbnail'] = {'driveFileId': data['thumb']}
-    if cfg.get('playlist'):  # Social Manager makes it on first use; a failure is only a warning
+    if cfg.get('playlist'):  # Social Media Publisher makes it on first use; a failure is only a warning
         post['playlists'] = [cfg['playlist']]
     print(f"{name}: uploading episode {episode_of(item)} ({item['id']}), goes live {at.isoformat()}")
     if DRY:
