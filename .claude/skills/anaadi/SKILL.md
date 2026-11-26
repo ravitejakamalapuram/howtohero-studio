@@ -5,7 +5,7 @@ description: Make one Anaadi episode (Indian mythology told in story order, vert
 
 # Anaadi episodes
 
-Anaadi (@AnaadiKatha) tells Indian mythology in story order as linked Shorts. It is a second channel in this repo: it reuses `how-to-hero-video/pipeline2/` (render, verify), `publisher/` and `platforms/*.json`, and keeps its own settings in `flow.json`. YouTube only. Nothing is posted without an approved Inbox card.
+Anaadi (@AnaadiKatha) tells Indian mythology in story order as linked Shorts. It is a second channel in this repo: it reuses `how-to-hero-video/pipeline2/` (render, verify), `publisher/` and `platforms/*.json`, and keeps its own settings in `flow.json`. YouTube first; each episode then goes to Instagram @anaadikatha once it is live on YouTube, oldest first, at most one per time in `platforms/instagram.json` channels.anaadi (publisher account `anaadi`). Its caption is `meta.instagram.text` when the card has one, else the YouTube title and description (5 hashtags at most, so put the best 5 first). Nothing is posted without an approved Inbox card.
 
 The one rule that shapes everything: **art first, episodes second**. Characters and places are designed once as sheets, checked, and reused in every episode. An episode never invents a character or a place on the fly.
 

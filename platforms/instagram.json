@@ -23,5 +23,16 @@
     "No private or scheduled posts through the API.",
     "Posting times (IST) were picked 18 Nov 2026 when we went from 3 to 5 posts a day. Our own data was too thin to choose from (13 Reels, 80-135 views each, no pattern by hour), so they follow published India studies: SocialPilot's Reels study (7:30 AM, 3 PM, 7:30 PM IST) and several India guides that put the peak at 7-9 PM IST. 08:00 catches the morning commute, 13:00 lunch, and 18:00, 19:30 and 21:00 the evening peak (changed the same day at the user's choice: three evening posts instead of 16:00 + two evening). Slots stay at least 90 min apart: one publish run takes up to 25 min and starts up to 10 min late, GitHub cancels queued runs beyond one, and Reels posted minutes apart split the same test audience. 30-min slots (7, 7:30, 8, 8:30, 9 PM) were rejected for those reasons. Re-check against Insights once 50+ Reels are up. Meta allows about 50 API posts a day, so 5 is far inside it.",
     "Cover (19 Nov 2026): the publisher sends the build's thumbnail (data.thumb, rules in the skill's THUMBNAILS.md) as cover_url, a public link on the \"instagram-uploads\" release. The grid crops it to 3:4, so the words sit in the middle band (y 330-820 of 1920). Without data.thumb Instagram uses an early frame."
-  ]
+  ],
+  "channels": {
+    "_about": "Serialized channels that also post to Instagram (their YouTube side is in youtube.json channels). The publisher posts each channel's episodes that are already live on YouTube (status posted, data.publishAt passed) to Social Media Publisher account `account`, oldest first, one per run and at most one per time in timesIST, so a backlog goes out a few a day instead of all at once. A failed episode holds later ones. The caption is data.meta.instagram.text when the card has one, else the YouTube title and description, then `follow`; hashtags are cut to hashtagsMax.",
+    "anaadi": {
+      "account": "anaadi",
+      "timesIST": [
+        "13:00",
+        "19:30"
+      ],
+      "follow": "Follow @anaadikatha · అనాది కథలు వరుసగా, భాగం 1 నుంచి"
+    }
+  }
 }

@@ -87,5 +87,40 @@ class ReplyAccounts(unittest.TestCase):
         self.assertIn(('Chinni Slokalu', '💬', 'youtube', 'chitti'), got)
 
 
+
+
+class InstagramSeries(unittest.TestCase):
+    """Serialized channels on Instagram: pacing by timesIST and the caption built from the YouTube text."""
+    CFG = {'account': 'anaadi', 'timesIST': ['13:00', '19:30'], 'follow': 'Follow @anaadikatha'}
+
+    def at(self, s):
+        return publish.dt.datetime.fromisoformat(s)
+
+    def test_one_post_per_time(self):
+        due = lambda posts, now: publish.ig_series_due([self.at(p) for p in posts], self.CFG, self.at(now))
+        self.assertTrue(due([], '2026-11-27T10:00:00+05:30'))  # the first ever post goes out at once
+        self.assertFalse(due(['2026-11-26T19:31:00+05:30'], '2026-11-27T10:00:00+05:30'))  # nothing since 19:30
+        self.assertTrue(due(['2026-11-26T19:31:00+05:30'], '2026-11-27T13:05:00+05:30'))
+        self.assertFalse(due(['2026-11-27T13:05:00+05:30'], '2026-11-27T18:00:00+05:30'))
+        self.assertTrue(due(['2026-11-27T13:05:00+05:30'], '2026-11-27T19:35:00+05:30'))
+
+    def test_caption_from_youtube_text_with_follow_and_five_hashtags(self):
+        item = {'id': 'video-ep5', 'title': 'Ep 5'}
+        data = {'meta': {'youtube': {'title': 'కాదన్న కొడుకులు | Anaadi Ep 5 #shorts',
+                                     'text': 'కథ.\n#a #b #c #d #e #f #g'}}}
+        cap = publish.ig_series_caption(item, data, self.CFG)
+        self.assertTrue(cap.startswith('కాదన్న కొడుకులు | Anaadi Ep 5\n\nకథ.'))
+        self.assertNotIn('#shorts', cap)
+        self.assertIn('Follow @anaadikatha', cap)
+        self.assertLessEqual(len(publish.re.findall(r'(?<!\S)#[^\s#]+', cap)), 5)
+
+    def test_card_caption_wins(self):
+        data = {'meta': {'instagram': {'text': 'Own caption'}, 'youtube': {'title': 'x', 'text': 'y'}}}
+        self.assertEqual(publish.ig_series_caption({'id': 'v', 'title': 't'}, data, self.CFG), 'Own caption\n\nFollow @anaadikatha')
+
+    def test_anaadi_is_configured(self):
+        self.assertEqual(publish.IG_SERIES['anaadi']['account'], 'anaadi')
+        self.assertIn('anaadi', publish.SERIES)
+
 if __name__ == '__main__':
     unittest.main()
