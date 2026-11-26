@@ -354,6 +354,9 @@ def post_for(platform, item, data, cache):
         yt = CHANNELS[APP].get('youtube') or {}
         post = {'platform': platform, 'key': key, 'video': video, 'title': title[:100], 'description': caption[:5000],
                 'privacy': 'public', 'categoryId': yt.get('categoryId', 28), 'madeForKids': bool(yt.get('madeForKids', False))}
+        for k in ('tags', 'language'):  # optional per-channel defaults, e.g. Chinni Slokalu's tags and Telugu audio
+            if yt.get(k):
+                post[k] = yt[k]
         if data.get('thumb'):  # custom thumbnail (pipeline2/thumb.mjs); a refused one is only a warning on the job
             post['thumbnail'] = {'driveFileId': data['thumb']}
         return post
