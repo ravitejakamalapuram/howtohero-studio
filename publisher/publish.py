@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
-"""Posts approved How To Hero videos from the Inbox through Social Media Publisher.
+"""Posts approved videos from the Inbox through Social Media Publisher, for every channel in publisher/channels.json.
 
-Each run takes the first approved news video (its slot is ignored), else the first approved video whose slot
+Each run does the following for each channel in turn (only that channel's cards, by data.app; a card of an app not
+listed there is never posted). It takes the first approved news video (its slot is ignored), else the first approved video whose slot
 has passed (by slot; a video with no slot first gets the next free day at 19:30 IST), publishes it to
 every platform in PLATFORMS that is connected, waits for the jobs, then marks the item "posted" in the Inbox
 with the post links in data.posted. One video per run, so a backlog goes out one run apart.
@@ -15,9 +16,9 @@ Safe to run again at any time: each post uses the key "<item id>-<platform>", so
 the first job instead of posting twice.
 
 Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN. Where to post comes from the Inbox: "post_to" in the
-How To Hero row of its Channel config tab (platform, or platform:account for a Social Media Publisher account other than
-the main one; YouTube only). When that is empty, or the Inbox has no channelConfig yet, PLATFORMS is used, default
-"instagram,facebook,youtube". Any other Inbox error, or a post_to cell it can't read, stops the run instead of guessing.
+channel's row of its Channel config tab (platform, or platform:account for a Social Media Publisher account other than
+the main one; YouTube, Instagram and Facebook). When that is empty, or the Inbox has no channelConfig yet, the default channel (How To Hero) uses
+PLATFORMS, default "instagram,facebook,youtube"; any other channel posts nowhere. Any other Inbox error, or a post_to cell it can't read, stops the run instead of guessing.
 LinkedIn is left out: the connected account is a personal profile.
 YouTube uploads go out public (tested 16 Nov 2026: no API audit needed).
 Each run first writes data.links on pending and approved videos: the main video plus one Drive link per platform
@@ -50,7 +51,12 @@ PLATFORM_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'p
 RULES = {f[:-5]: json.load(open(os.path.join(PLATFORM_DIR, f))) for f in os.listdir(PLATFORM_DIR) if f.endswith('.json')}
 
 SERIES = RULES.get('youtube', {}).get('channels', {})  # serialized channels, e.g. anaadi
-APP = 'How To Hero'  # this channel's row in the Inbox Channel config tab
+# The channels posted one video at a time (publisher/channels.json), by Inbox app name. Each run posts the next due
+# video of each, in turn; APP is the one being posted now. Cards with no data.app belong to the default channel.
+CHANNELS = {k: v for k, v in json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'channels.json'))).items()
+            if not k.startswith('_')}
+DEFAULT_APP = next(k for k, v in CHANNELS.items() if v.get('default'))
+APP = DEFAULT_APP  # this channel's row in the Inbox Channel config tab
 ACCOUNTS = {}  # {platform: Social Media Publisher account} from post_to; '' or missing means the main account
 
 def call(url, token, body):
@@ -91,7 +97,7 @@ def slot_unslotted(items):
     taken = set()
     for st in ('approved', 'pending'):
         for i in inbox({'action': 'list', 'status': st, 'type': 'video', 'limit': 1000})['items']:
-            if when(i) and not series_name(i):
+            if when(i) and mine(i):  # each channel fills its own days
                 taken.add(when(i).astimezone(IST).date())
     day = dt.datetime.now(IST).date()  # empty days first, so a new video does not wait behind months of queue
     for i in sorted(todo, key=lambda i: i.get('createdAt') or ''):
@@ -108,6 +114,15 @@ def slot_unslotted(items):
         print(f"slotted {i['id']} for {i['slot']}")
 
 
+def item_app(i):
+    """The channel a card posts to: its data.app, or the default channel for a card without one."""
+    data = i.get('data') if isinstance(i.get('data'), dict) else {}
+    return str(data.get('app') or '').strip() or DEFAULT_APP
+
+def mine(i):
+    """True for a card of the channel being posted now; serialized channels go through run_series instead."""
+    return item_app(i) == APP and not series_name(i)
+
 def is_news(i):
     return i.get('source') == 'news' or str(i['id']).startswith('news-')
 
@@ -116,12 +131,12 @@ def due_items():
     now = dt.datetime.now(dt.timezone.utc)
     if ITEM_ID:  # a manual run that names one video posts it now; a posted one gets its missing platforms
         items = inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
-        return [i for i in items if i['id'] == ITEM_ID and i.get('driveId') and not series_name(i)]
+        return [i for i in items if i['id'] == ITEM_ID and i.get('driveId') and mine(i)]
     # 1000 is the Inbox's largest page; the queue must never outgrow it, or videos past it are never posted.
     res = inbox({'action': 'list', 'status': 'approved', 'type': 'video', 'limit': 1000})
     if res.get('total', 0) > len(res['items']):
         print(f"WARNING: {res['total']} approved videos but only {len(res['items'])} read; the rest are skipped")
-    items = [i for i in res['items'] if not series_name(i)]  # serialized channels go through run_series, never to How To Hero
+    items = [i for i in res['items'] if mine(i)]  # only this channel's cards; another app's video never posts here
     slot_unslotted([i for i in items if i.get('driveId')])
     # News goes out at the next run whatever its slot says: a story a day late has lost most of its reach.
     due = [i for i in items if i.get('driveId') and (POST_NOW or is_news(i) or when(i) is None or when(i) <= now)]
@@ -152,6 +167,9 @@ def post_to():
     if wanted:
         print(f"posting where the Inbox says: {', '.join(p + (':' + a if a else '') for p, a in wanted.items())}")
         return wanted
+    if APP != DEFAULT_APP:  # PLATFORMS are the default channel's own accounts: another channel must never post there
+        print(f'{APP} has no post_to in the Inbox Channel config, so it posts nowhere')
+        return {}
     return {p.strip(): '' for p in os.environ.get('PLATFORMS', 'instagram,facebook,youtube').split(',') if p.strip()}
 
 
@@ -302,7 +320,8 @@ def fallback_text(item, data):
     """Public text for a card that has no caption of its own. Built from the title and the card's hook/aha lines,
     never from the card's summary or note, which are internal."""
     lines = [str(data.get(k) or '').strip() for k in ('hook', 'aha')]
-    return '\n'.join([(item.get('title') or '').strip()] + [l for l in lines if l] + ['Follow @howtohero.official #shorts']).strip()
+    follow = CHANNELS[APP].get('follow') or ''
+    return '\n'.join([(item.get('title') or '').strip()] + [l for l in lines if l] + ([follow] if follow else [])).strip()
 
 
 def post_for(platform, item, data, cache):
@@ -316,7 +335,7 @@ def post_for(platform, item, data, cache):
         key += f"-{ACCOUNTS[platform]}"
     video = {'driveFileId': file_id}
     if platform == 'instagram' and file_id == item['driveId']:
-        key = f"{item['id']}-instagram-link"
+        key = f"{item['id']}-instagram-link" + (f"-{ACCOUNTS['instagram']}" if ACCOUNTS.get('instagram') else '')
         if not job_exists(key):  # a job from an earlier run carries on with the video it has
             video = instagram_video(item, data)
     if platform == 'instagram':
@@ -331,8 +350,9 @@ def post_for(platform, item, data, cache):
         text = '\n'.join(l for l in caption.splitlines() if not l.startswith('Follow @'))
         return {'platform': platform, 'key': key, 'video': video, 'text': text[:3000]}
     if platform == 'youtube':
+        yt = CHANNELS[APP].get('youtube') or {}
         post = {'platform': platform, 'key': key, 'video': video, 'title': title[:100], 'description': caption[:5000],
-                'privacy': 'public', 'categoryId': 28, 'madeForKids': False}
+                'privacy': 'public', 'categoryId': yt.get('categoryId', 28), 'madeForKids': bool(yt.get('madeForKids', False))}
         if data.get('thumb'):  # custom thumbnail (pipeline2/thumb.mjs); a refused one is only a warning on the job
             post['thumbnail'] = {'driveFileId': data['thumb']}
         return post
@@ -467,7 +487,7 @@ def alert(alert_id, title, summary):
     """A to-do in the Inbox, which Telegram sends as a message. The fixed id makes each alert go out once."""
     try:
         inbox({'action': 'add', 'id': alert_id, 'type': 'todo', 'status': 'pending', 'title': title, 'summary': summary,
-               'data': {'app': 'How To Hero', 'icon': '🚨'}})
+               'data': {'app': APP, 'icon': '🚨'}})
         print(f'alert sent: {title}')
     except (RuntimeError, OSError) as e:  # an id that exists already means this alert went out before
         print(f'alert not sent ({e})')
@@ -509,10 +529,24 @@ def run():
                 except (RuntimeError, OSError, KeyError, ValueError) as e:  # never let it stop How To Hero's post
                     print(f'{name}/{group}: {e}')
                     series_failed = 1
+    failed = series_failed
+    for app in CHANNELS:
+        try:
+            failed |= run_channel(app)
+        except (RuntimeError, OSError, KeyError, ValueError) as e:  # one channel's problem never stops another's post
+            print(f'{app}: {e}')
+            failed = 1
+    return failed
+
+def run_channel(app):
+    """Posts the next due video of one channel to every platform in its post_to. 1 if a platform failed."""
+    global APP
+    APP = app
+    print(f'--- {app}')
     items = due_items()
     if not items:
         print('nothing due')
-        return series_failed
+        return 0
     if not ITEM_ID:
         late_alert(items)
     item = items[0]
@@ -520,14 +554,14 @@ def run():
     platforms, down = live_platforms()
     print(f"posting {item['id']} (slot {item.get('slot')}) to {', '.join(platforms) or 'nothing'}; {len(items) - 1} more due")
     if DRY or not platforms:
-        return 0 if platforms else 1
+        return 0 if platforms or not down else 1  # no post_to at all is a setup step, not a failure
 
     # A platform whose channel is down counts as a failed post, so the video stays approved and the
     # next run tries it again instead of marking it posted without that platform.
     jobs = {p: {'id': None, 'status': 'failed', 'error': e} for p, e in down.items()}
     cache, no_version = {}, {}
     for p in platforms:
-        if (data.get('posted') or {}).get(p):
+        if any(k.lower() == p and u for k, u in (data.get('posted') or {}).items()):  # "+ Posted" by hand writes "YouTube"
             continue  # already there: never post a platform twice, whatever key its job had
         try:
             if platform_file(p, item, data, cache) is None:
@@ -572,7 +606,7 @@ def run():
     # failed holds only destinations still without a post, so the Inbox card shows a cross for each.
     still_failed = {p: e for p, e in dict(data.get('failed') or {}, **failed).items() if p not in posted}
     # Platforms this run did not post to: the Inbox card shows them as yellow "not posted yet" chips.
-    later = {p: why for p, why in dict(NOT_YET, **no_version).items() if p not in posted and p not in still_failed}
+    later = {p: why for p, why in dict(NOT_YET if APP == DEFAULT_APP else {}, **no_version).items() if p not in posted and p not in still_failed}
     new_data = dict(data, posted=posted, failed=still_failed, pending=later, publishFails=fails)
     new_data.pop('publishRetries', None)
     if posted and not data.get('postedAt'):  # the Inbox Channels page dates posts by this
