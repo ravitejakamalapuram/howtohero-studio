@@ -7,6 +7,9 @@
 3. For each lever (style, hookPattern, kind, length under/over 45 s) it averages the scores per value and shrinks
    them toward 0 by n/(n+8). A value needs MIN_N videos (15 for length) before it counts, and a shrunk difference
    under 20% is ignored as noise.
+   It also reports how viewers behaved, per shape of the video's parts (HOOKS.md): the share who left in the first
+   3 seconds on Instagram and the share of engaged views on YouTube by hookPattern and opening, and Instagram shares
+   per 1,000 views by endCard (data.metrics.<platform>.watch, stored by stats.py). Plain averages, MIN_N videos a value.
 4. Proposes style weights only (the one lever flow.json holds), at most 10% up or down a week; the floor in
    flow.json keeps every style in play. Hook, kind and length results are reported for the scout and build to use.
 Nothing changes without the user's tap. Run with --dry-run to print the card only.
@@ -71,7 +74,52 @@ def length_bucket(d):
 
 
 LEVERS = {'style': lambda d: d.get('style') or 'classic', 'hookPattern': lambda d: d.get('hookPattern'),
+          'opening': lambda d: d.get('opening'), 'endCard': lambda d: d.get('endCard'),
           'kind': lambda d: d.get('kind'), 'length': length_bucket}
+
+
+def watch(d, platform):
+    return ((d.get('metrics') or {}).get(platform) or {}).get('watch') or {}
+
+
+def skipped(d):
+    """Instagram: percent of first views that left in the first 3 seconds (the API may give 0-1 or 0-100)."""
+    v = watch(d, 'instagram').get('skipRate')
+    return None if v is None else v * 100 if v <= 1 else v
+
+
+def stayed(d):
+    """YouTube: percent of views that were engaged (kept playing instead of being swiped away)."""
+    w = watch(d, 'youtube')
+    return None if w.get('engagedViews') is None or not w.get('views') else min(100, 100 * w['engagedViews'] / w['views'])
+
+
+def shared(d):
+    """Instagram: shares per 1,000 views."""
+    w = watch(d, 'instagram')
+    return None if w.get('shares') is None or not w.get('views') else 1000 * w['shares'] / w['views']
+
+
+# (report label, what is measured, the parts it is reported for, True when higher is better, number format)
+WATCHED = [('Left in the first 3 s on Instagram', skipped, ('hookPattern', 'opening'), False, '{:.0f}%'),
+           ('Stayed to watch on YouTube', stayed, ('hookPattern', 'opening'), True, '{:.0f}%'),
+           ('Instagram shares per 1,000 views', shared, ('endCard',), True, '{:.1f}')]
+
+
+def watch_lines(datas):
+    """Report lines on how viewers behaved per part shape, best first. A value needs MIN_N videos with that number."""
+    lines = []
+    for label, measure, parts, higher, fmt in WATCHED:
+        for part in parts:
+            groups = {}
+            for d in datas:
+                v, x = LEVERS[part](d), measure(d)
+                if v and x is not None:
+                    groups.setdefault(v, []).append(x)
+            ranked = sorted(((sum(x) / len(x), v, len(x)) for v, x in groups.items() if len(x) >= MIN_N), reverse=higher)
+            if ranked:
+                lines.append(f'{label}, by {part}: ' + ', '.join(f'{v} {fmt.format(m)} ({n})' for m, v, n in ranked))
+    return lines or [f'How viewers stayed, by hook, opening and end card: not enough data yet ({MIN_N} videos per shape).']
 
 
 def lever_table(rows):
@@ -138,6 +186,7 @@ def main():
             lines.append(f'{lever}: ' + ', '.join(f'{v} {pct(sc)} ({n})' for v, (n, sc) in ranked))
         else:
             lines.append(f"{lever}: not enough data yet ({15 if lever == 'length' else MIN_N} videos per value)")
+    lines += watch_lines([d for d, _, _ in rows])
     lines.append(monetisation())
     lines.append(instagram())
     new = {s: w for s, w in proposal(flow, t).items() if w != flow['style']['kits'][s]['weight']}

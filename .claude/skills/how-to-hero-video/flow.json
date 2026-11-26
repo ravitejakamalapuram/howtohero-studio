@@ -31,6 +31,22 @@
     "budgetMinutes": 90,
     "maxQueueDays": 14
   },
+  "parts": {
+    "_about": "The opening and ending parts of a video (HOOKS.md says what each value is). pipeline2/pickparts.mjs gives most videos the default and about trialShare of them a trial value, so the weekly report can compare them. To make a winner the default, swap the names here.",
+    "trialShare": 0.4,
+    "hook": {
+      "default": "claim",
+      "trial": ["open-loop", "number", "contrast"]
+    },
+    "opening": {
+      "default": "big-subject",
+      "trial": ["in-motion", "before-after"]
+    },
+    "endCard": {
+      "default": "follow",
+      "trial": ["send", "question"]
+    }
+  },
   "style": {
     "trialShare": 0.2,
     "floor": 0.1,

@@ -30,7 +30,7 @@ export function flowErrors(flow) {
   const known = (o, keys, at) => Object.keys(o).filter(k => !keys.includes(k)).forEach(k => e.push(`${at}.${k} is not a known setting (${keys.join(', ')})`));
   if (!obj(flow, 'flow.json')) return e;
   if (flow.pipeline !== undefined && !['v1', 'v2'].includes(flow.pipeline)) e.push('flow.pipeline must be "v1" (the original look) or "v2" (pipeline2)');
-  known(flow, ['_about', 'channel', 'pipeline', 'scout', 'fix', 'build', 'style', 'voice', 'sound', 'photos'], 'flow');
+  known(flow, ['_about', 'channel', 'pipeline', 'scout', 'fix', 'build', 'parts', 'style', 'voice', 'sound', 'photos'], 'flow');
   if (typeof flow.channel !== 'string' || !/^[a-z0-9-]+$/.test(flow.channel)) e.push('channel must be a short id like "how-to-hero"');
   if (obj(flow.scout, 'scout')) {
     for (const k of ['newsMin', 'newsMax', 'newsWindowHours', 'newsWindowWeekendHours', 'weekFallbackDays', 'maxPendingIdeas', 'maxIdeaBacklog', 'ideasWhenBacklogged', 'docsPerWeek', 'maxOpenDocs']) num(flow.scout[k], `scout.${k}`);
@@ -87,6 +87,16 @@ export function flowErrors(flow) {
     for (const k of ['cut', 'hit', 'end', 'bed']) if (typeof s[k] !== 'string' || !s[k]) e.push(`sound.${k} must be a sound request in words`);
     if (s.bedByKeyword !== undefined && obj(s.bedByKeyword, 'sound.bedByKeyword')) for (const [w, ks] of Object.entries(s.bedByKeyword)) if (!Array.isArray(ks) || !ks.length) e.push(`sound.bedByKeyword.${w} must list topic words`);
     if (obj(s.volume, 'sound.volume')) for (const k of ['cut', 'hit', 'end', 'bed']) num(s.volume[k], `sound.volume.${k}`, 0, 1);
+  }
+  if (obj(flow.parts, 'parts')) { // pickparts.mjs: the hook shape, opening picture and end card of each video
+    known(flow.parts, ['_about', 'trialShare', 'hook', 'opening', 'endCard'], 'parts');
+    num(flow.parts.trialShare, 'parts.trialShare', 0, 1);
+    for (const k of ['hook', 'opening', 'endCard']) {
+      const p = flow.parts[k];
+      if (!obj(p, `parts.${k}`)) continue;
+      const names = [p.default, ...(Array.isArray(p.trial) ? p.trial : [])];
+      if (!Array.isArray(p.trial) || names.some(n => typeof n !== 'string' || !/^[a-z-]+$/.test(n)) || new Set(names).size !== names.length) e.push(`parts.${k} needs a "default" name and a "trial" list of other names, each used once`);
+    }
   }
   if (flow.photos !== undefined && obj(flow.photos, 'photos')) { // photos.py: Openverse cc0/pdm photos for news Shorts
     const s = flow.photos;

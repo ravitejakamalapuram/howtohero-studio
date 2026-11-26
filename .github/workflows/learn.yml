@@ -12,6 +12,7 @@ jobs:
     timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
+      - run: python3 -B -m unittest publisher/test_learn.py
       - run: python3 -B publisher/learn.py
         env:
           INBOX_URL: ${{ secrets.INBOX_URL }}

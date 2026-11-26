@@ -17,4 +17,4 @@ jobs:
         with:
           node-version: 22
       - run: node flow.mjs check
-      - run: node --test test/pickstyle.test.mjs test/schema.test.mjs
+      - run: node --test test/pickstyle.test.mjs test/pickparts.test.mjs test/schema.test.mjs
