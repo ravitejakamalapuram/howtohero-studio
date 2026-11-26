@@ -1,0 +1,24 @@
+{
+  "_about": "The single source of truth for this platform: what it accepts and what we have learned about it. Every skill, job and script that makes or posts videos for it reads this file; put new findings here, not anywhere else. maxSeconds is the platform's limit. A video longer than that never goes out cut: the video build makes a separate version for this platform of at most versionSeconds, with its own hook, payoff and end card (data.versions.<platform>), and the publisher posts it only when that version exists.",
+  "postTimesIST": [
+    "08:00",
+    "13:00",
+    "18:00",
+    "19:30",
+    "21:00"
+  ],
+  "metadata": {
+    "text": "A thought worth reading without the video, not \"new video out!\": the surprising fact in the first line (it holds the card's `search` phrase in natural words), one line on why it is true, then a short question that invites replies. No \"Sources:\" line, no @handle and no links. At most one hashtag, a broad topic people browse (#science, #space, #engineering), as the last word. At most captionMax characters, counting each emoji as 4: keep it under 400 and use one emoji at most."
+  },
+  "maxSeconds": 300,
+  "versionSeconds": 290,
+  "captionMax": 500,
+  "hashtagsMax": 1,
+  "notes": [
+    "Threads only fetches videos from a public link (video_url); it has no upload. The publisher reuses Instagram's copy on this repository's \"instagram-uploads\" release, and removes it once both posts are up. MP4 or MOV, up to 5 minutes and 1 GB.",
+    "Text: 500 characters, and Threads counts each emoji as its UTF-8 bytes (most are 4). Only the first hashtag is used, as the post's topic tag; the publish script keeps one. The limits mirror Social Media Publisher ({\"action\":\"platforms\"}); the publish script trims only as a last resort and warns, so write within them.",
+    "Each How To Hero video goes to Threads as a video post (since Nov 2026), so the weekly promotion pack (ops/PROMO.md) no longer writes a Threads post about the same video.",
+    "Posting times (IST) are the same 5 as Instagram: one publish run posts to every platform. Threads allows 250 API posts a day.",
+    "The account must be connected in Social Media Publisher (connectThreads) before \"threads\" goes into the channel's post_to in the Inbox: a platform in post_to that is not connected keeps the video from being marked posted."
+  ]
+}

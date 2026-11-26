@@ -298,6 +298,13 @@ def instagram_video(item, data):
     return video
 
 
+def shared_video(item, data, cache):
+    """instagram_video, made once per run: Instagram and Threads fetch the same public copy."""
+    if 'shared' not in cache:
+        cache['shared'] = instagram_video(item, data)
+    return cache['shared']
+
+
 def instagram_cover(item, data):
     """A public link to the video's thumbnail (data.thumb, a Drive file the build made with pipeline2/thumb.mjs) for
     Instagram's cover_url, or None. The release sweep removes it after IG_KEEP_DAYS."""
@@ -341,8 +348,9 @@ def limit(platform, name):
 def fit(text, most, what, unit='chars'):
     """Last resort for text a build wrote too long: cut at the last line break that fits, and say so.
     YouTube counts descriptions in UTF-8 bytes (Telugu takes 3 a letter), so unit='bytes' measures those."""
-    # 'chars' counts as Social Media Publisher does (JavaScript length: an emoji is 2), so a cut text always passes
-    size = (lambda t: len(t.encode())) if unit == 'bytes' else (lambda t: len(t.encode('utf-16-le')) // 2)
+    # 'chars' counts as Social Media Publisher does (JavaScript length: an emoji is 2), so a cut text always passes;
+    # 'threads' counts as Threads does (an emoji is its UTF-8 bytes)
+    size = {'bytes': lambda t: len(t.encode()), 'threads': threads_len}.get(unit, lambda t: len(t.encode('utf-16-le')) // 2)
     if size(text) <= most:
         return text
     cut = text
@@ -350,6 +358,15 @@ def fit(text, most, what, unit='chars'):
         cut = cut[:cut.rfind('\n')] if '\n' in cut else cut[:-1]
     print(f"WARNING: {what} was {size(text)} {unit}, over the limit of {most}; cut to {size(cut)}. Fix the build's text.")
     return cut.rstrip()
+
+
+def threads_len(t):
+    """Threads' length: an emoji counts as its UTF-8 bytes, every other character as one (as Social Media Publisher counts)."""
+    # The same ranges as THREADS_EMOJI in Social Media Publisher's src/threads.js
+    ranges = ((0x1F000, 0x1FAFF), (0x2190, 0x21FF), (0x2300, 0x23FF), (0x2600, 0x27BF), (0x2900, 0x297F), (0x2B00, 0x2BFF))
+    single = (0x203C, 0x2049, 0x2122, 0x2139, 0x20E3, 0x3030, 0x303D, 0x3297, 0x3299, 0xFE0F, 0x200D)
+    emoji = lambda c: c in single or any(lo <= c <= hi for lo, hi in ranges)
+    return sum(len(ch.encode()) if emoji(ord(ch)) else 1 for ch in t)
 
 
 def cap_hashtags(text, most, what):
@@ -399,7 +416,7 @@ def post_for(platform, item, data, cache):
     if platform == 'instagram' and file_id == item['driveId']:
         key = f"{item['id']}-instagram-link" + (f"-{ACCOUNTS['instagram']}" if ACCOUNTS.get('instagram') else '')
         if not job_exists(key):  # a job from an earlier run carries on with the video it has
-            video = instagram_video(item, data)
+            video = shared_video(item, data, cache)
     if platform == 'instagram':
         caption = fit(cap_hashtags(caption, limit('instagram', 'hashtagsMax'), f"{item['id']} Instagram caption"),
                       limit('instagram', 'captionMax'), f"{item['id']} Instagram caption")
@@ -416,6 +433,17 @@ def post_for(platform, item, data, cache):
         if data.get('thumb'):  # the Reel's cover; a refused one is only a warning on the job
             post['thumbnail'] = {'driveFileId': data['thumb']}
         return post
+    if platform == 'threads':
+        if file_id != item['driveId']:
+            raise ValueError('Threads takes only the full video, from the public link')
+        # A job from an earlier run carries on with its own video; the link here only has to pass the check.
+        link = (f"https://github.com/{os.environ.get('GITHUB_REPOSITORY', 'x/x')}/releases/download/{IG_RELEASE}/{item['id']}-instagram.mp4"
+                if job_exists(key) else shared_video(item, data, cache).get('url'))
+        if not link:
+            raise ValueError('no public link for Threads (needs GITHUB_TOKEN)')
+        what = f"{item['id']} Threads text"
+        text = fit(cap_hashtags(caption, limit('threads', 'hashtagsMax'), what), limit('threads', 'captionMax'), what, 'threads')
+        return {'platform': platform, 'key': key, 'video': {'url': link}, 'text': text}
     if platform == 'linkedin':
         text = '\n'.join(l for l in caption.splitlines() if not l.startswith('Follow @'))
         return {'platform': platform, 'key': key, 'video': video, 'text': text[:3000]}
@@ -667,7 +695,9 @@ def run_channel(app):
             break
         time.sleep(30)
 
-    if jobs.get('instagram', {}).get('status') == 'done' and os.environ.get('GITHUB_TOKEN'):
+    # Instagram and Threads fetch the same copy: remove it once every one of them that posted this run is up.
+    fetchers = [jobs[p] for p in ('instagram', 'threads') if p in jobs]
+    if fetchers and all(j['status'] == 'done' for j in fetchers) and os.environ.get('GITHUB_TOKEN'):
         remove_public_link(f"{item['id']}-instagram.mp4")
     posted = dict(data.get('posted') or {})
     posted.update({p: j['result'].get('url') for p, j in jobs.items() if j['status'] == 'done'})

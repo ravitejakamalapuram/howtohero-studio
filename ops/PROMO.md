@@ -2,7 +2,7 @@
 
 The daily manager run (`ops/jobs/growth.md`) writes one "promotion pack" a week: ready-to-paste posts for Threads, Reddit and X about that week's best video. The user posts them by hand. Nothing here is posted by a job.
 
-Why by hand: Threads has a free posting API, but the publisher has no Threads adapter yet and the accounts are new; X charges for posting through its API; Reddit removes promotion that looks automated. If Threads packs get posted for 4 weeks and bring views, add a Threads adapter to Social Media Publisher and let the publisher post them.
+Why by hand: X charges for posting through its API, and Reddit removes promotion that looks automated. Threads is different: since Nov 2026 every How To Hero video is posted to Threads as a video by the publisher (`platforms/threads.json`, text from `meta.threads`), so a How To Hero pack leaves the THREADS part out. Anaadi and Chinni Slokalu packs keep it until those channels get "threads" in their Inbox post_to.
 
 An honest expectation: a new account with no followers reaches almost nobody on X and few on Threads. Reddit can send real viewers from the first post, but only when the post is useful by itself. So the order of effort is Threads (it shares the Instagram account and audience), then Reddit, then X.
 
@@ -10,7 +10,7 @@ An honest expectation: a new account with no followers reaches almost nobody on 
 
 | Channel | Threads | Reddit | X |
 | --- | --- | --- | --- |
-| How To Hero | Yes | Yes, in subreddits about the video's subject | Yes |
+| How To Hero | Posted by the publisher with each video | Yes, in subreddits about the video's subject | Yes |
 | Anaadi | Yes (Telugu, with one English line) | Only in a subreddit whose rules welcome it | No |
 | Chinni Slokalu | Yes (for parents) | No | No |
 | The Last Signal | Not until it posts regularly | No | No |
