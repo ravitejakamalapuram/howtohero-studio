@@ -7,11 +7,14 @@
     "19:30",
     "21:00"
   ],
+  "titleMax": 100,
+  "descriptionMaxBytes": 5000,
   "metadata": {
     "title": "At most 70 characters (YouTube allows 100): the claim first with the main noun of the card's `search` phrase in it, ending in \" #shorts\". No \"in 60 Seconds\".",
     "text": "2-3 plain sentences, the first holding the card's `search` phrase (How To Hero cards; verbatim when it reads as a clause, like \"why is the sea salty\", otherwise all its words in natural order): what the video shows and one extra fact, then \"Sources: <names>\", then 3 hashtags. No @handles (they are Instagram handles)."
   },
   "notes": [
+    "The description limit is 5000 UTF-8 bytes, not characters: English takes 1 byte a letter, Telugu 3, emoji 4, so a Telugu description holds about 1,600 letters. Titles are 100 characters. Neither may contain < or >. The limits mirror Social Media Publisher, which refuses a post over them ({\"action\":\"platforms\"} returns its numbers); the publish script trims only as a last resort and warns, so write within them.",
     "Shorts up to 3 minutes; documentaries are 16:9 long-form and are never cut.",
     "API uploads go out public (since 2026-11-16; Google confirmed API uploads are not forced private).",
     "Upload quota is about 6 videos a day by the old estimate, reset at 13:30 IST; in practice 9 uploads on 16 Nov 2026 all went through.",

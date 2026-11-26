@@ -330,6 +330,42 @@ def fallback_text(item, data):
     return '\n'.join([(item.get('title') or '').strip()] + [l for l in lines if l] + ([follow] if follow else [])).strip()
 
 
+PLATFORMS_DIR = os.path.join(os.path.dirname(os.path.abspath(__file__)), '..', 'platforms')
+
+
+def limit(platform, name):
+    """A text limit from platforms/<platform>.json (the numbers Social Media Publisher enforces)."""
+    return json.load(open(os.path.join(PLATFORMS_DIR, f'{platform}.json')))[name]
+
+
+def fit(text, most, what, unit='chars'):
+    """Last resort for text a build wrote too long: cut at the last line break that fits, and say so.
+    YouTube counts descriptions in UTF-8 bytes (Telugu takes 3 a letter), so unit='bytes' measures those."""
+    size = (lambda t: len(t.encode())) if unit == 'bytes' else len
+    if size(text) <= most:
+        return text
+    cut = text
+    while size(cut) > most:
+        cut = cut[:cut.rfind('\n')] if '\n' in cut else cut[:-1]
+    print(f"WARNING: {what} was {size(text)} {unit}, over the limit of {most}; cut to {size(cut)}. Fix the build's text.")
+    return cut.rstrip()
+
+
+def cap_hashtags(text, most, what):
+    """Keeps the first `most` hashtags and drops the rest (Instagram refuses more than 5 since Dec 2025)."""
+    tags = re.findall(r'(?<!\S)#[^\s#]+', text)
+    if len(tags) <= most:
+        return text
+    drop = set(range(most, len(tags)))
+    n = [-1]
+    def keep(m):
+        n[0] += 1
+        return '' if n[0] in drop else m.group(0)
+    out = re.sub(r'[ \t]*(?<!\S)#[^\s#]+', keep, text).rstrip()
+    print(f"WARNING: {what} had {len(tags)} hashtags, over the limit of {most}; kept the first {most}. Fix the build's text.")
+    return out
+
+
 def post_for(platform, item, data, cache):
     # data.meta.<platform> (written by the build from platforms/<platform>.json "metadata") wins over the shared yt/ig text
     meta = ((data.get('meta') or {}).get(platform) or {}) if isinstance(data.get('meta'), dict) else {}
@@ -345,19 +381,23 @@ def post_for(platform, item, data, cache):
         if not job_exists(key):  # a job from an earlier run carries on with the video it has
             video = instagram_video(item, data)
     if platform == 'instagram':
+        caption = fit(cap_hashtags(caption, limit('instagram', 'hashtagsMax'), f"{item['id']} Instagram caption"),
+                      limit('instagram', 'captionMax'), f"{item['id']} Instagram caption")
         post = {'platform': platform, 'key': key, 'video': video, 'caption': caption}
         cover = None if job_exists(key) else instagram_cover(item, data)
         if cover:
             post['coverUrl'] = cover
         return post
     if platform == 'facebook':
-        return {'platform': platform, 'key': key, 'video': video, 'title': title.replace('#shorts', '').strip()[:255], 'description': caption}
+        return {'platform': platform, 'key': key, 'video': video, 'title': title.replace('#shorts', '').strip()[:limit('facebook', 'titleMax')],
+                'description': fit(caption, limit('facebook', 'captionMax'), f"{item['id']} Facebook description")}
     if platform == 'linkedin':
         text = '\n'.join(l for l in caption.splitlines() if not l.startswith('Follow @'))
         return {'platform': platform, 'key': key, 'video': video, 'text': text[:3000]}
     if platform == 'youtube':
         yt = CHANNELS[APP].get('youtube') or {}
-        post = {'platform': platform, 'key': key, 'video': video, 'title': title[:100], 'description': caption[:5000],
+        post = {'platform': platform, 'key': key, 'video': video, 'title': title[:limit('youtube', 'titleMax')],
+                'description': fit(caption, limit('youtube', 'descriptionMaxBytes'), f"{item['id']} YouTube description", 'bytes'),
                 'privacy': 'public', 'categoryId': yt.get('categoryId', 28), 'madeForKids': bool(yt.get('madeForKids', False))}
         for k in ('tags', 'language'):  # optional per-channel defaults, e.g. Chinni Slokalu's tags and Telugu audio
             if yt.get(k):
@@ -453,8 +493,9 @@ def run_series(name, group=''):
     meta = (data.get('meta') or {}).get('youtube') or {}
     post = {'action': 'publish', 'platform': 'youtube', 'account': cfg['account'], 'key': f"{item['id']}-youtube",
             'video': {'driveFileId': item['driveId']},
-            'title': (meta.get('title') or item.get('title') or '')[:100],
-            'description': (meta.get('text') or fallback_text(item, data))[:5000],
+            'title': (meta.get('title') or item.get('title') or '')[:limit('youtube', 'titleMax')],
+            'description': fit(meta.get('text') or fallback_text(item, data), limit('youtube', 'descriptionMaxBytes'),
+                               f"{item['id']} YouTube description", 'bytes'),
             'privacy': 'private', 'publishAt': at.isoformat(), 'categoryId': cfg['categoryId'],
             'language': cfg['language'], 'aiGenerated': cfg['aiGenerated'], 'madeForKids': False}
     if data.get('thumb'):
