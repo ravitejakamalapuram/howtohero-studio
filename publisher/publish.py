@@ -559,6 +559,7 @@ def run_series(name, group=''):
     return 1 if job['status'] == 'failed' else 0
 
 
+IG_SERIES_WAIT = 5 * 60  # keeps the whole run inside the workflow's 60 minutes
 IG_SERIES = {k: v for k, v in RULES.get('instagram', {}).get('channels', {}).items() if not k.startswith('_')}
 
 
@@ -627,7 +628,7 @@ def run_ig_series(name):
         if cover:
             post['coverUrl'] = cover
     job = social(post)['job']
-    deadline = time.time() + WAIT_SECONDS
+    deadline = time.time() + IG_SERIES_WAIT  # a job still running is picked up by the next run, under the same key
     while job['status'] in ('queued', 'running') and time.time() < deadline:
         time.sleep(20)
         job = social({'action': 'get', 'id': job['id']})['job']
@@ -703,7 +704,7 @@ def run():
         for name in IG_SERIES:
             try:
                 series_failed |= run_ig_series(name)
-            except (RuntimeError, OSError, KeyError, ValueError) as e:  # never let it stop another channel's post
+            except (RuntimeError, OSError, KeyError, ValueError, TypeError) as e:  # never let it stop another channel's post
                 print(f'{name} instagram: {e}')
                 series_failed = 1
     failed = series_failed

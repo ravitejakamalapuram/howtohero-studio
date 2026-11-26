@@ -87,8 +87,6 @@ class ReplyAccounts(unittest.TestCase):
         self.assertIn(('Chinni Slokalu', '💬', 'youtube', 'chitti'), got)
 
 
-if __name__ == '__main__':
-    unittest.main()
 
 
 class InstagramSeries(unittest.TestCase):
@@ -123,3 +121,6 @@ class InstagramSeries(unittest.TestCase):
     def test_anaadi_is_configured(self):
         self.assertEqual(publish.IG_SERIES['anaadi']['account'], 'anaadi')
         self.assertIn('anaadi', publish.SERIES)
+
+if __name__ == '__main__':
+    unittest.main()
