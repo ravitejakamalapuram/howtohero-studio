@@ -24,11 +24,11 @@
     "maxPerRun": 2
   },
   "build": {
-    "maxPerRun": 10,
+    "maxPerRun": 50,
     "claimTtlMinutes": 180,
     "maxVersionsPerRun": 6,
     "paused": false,
-    "budgetMinutes": 90,
+    "budgetMinutes": 300,
     "maxQueueDays": 14
   },
   "style": {
