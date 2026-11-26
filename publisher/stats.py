@@ -25,6 +25,9 @@ SOURCES = ['queue', 'news']
 TIMES = sorted({t for r in RULES.values() for t in r.get('postTimesIST', [])}
                | {t for c in CHANNELS.values() for t in (c.get('times') or [c['time']] if c.get('time') or c.get('times') else [])})
 
+# Workflows here that the Inbox timer starts on time (IST), because GitHub's own schedule runs hours late.
+JOBS = [{'workflow': 'stats.yml', 'time': '06:53'}, {'workflow': 'learn.yml', 'time': '09:11', 'day': 'mon'}]
+
 
 def snapshot(views):
     """Stores each posted video's views at day 2 and day 7 in data.metrics.<platform>.{d2,d7}, once, so the weekly
@@ -88,6 +91,7 @@ def main():
                         # and the Inbox's timer start it at the daily slots in TIMES (IST), since GitHub's schedule never fired
                         body['publish'] = {'repo': os.environ['GITHUB_REPOSITORY'], 'workflow': 'publish.yml',
                                            'times': TIMES, 'first': ['news']}
+                        body['jobs'] = JOBS
                 r = inbox(body)
                 print(f"{name}: {r.get('followers')} followers, {r.get('posts')} posts, {r.get('views')} views")
             except Exception as e:  # one account failing should not stop the others

@@ -1,8 +1,8 @@
 # Weekly report per channel: applies approved style weights to flow.json and sends one "what worked" card (publisher/learn.py).
 name: learn
+# Started by the Inbox timer on Mondays at 09:11 IST (JOBS in publisher/stats.py). No GitHub schedule: it ran about
+# 10 hours late, and a second run would send a second card.
 on:
-  schedule:
-    - cron: '41 3 * * 1'  # Mondays about 09:11 IST
   workflow_dispatch:
 permissions:
   contents: write
