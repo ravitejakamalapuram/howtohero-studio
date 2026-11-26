@@ -3,9 +3,9 @@
 
 Runs at the start of every publish run (see .github/workflows/publish.yml), in two steps:
 
-1. Posts approved replies. Each Inbox item of type "reply" that is approved goes out through Social Manager,
+1. Posts approved replies. Each Inbox item of type "reply" that is approved goes out through Social Media Publisher,
    then is marked "posted". If the user wrote a note when approving, the note is posted instead of the draft,
-   so a reply can be edited on the way. Social Manager returns the first reply when the same text is sent
+   so a reply can be edited on the way. Social Media Publisher returns the first reply when the same text is sent
    to the same comment again, so a rerun never posts twice.
 2. Pulls new comments. Each viewer comment from the last MAX_AGE_DAYS that the channel hasn't answered becomes
    a "reply" item in status "building" (no Telegram message yet). The scout and build runs draft the answer

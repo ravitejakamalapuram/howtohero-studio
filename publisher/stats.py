@@ -2,7 +2,7 @@
 """Sends How To Hero's and each serialized channel's daily numbers to the Inbox Channels page.
 
 For each platform in PLATFORMS it reads followers and the newest posts' likes, comments and views from
-Social Manager (action "stats") and passes them to the Inbox (action "channelStats"). Running it twice on
+Social Media Publisher (action "stats") and passes them to the Inbox (action "channelStats"). Running it twice on
 one day replaces that day's numbers. Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN.
 """
 import datetime as dt

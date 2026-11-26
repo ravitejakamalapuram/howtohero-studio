@@ -14,11 +14,11 @@ The How To Hero video studio. Claude routines find ideas, build vertical explain
    publisher/*.py (GitHub Actions, this repo) ─┘
       │ publish, stats, comments
       ▼
-   social-manager ─► YouTube, Instagram, Facebook
+   social-media-publisher ─► YouTube, Instagram, Facebook
 ```
 
 - [**inbox**](https://github.com/ravitejakamalapuram/inbox) holds every card (idea, story, video, reply, and the weekly `flow-tune` report), the per-channel config and the Telegram approve/reject buttons. Jobs reach it only through `.claude/skills/how-to-hero-video/inbox.sh` (Claude jobs) and `publisher/publish.py` (Actions).
-- [**social-manager**](https://github.com/ravitejakamalapuram/social-manager) is the posting service. This repo never talks to a platform directly; it calls Social Manager's `publish`, `stats`, `comments` and `reply` actions.
+- [**social-media-publisher**](https://github.com/ravitejakamalapuram/social-media-publisher) is the posting service. This repo never talks to a platform directly; it calls Social Media Publisher's `publish`, `stats`, `comments` and `reply` actions.
 - **This repo** owns the content rules, the renderer and the publisher.
 
 ## What runs, and when
@@ -50,7 +50,7 @@ GitHub's own cron never fired for the publish workflow here, which is why the In
 Do these in order. Nothing here needs the old accounts, and no token or link is ever stored in git.
 
 1. **Accounts you need:** GitHub, Google (the Inbox Sheet and Drive), Telegram (a bot for approvals), Claude (scheduled routines), and the platforms you post to (YouTube, Instagram and Facebook through a Meta app). `SETUP.md` lists every key and where it lives.
-2. **Fork or clone the three repos:** `howtohero-studio` (this one), `inbox` (approvals app) and `social-manager` (posting service). Each has a `docs/FAQ.md` section "What is not in git" that says what to redo on a new Google account (Sheet, Script Properties, consent screens, the new `/exec` URL).
+2. **Fork or clone the three repos:** `howtohero-studio` (this one), `inbox` (approvals app) and `social-media-publisher` (posting service). Each has a `docs/FAQ.md` section "What is not in git" that says what to redo on a new Google account (Sheet, Script Properties, consent screens, the new `/exec` URL).
 3. **Make the tokens and set the GitHub secrets** (`INBOX_URL`, `INBOX_TOKEN`, `SOCIAL_URL`, `SOCIAL_TOKEN`) as in `SETUP.md`. Use `.env.example` for the names.
 4. **Set up the build machine:** run `ops/bootstrap.sh` once, then `. ops/env.sh` in each shell (pinned Node, Python and font tools; `ops/doctor.sh` says what is missing).
 5. **Prove the look before any real video:** run `ops/golden-check.sh`. It rebuilds the worked example v17 (Rajasaurus) from git and prints a contact sheet. It must match `ops/golden/v1-look-reference.jpg` (indigo background, Anton headline with one yellow word, a drawn picture on every beat, caption below, mascot end card). `ops/golden/v1-posted-originals.jpg` shows two posted originals next to rebuilt frames. If the sheet differs, stop: something in the setup is wrong.

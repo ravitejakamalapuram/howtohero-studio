@@ -1,4 +1,4 @@
-# Posts approved Inbox videos through Social Manager (see publisher/publish.py).
+# Posts approved Inbox videos through Social Media Publisher (see publisher/publish.py).
 # Needs repository secrets INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN.
 name: publish
 on:
