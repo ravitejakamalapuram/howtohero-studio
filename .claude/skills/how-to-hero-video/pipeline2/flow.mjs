@@ -37,6 +37,7 @@ export function flowErrors(flow) {
     if (flow.scout.newsWindowWeekendHours < flow.scout.newsWindowHours) e.push('scout.newsWindowWeekendHours is less than scout.newsWindowHours');
     if (flow.scout.weekFallbackDays * 24 <= flow.scout.newsWindowWeekendHours) e.push('scout.weekFallbackDays must be longer than the weekend news window');
     if (flow.scout.newsMin > flow.scout.newsMax) e.push('scout.newsMin is more than scout.newsMax');
+    if (flow.scout.fastLane !== undefined) num(flow.scout.fastLane, 'scout.fastLane', 0, 3); // stories a day built without the first approval (SCOUT.md)
     if (obj(flow.scout.mix, 'scout.mix')) for (const [k, v] of Object.entries(flow.scout.mix)) num(v, `scout.mix.${k}`);
   }
   if (flow.fix !== undefined && obj(flow.fix, 'fix')) { known(flow.fix, ['maxFixes', 'maxPerRun'], 'fix'); num(flow.fix.maxFixes, 'fix.maxFixes', 0, 10); num(flow.fix.maxPerRun, 'fix.maxPerRun', 0, 20); }

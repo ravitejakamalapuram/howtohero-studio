@@ -1,6 +1,6 @@
 # How To Hero news (stories)
 
-News reaches the user as a `story` card first. Nothing is built until they approve it on Telegram. The scout (`SCOUT.md`) finds and proposes stories with "Finding stories"; the build run (`SKILL.md` "Build run") builds approved ones with "Build a story". Never post anything. Never print the Inbox URL, the token or an upload link. Times are IST.
+News reaches the user as a `story` card first. Nothing is built until they approve it on Telegram, except the day's fast-lane story (`SCOUT.md` "Fast lane"), which is built at once and approved as a finished video. The scout (`SCOUT.md`) finds and proposes stories with "Finding stories"; the build run (`SKILL.md` "Build run") builds approved ones with "Build a story". Never post anything. Never print the Inbox URL, the token or an upload link. Times are IST.
 
 Lanes, in `data.lane`:
 - **A, trending** tech or infrastructure event. It goes stale within hours, so its card says "Trending: approve today" and the build run takes it before anything else.

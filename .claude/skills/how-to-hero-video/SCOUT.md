@@ -19,6 +19,8 @@ News goes stale, so do it before ideas. Find stories with `NEWS.md` "Finding sto
 
 For lane A also set `"note":"Trending: approve today, it goes stale."`. A `conflict` error means it already exists: skip it.
 
+Fast lane: news lost about 40 hours between the card and the post (26 videos measured on 26 Nov 2026), most of it waiting for two approvals. So the best `scout.fastLane` stories of the run (1; 0 turns it off) skip the first one. Take them in rank order, lane A first, and only a story the advisor (step 3) passed with no open FACTS point. Add each with `"status":"approved"` instead of `"pending"` and `"note":"Fast lane: built today without waiting for your OK. You approve the finished video."`, and set `data.fastLane` true. The build run claims approved stories first, so it is built the same morning, and the user still approves the video before anything is posted. If no story qualifies, use no fast lane that day. Say which story took it in the final reply.
+
 ## 2. Then ideas
 
 Read `IDEAS.md` first: it defines the idea kinds (`explainer`, `fact`, `curiosity`, `doc`), the quality bar every card must pass, the daily mix and the card fields. Read `platforms/*.json` (repo root) for the length limits it refers to.

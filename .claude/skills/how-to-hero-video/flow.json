@@ -4,6 +4,7 @@
   "scout": {
     "newsMin": 3,
     "newsMax": 10,
+    "fastLane": 1,
     "newsWindowHours": 48,
     "newsWindowWeekendHours": 72,
     "weekFallbackDays": 7,
