@@ -7,6 +7,7 @@ This page lists every key the How To Hero jobs use, where each one lives today a
 | Job | Runs on today | Keys |
 | --- | --- | --- |
 | Daily scout (`SCOUT.md`) | Claude scheduled task, 05:47 IST | `INBOX_URL`, `INBOX_TOKEN`, optional `HTH_ADVISOR_KEY` |
+| Daily growth to-dos (`ops/jobs/growth.md`) | Claude scheduled task, 07:17 IST | `INBOX_URL`, `INBOX_TOKEN` |
 | Daily build run (`SKILL.md` "Build run") | Claude scheduled task, 11:03 IST | `INBOX_URL`, `INBOX_TOKEN`, optional `HTH_ADVISOR_KEY` |
 | Auto-publisher (`publisher/publish.py`) | GitHub Actions (`publish.yml`), 3 times a day | `INBOX_URL`, `INBOX_TOKEN`, `SOCIAL_URL`, `SOCIAL_TOKEN` |
 | Daily stats (`publisher/stats.py`) | GitHub Actions (`stats.yml`), once a day | same four as the publisher |
