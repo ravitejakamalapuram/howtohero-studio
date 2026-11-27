@@ -204,7 +204,7 @@ def inbox_file(item_id, path, drive_id=None):
         while True:
             part = inbox(dict(base, start=start))
             fh.write(base64.b64decode(part['base64']))
-            if part['end'] >= part['size'] - 1:
+            if 'end' not in part or part['end'] >= part['size'] - 1:  # an older Inbox sends the whole file at once
                 return
             start = part['end'] + 1
 
