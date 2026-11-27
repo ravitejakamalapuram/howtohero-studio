@@ -23,7 +23,8 @@
       "platforms": {
         "youtube": {"account": "anaadi", "slots": ["prime-pm"]},
         "instagram": {"account": "anaadi", "slots": ["prime-pm"], "catchUpSlots": ["prime-am"]},
-        "threads": {"account": "anaadi", "slots": ["prime-pm"], "catchUpSlots": ["prime-am"]}
+        "threads": {"account": "anaadi", "slots": ["prime-pm"], "catchUpSlots": ["prime-am"]},
+        "facebook": {"account": "anaadi", "slots": ["prime-pm"], "catchUpSlots": ["prime-am"]}
       }
     },
     "Anaadi: Lokas": {
@@ -31,7 +32,8 @@
       "platforms": {
         "youtube": {"account": "anaadi", "slots": ["prime-am"], "everyDays": 3},
         "instagram": {"account": "anaadi", "slots": ["afternoon"]},
-        "threads": {"account": "anaadi", "slots": ["afternoon"]}
+        "threads": {"account": "anaadi", "slots": ["afternoon"]},
+        "facebook": {"account": "anaadi", "slots": ["afternoon"]}
       }
     },
     "Anaadi: Divya Sampada": {
@@ -39,7 +41,8 @@
       "platforms": {
         "youtube": {"account": "anaadi", "slots": ["afternoon"], "everyDays": 3},
         "instagram": {"account": "anaadi", "slots": ["dusk"]},
-        "threads": {"account": "anaadi", "slots": ["dusk"]}
+        "threads": {"account": "anaadi", "slots": ["dusk"]},
+        "facebook": {"account": "anaadi", "slots": ["dusk"]}
       }
     }
   }
