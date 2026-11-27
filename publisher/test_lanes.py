@@ -59,6 +59,14 @@ class Slots(unittest.TestCase):
         with self.assertRaises(ValueError):
             lanes.check({'slots': {'x': {'mon': '10:00'}}, 'series': {}})
 
+    def test_slot_before_midnight_is_due_after_it(self):
+        cfg = {'slots': {'night': '23:30'}}
+        self.assertEqual(list(lanes.due_slots(cfg, dt.datetime(2026, 11, 28, 0, 10, tzinfo=IST))), ['night'])
+
+    def test_series_without_lead_or_platforms_is_refused(self):
+        with self.assertRaises(ValueError):
+            lanes.check({'slots': SLOTS, 'series': {'X': {'order': 'loose', 'app': 'X', 'platforms': 'post_to'}}})
+
     def test_nothing_outside_a_slot(self):
         self.assertEqual(run(strict(), [ep(1, 'approved')], dt.datetime(2026, 11, 27, 15, 0, tzinfo=IST)), {})
 
@@ -137,6 +145,18 @@ class Loose(unittest.TestCase):
         self.assertIn('1 more missed', out['instagram']['why'])
         self.assertIsNone(out['youtube']['id'])
         self.assertEqual(run(cfg, items, FRI_PM)['instagram']['id'], None)  # normal slots post only new cards
+
+    def test_lead_catches_up_a_card_it_missed(self):
+        cfg = loose(catchUpSlots=['late'], since='2026-11-27')
+        items = [card(1, 'posted', posted={'instagram': 'i'}, posted_at='2026-11-27T08:05:00+05:30')]
+        self.assertEqual(run(cfg, items, FRI_LATE)['youtube']['id'], 'v-1')
+
+    def test_a_rerun_in_the_same_slot_posts_nothing_more(self):
+        cfg = loose(catchUpSlots=['late'], since='2026-11-27')
+        done = card(1, 'posted', posted={'youtube': 'y', 'instagram': 'i'}, posted_at='2026-11-27T08:05:00+05:30')
+        done['data']['postedTimes'] = {'instagram': '2026-11-27T21:36:00+05:30'}
+        items = [done, card(2, 'posted', posted={'youtube': 'y'}, posted_at='2026-11-27T10:05:00+05:30')]
+        self.assertNotIn('instagram', run(cfg, items, FRI_LATE + dt.timedelta(minutes=15)))
 
     def test_mode4_no_catch_up_slots_skips_missed_cards(self):
         items = [card(1, 'posted', posted={'youtube': 'y'}, posted_at='2026-11-27T08:05:00+05:30')]

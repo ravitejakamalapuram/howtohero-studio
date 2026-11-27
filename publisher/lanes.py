@@ -42,6 +42,8 @@ def check(cfg):
     for sname, s in cfg['series'].items():
         if s.get('order') not in ('strict', 'loose'):
             raise ValueError(f'{sname}: order must be strict or loose')
+        if not s.get('lead') or not s.get('platforms') or not (s.get('app') or (s.get('channel') and s.get('group'))):
+            raise ValueError(f'{sname}: needs lead, platforms and app (or channel and group)')
         lanes = [s] + (list(s['platforms'].values()) if isinstance(s.get('platforms'), dict) else [])
         for lane in lanes:
             for slot in (lane.get('slots') or []) + (lane.get('catchUpSlots') or []):
@@ -97,7 +99,9 @@ def has(item, platform):
 
 
 def posted_at(item, platform):
-    """When the card went out on this platform, or None: data.postedTimes, else the older per-path fields."""
+    """When the card went out (or, scheduled on YouTube, goes live) on this platform, or None: data.postedTimes, else
+    the older per-path fields. A future time keeps a strict lead's lane shut, so an episode never goes up before the
+    one already scheduled ahead of it; everyDays counts from that go-live time."""
     d = data_of(item)
     for v in ((d.get('postedTimes') or {}).get(platform),
               d.get('igPostedAt') if platform == 'instagram' else None,
@@ -209,7 +213,7 @@ def plan(cfg, items, now, post_to, default_app):
                     item, why = None, 'the lead keeps its own pace'
             else:
                 new = loose_new(cards, p, now) if normal else []
-                missed = loose_missed(lane, cards, p, s['lead']) if catch and p != s['lead'] else []
+                missed = loose_missed(lane, cards, p, s['lead']) if catch else []  # the lead too: a failed YouTube post
                 late = loose_new(cards, p, now) if catch and p == s['lead'] else []
                 if new:
                     item, why = new[0], ('news' if is_news(new[0]) else 'new') + f' ({len(new) - 1} more due)'
