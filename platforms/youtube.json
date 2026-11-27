@@ -23,7 +23,7 @@
   ],
   "channels": {
     "anaadi": {
-      "_about": "Serialized channel (Anaadi, Telugu mythology). Its Inbox cards carry data.channel \"anaadi\" and data.episode. The publisher uploads them to YouTube account \"anaadi\" strictly in episode order, one per run, each scheduled with YouTube's own publish time: one episode every everyDays days at timeIST, after the latest one already scheduled. A missing or failed episode holds every later one. 'after' is the last episode scheduled outside the publisher; raise it if you schedule one by hand.",
+      "_about": "Serialized channel (Anaadi, Telugu mythology). Its Inbox cards carry data.channel \"anaadi\" and data.episode. The publisher uploads them to YouTube account \"anaadi\" strictly in episode order, one per run, each scheduled with YouTube's own publish time: one episode every everyDays days at timeIST, after the latest one already scheduled. A missing or failed episode holds every later one. 'after' is the last episode scheduled outside the publisher; raise it if you schedule one by hand. crossLink is a line added to each new description that points to the sister channel (Shorts have no end screens, and the related-video link has no API).",
       "account": "anaadi",
       "timeIST": "19:30",
       "everyDays": 1,
@@ -32,6 +32,7 @@
       "aiGenerated": true,
       "after": {"episode": 4, "publishAt": "2026-11-23T19:30:00+05:30"},
       "playlist": "సృష్టి · Season 1: Srishti",
+      "crossLink": "🪔 ఇంట్లో పిల్లల కోసం శ్లోకాలు · Slokas for the children at home: https://www.youtube.com/@ChinniSlokalu",
       "group": "saga",
       "_groups": "Categories on the channel. A card names its group in data.group; no data.group means the main group above ('saga', Mahagatha: the continuous story, one playlist per season). Every group numbers its own episodes from 1 (data.episode), posts in that order at its own timeIST every everyDays, and fills its own playlist. A card with an unknown group never posts.",
       "groups": {

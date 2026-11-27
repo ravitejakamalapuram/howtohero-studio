@@ -1,5 +1,5 @@
 {
-  "_about": "The channels this publisher posts one video at a time, by their Inbox app name (data.app). An approved video whose app is not listed here (and is not a serialized channel in platforms/youtube.json) is never posted. Where each channel posts comes from post_to in the Inbox Channel config; only the default channel falls back to PLATFORMS when that is empty. follow ends the caption when a card has none of its own; youtube holds that channel's upload settings (categoryId, madeForKids, optional tags and language for every upload, and optional playlists: the playlist a video joins by its kind, 'news' or 'default', unless its card names one in data.playlist). time (IST, HH:MM) is when its videos go out each day, or times (a list) for several a day; without either, 19:30. News ignores both.",
+  "_about": "The channels this publisher posts one video at a time, by their Inbox app name (data.app). An approved video whose app is not listed here (and is not a serialized channel in platforms/youtube.json) is never posted. Where each channel posts comes from post_to in the Inbox Channel config; only the default channel falls back to PLATFORMS when that is empty. follow ends the caption when a card has none of its own; youtube holds that channel's upload settings (categoryId, madeForKids, optional tags and language for every upload, and optional playlists: the playlist a video joins by its kind, 'news' or 'default', unless its card names one in data.playlist). collaborators (Instagram usernames, up to 3) get a Collab invite on each new Reel; youtube.crossLink is a line added to each new YouTube description that points to a sister channel. time (IST, HH:MM) is when its videos go out each day, or times (a list) for several a day; without either, 19:30. News ignores both.",
   "How To Hero": {
     "default": true,
     "follow": "Follow @howtohero.official #shorts",
@@ -9,7 +9,9 @@
   "Chinni Slokalu": {
     "time": "18:30",
     "follow": "Follow @chinnislokalu for a new sloka every day 🪔",
+    "collaborators": ["anaadikatha"],
     "youtube": {"categoryId": 27, "madeForKids": false, "language": "te",
+      "crossLink": "🕉️ అనాది: అన్ని వయసుల వారికి పురాణ కథలు · Telugu mythology stories: https://www.youtube.com/@AnaadiKatha",
       "tags": ["Chinni Slokalu", "Telugu slokas for kids", "slokas for kids", "Sanskrit slokas", "kids devotional songs", "shlokas for children", "Telugu bhakti", "sing along"]}
   }
 }
