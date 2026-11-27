@@ -22,21 +22,24 @@
       "channel": "anaadi", "group": "saga", "defaultGroup": true, "order": "strict", "lead": "youtube", "after": 4,
       "platforms": {
         "youtube": {"account": "anaadi", "slots": ["prime-pm"]},
-        "instagram": {"account": "anaadi", "slots": ["prime-pm"], "catchUpSlots": ["prime-am"]}
+        "instagram": {"account": "anaadi", "slots": ["prime-pm"], "catchUpSlots": ["prime-am"]},
+        "threads": {"account": "anaadi", "slots": ["prime-pm"], "catchUpSlots": ["prime-am"]}
       }
     },
     "Anaadi: Lokas": {
       "channel": "anaadi", "group": "lokas", "order": "strict", "lead": "youtube",
       "platforms": {
         "youtube": {"account": "anaadi", "slots": ["prime-am"], "everyDays": 3},
-        "instagram": {"account": "anaadi", "slots": ["afternoon"]}
+        "instagram": {"account": "anaadi", "slots": ["afternoon"]},
+        "threads": {"account": "anaadi", "slots": ["afternoon"]}
       }
     },
     "Anaadi: Divya Sampada": {
       "channel": "anaadi", "group": "divya", "order": "strict", "lead": "youtube",
       "platforms": {
         "youtube": {"account": "anaadi", "slots": ["afternoon"], "everyDays": 3},
-        "instagram": {"account": "anaadi", "slots": ["dusk"]}
+        "instagram": {"account": "anaadi", "slots": ["dusk"]},
+        "threads": {"account": "anaadi", "slots": ["dusk"]}
       }
     }
   }
