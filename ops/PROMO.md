@@ -4,6 +4,8 @@ The daily manager run (`ops/jobs/growth.md`) writes one "promotion pack" a week:
 
 Why by hand: X charges for posting through its API, and Reddit removes promotion that looks automated. Threads is different: since Nov 2026 every How To Hero video is posted to Threads as a video by the publisher (`platforms/threads.json`, text from `meta.threads`), so a How To Hero pack leaves the THREADS part out. Anaadi and Chinni Slokalu packs keep it until those channels get "threads" in their Inbox post_to.
 
+**Reddit and X are off (user, 27 Nov 2026):** the user does not post on them, and the browser agent cannot reach Reddit. Packs leave both out, so a How To Hero pack has nothing left and is not written; Anaadi and Chinni Slokalu packs keep only their THREADS part. Everything below about Reddit and X (the table, their rules, the pack template) is kept for when they come back and does not apply now. Turn them back on only when the user asks.
+
 An honest expectation: a new account with no followers reaches almost nobody on X and few on Threads. Reddit can send real viewers from the first post, but only when the post is useful by itself. So the order of effort is Threads (it shares the Instagram account and audience), then Reddit, then X.
 
 ## Which channel goes where
