@@ -1,0 +1,43 @@
+{
+  "_about": "The publishing plan, read by publisher/lanes.py. slots: the only times anything posts (IST). A slot is one time (\"HH:MM\") or one time per weekday (mon..sun); the Inbox must start a publish run at every slot time. series: each one is a set of cards (by data.app, or data.channel + data.group for a serialized channel) and the platforms they post to. Every platform has its own pointer: the oldest card it does not have yet. order strict: every platform posts in episode order and a non-lead platform posts only what is already live on the lead. order loose: any order; new cards go to every platform at its normal slots, and cards a platform missed (failed, not connected, platform added later) go out only at its catchUpSlots, oldest first, from since. Per platform: account, slots, catchUpSlots, everyDays (at most one post per that many days), since; series values are the defaults. platforms \"post_to\" takes the platforms and accounts from the Inbox Channel config. after: episodes up to this number are on the lead already (posted by hand).",
+  "_slotsWhy": "prime-am and prime-pm are the middles of the owner's best-times-to-post chart (27 Nov 2026), a generic starting guess to be tuned from our own stats.",
+  "slots": {
+    "early": "08:00",
+    "prime-am": {"mon": "12:00", "tue": "11:00", "wed": "12:00", "thu": "11:00", "fri": "11:00", "sat": "10:00", "sun": "10:00"},
+    "afternoon": "16:00",
+    "dusk": "18:30",
+    "prime-pm": {"mon": "20:00", "tue": "19:00", "wed": "20:00", "thu": "20:00", "fri": "18:00", "sat": "14:00", "sun": "19:00"},
+    "late": "21:30"
+  },
+  "series": {
+    "How To Hero": {
+      "app": "How To Hero", "order": "loose", "lead": "youtube", "platforms": "post_to",
+      "slots": ["early", "prime-am", "prime-pm"], "catchUpSlots": ["late"], "since": "2026-11-27"
+    },
+    "Chinni Slokalu": {
+      "app": "Chinni Slokalu", "order": "loose", "lead": "youtube", "platforms": "post_to",
+      "slots": ["dusk"], "catchUpSlots": ["late"], "since": "2026-11-27"
+    },
+    "Anaadi: Mahagatha": {
+      "channel": "anaadi", "group": "saga", "defaultGroup": true, "order": "strict", "lead": "youtube", "after": 4,
+      "platforms": {
+        "youtube": {"account": "anaadi", "slots": ["prime-pm"]},
+        "instagram": {"account": "anaadi", "slots": ["prime-pm"], "catchUpSlots": ["prime-am"]}
+      }
+    },
+    "Anaadi: Lokas": {
+      "channel": "anaadi", "group": "lokas", "order": "strict", "lead": "youtube",
+      "platforms": {
+        "youtube": {"account": "anaadi", "slots": ["prime-am"], "everyDays": 3},
+        "instagram": {"account": "anaadi", "slots": ["afternoon"]}
+      }
+    },
+    "Anaadi: Divya Sampada": {
+      "channel": "anaadi", "group": "divya", "order": "strict", "lead": "youtube",
+      "platforms": {
+        "youtube": {"account": "anaadi", "slots": ["afternoon"], "everyDays": 3},
+        "instagram": {"account": "anaadi", "slots": ["dusk"]}
+      }
+    }
+  }
+}

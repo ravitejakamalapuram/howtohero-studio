@@ -36,6 +36,13 @@ jobs:
           INBOX_TOKEN: ${{ secrets.INBOX_TOKEN }}
           SOCIAL_URL: ${{ secrets.SOCIAL_URL }}
           SOCIAL_TOKEN: ${{ secrets.SOCIAL_TOKEN }}
+      - run: python3 -B -u publisher/plan.py  # dry run of the series engine (publisher/series.json); reads only, posts nothing
+        if: ${{ !inputs.links_only && !inputs.item_id && !inputs.post_now }}
+        continue-on-error: true  # the dry run never stops a real post
+        timeout-minutes: 3  # and never eats the post's share of the job's 60 minutes
+        env:
+          INBOX_URL: ${{ secrets.INBOX_URL }}
+          INBOX_TOKEN: ${{ secrets.INBOX_TOKEN }}
       - run: python3 -B -u publisher/publish.py
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

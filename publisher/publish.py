@@ -585,7 +585,8 @@ def run_series(name, group=''):
         at = dt.datetime.fromisoformat(str((job.get('result') or {}).get('publishAt') or at.isoformat()).replace('Z', '+00:00')).astimezone(ist)
         posted = dict(data.get('posted') or {}, youtube=url)
         inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {
-            'status': 'posted', 'data': dict(data, posted=posted, publishAt=at.isoformat(), postedAt=at.isoformat())}})
+            'status': 'posted', 'data': dict(data, posted=posted, publishAt=at.isoformat(), postedAt=at.isoformat(),
+                                             postedTimes=dict(data.get('postedTimes') or {}, youtube=at.isoformat()))}})
         print(f'{name}: scheduled {url}')
         return 0
     fails = int(data.get('publishFails', 0)) + 1 if job['status'] == 'failed' else int(data.get('publishFails', 0))
@@ -706,7 +707,8 @@ def run_ig_series(name):
         remove_public_link(f"{item['id']}-instagram.mp4")
         url = (job.get('result') or {}).get('url')
         inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {
-            'data': dict(data, posted=dict(data.get('posted') or {}, instagram=url), igPostedAt=now.isoformat())}})
+            'data': dict(data, posted=dict(data.get('posted') or {}, instagram=url), igPostedAt=now.isoformat(),
+                                postedTimes=dict(data.get('postedTimes') or {}, instagram=now.isoformat()))}})
         print(f'{name} instagram: posted {url}')
         return 0
     fails = int(data.get('igFails', 0)) + (job['status'] == 'failed')
@@ -857,6 +859,9 @@ def run_channel(app):
     later = {p: why for p, why in dict(NOT_YET if APP == DEFAULT_APP else {}, **no_version).items() if p not in posted and p not in still_failed}
     new_data = dict(data, posted=posted, failed=still_failed, pending=later, publishFails=fails)
     new_data.pop('publishRetries', None)
+    stamp = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
+    # When each platform got it (the series engine paces every platform by its own last post)
+    new_data['postedTimes'] = dict({p: stamp for p in posted if not (data.get('posted') or {}).get(p)}, **(data.get('postedTimes') or {}))
     if posted and not data.get('postedAt'):  # the Inbox Channels page dates posts by this
         new_data['postedAt'] = dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
     fresh = inbox({'action': 'get', 'id': item['id']})['item']
