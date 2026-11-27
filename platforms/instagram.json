@@ -25,14 +25,15 @@
     "Cover (19 Nov 2026): the publisher sends the build's thumbnail (data.thumb, rules in the skill's THUMBNAILS.md) as cover_url, a public link on the \"instagram-uploads\" release. The grid crops it to 3:4, so the words sit in the middle band (y 330-820 of 1920). Without data.thumb Instagram uses an early frame."
   ],
   "channels": {
-    "_about": "Serialized channels that also post to Instagram (their YouTube side is in youtube.json channels). The publisher posts each channel's episodes that are already live on YouTube (status posted, data.publishAt passed) to Social Media Publisher account `account`, oldest first, one per run and at most one per time in timesIST, so a backlog goes out a few a day instead of all at once. A failed episode holds later ones. The caption is data.meta.instagram.text when the card has one, else the YouTube title and description, then `follow`; hashtags are cut to hashtagsMax.",
+    "_about": "Serialized channels that also post to Instagram (their YouTube side is in youtube.json channels). The publisher posts each channel's episodes that are already live on YouTube (status posted, data.publishAt passed) to Social Media Publisher account `account`, oldest first, one per run and at most one per time in timesIST, so a backlog goes out a few a day instead of all at once. A failed episode holds later ones. The caption is data.meta.instagram.text when the card has one, else the YouTube title and description, then `follow`; hashtags are cut to hashtagsMax. collaborators (up to 3 usernames) get a Collab invite on each Reel; the Reel shows on their profile too only once they accept it in the Instagram app.",
     "anaadi": {
       "account": "anaadi",
       "timesIST": [
         "13:00",
         "19:30"
       ],
-      "follow": "Follow @anaadikatha · అనాది కథలు వరుసగా, భాగం 1 నుంచి"
+      "follow": "Follow @anaadikatha · అనాది కథలు వరుసగా, భాగం 1 నుంచి",
+      "collaborators": ["chinnislokalu"]
     }
   }
 }

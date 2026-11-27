@@ -360,6 +360,15 @@ def fit(text, most, what, unit='chars'):
     return cut.rstrip()
 
 
+def cross_link(description, line):
+    """Adds a channel's crossLink line (a pointer to its sister channel) to a YouTube description when it is not
+    there yet and still fits; a description that is already full stays as it is."""
+    if not line or line in description:
+        return description
+    out = f"{description}\n\n{line}" if description else line
+    return out if len(out.encode()) <= limit('youtube', 'descriptionMaxBytes') else description
+
+
 def threads_len(t):
     """Threads' length: an emoji counts as its UTF-8 bytes, every other character as one (as Social Media Publisher counts)."""
     # The same ranges as THREADS_EMOJI in Social Media Publisher's src/threads.js
@@ -426,6 +435,8 @@ def post_for(platform, item, data, cache):
             post['coverUrl'] = cover
         if first_comment(platform, data):  # a refused comment is only a warning on the job
             post['firstComment'] = first_comment(platform, data)
+        if CHANNELS[APP].get('collaborators'):  # Collab invites to our sister account (it accepts in the app)
+            post['collaborators'] = CHANNELS[APP]['collaborators']
         return post
     if platform == 'facebook':
         post = {'platform': platform, 'key': key, 'video': video, 'title': fit(title.replace('#shorts', '').strip(), limit('facebook', 'titleMax'), f"{item['id']} Facebook title"),
@@ -450,7 +461,8 @@ def post_for(platform, item, data, cache):
     if platform == 'youtube':
         yt = CHANNELS[APP].get('youtube') or {}
         post = {'platform': platform, 'key': key, 'video': video, 'title': fit(title, limit('youtube', 'titleMax'), f"{item['id']} YouTube title"),
-                'description': fit(caption, limit('youtube', 'descriptionMaxBytes'), f"{item['id']} YouTube description", 'bytes'),
+                'description': cross_link(fit(caption, limit('youtube', 'descriptionMaxBytes'), f"{item['id']} YouTube description", 'bytes'),
+                                          yt.get('crossLink')),
                 'privacy': 'public', 'categoryId': yt.get('categoryId', 28), 'madeForKids': bool(yt.get('madeForKids', False))}
         for k in ('tags', 'language'):  # optional per-channel defaults, e.g. Chinni Slokalu's tags and Telugu audio
             if yt.get(k):
@@ -551,8 +563,8 @@ def run_series(name, group=''):
     post = {'action': 'publish', 'platform': 'youtube', 'account': cfg['account'], 'key': f"{item['id']}-youtube",
             'video': {'driveFileId': item['driveId']},
             'title': fit(meta.get('title') or item.get('title') or '', limit('youtube', 'titleMax'), f"{item['id']} YouTube title"),
-            'description': fit(meta.get('text') or fallback_text(item, data), limit('youtube', 'descriptionMaxBytes'),
-                               f"{item['id']} YouTube description", 'bytes'),
+            'description': cross_link(fit(meta.get('text') or fallback_text(item, data), limit('youtube', 'descriptionMaxBytes'),
+                                          f"{item['id']} YouTube description", 'bytes'), cfg.get('crossLink')),
             'privacy': 'private', 'publishAt': at.isoformat(), 'categoryId': cfg['categoryId'],
             'language': cfg['language'], 'aiGenerated': cfg['aiGenerated'], 'madeForKids': False}
     if data.get('thumb'):
@@ -674,6 +686,8 @@ def run_ig_series(name):
         return 0
     post = {'action': 'publish', 'platform': 'instagram', 'account': cfg['account'], 'key': key,
             'caption': ig_series_caption(item, data, cfg)}
+    if cfg.get('collaborators'):  # Collab invites to our sister account (it accepts in the app)
+        post['collaborators'] = cfg['collaborators']
     if job_exists(key):  # a job from an earlier run carries on with the video it has
         post['video'] = {'driveFileId': data.get('igDriveId') or item['driveId']}
     else:

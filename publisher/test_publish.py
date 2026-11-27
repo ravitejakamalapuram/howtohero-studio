@@ -58,6 +58,24 @@ class PostFor(unittest.TestCase):
         self.assertEqual(fb['thumbnail'], {'driveFileId': 'THUMB'})
         self.assertNotIn('firstComment', fb)
 
+    def test_chinni_invites_anaadi_to_collab_and_links_it_on_youtube(self):
+        self.assertNotIn('collaborators', publish.post_for('instagram', self.item, self.data, {}))
+        publish.APP = 'Chinni Slokalu'
+        try:
+            self.assertEqual(publish.post_for('instagram', self.item, self.data, {})['collaborators'], ['anaadikatha'])
+            yt = publish.post_for('youtube', self.item, self.data, {})
+            self.assertTrue(yt['description'].endswith('https://www.youtube.com/@AnaadiKatha'))
+            again = publish.post_for('youtube', self.item, dict(self.data, ig=yt['description']), {})
+            self.assertEqual(again['description'].count('@AnaadiKatha'), 1)
+        finally:
+            publish.APP = 'How To Hero'
+
+    def test_cross_link_never_overflows_the_description(self):
+        full = 'అ' * 1666  # 4,998 bytes
+        self.assertEqual(publish.cross_link(full, 'More: https://x'), full)
+        self.assertEqual(publish.cross_link('Story', 'More: https://x'), 'Story\n\nMore: https://x')
+        self.assertEqual(publish.cross_link('Story', None), 'Story')
+
     def test_threads_gets_the_shared_public_link_and_one_hashtag(self):
         made = []
         publish.job_exists = lambda key: False
