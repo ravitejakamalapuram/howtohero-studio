@@ -11,4 +11,4 @@ jobs:
     timeout-minutes: 5
     steps:
       - uses: actions/checkout@v4
-      - run: python3 -B -m unittest publisher/test_publish.py publisher/test_learn.py publisher/test_stats.py
+      - run: python3 -B -m unittest publisher/test_publish.py publisher/test_lanes.py publisher/test_learn.py publisher/test_stats.py
