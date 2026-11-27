@@ -71,3 +71,11 @@ ops/doctor.sh               # says what is still missing; prints names, never va
 ```
 
 Then run a job by following `ops/jobs/scout.md` or `ops/jobs/build.md`; they hold the schedule, the environment and the routine prompt. What is not in git (art, the 1.5 GB voice checkpoint, Google-side state) is listed in `ops/ASSETS.md`. The publisher, stats and weekly report run in GitHub Actions and only need the four repo secrets.
+
+## Before a new YouTube channel posts anything
+
+Do these once per channel, in YouTube Studio with that channel selected (check the name under the picture on the left; one Google account can hold several channels, and the switcher lists them by Google account).
+
+1. Settings, Channel, Feature eligibility: "2. Intermediate features" must say **Enabled**. If it says Eligible, press Verify phone number there and enter the code. Verification counts per channel, not per Google account; one phone can verify two channels a year. Without it every custom thumbnail fails with 403 "doesn't have permissions to upload and set custom video thumbnails" while the video still posts (Anaadi, 25-27 Nov 2026: verified the wrong channel first).
+2. Connect the channel to Social Manager under its own account name (`connectYouTubeAccount`, see the Social Manager FAQ) and add it to `platforms/youtube.json` `channels`.
+3. Post one test video, then read the job's `warnings`: they must be empty. A thumbnail or playlist warning means a step above was missed.
