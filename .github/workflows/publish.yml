@@ -24,7 +24,7 @@ permissions:
 jobs:
   publish:
     runs-on: ubuntu-latest
-    timeout-minutes: 60  # up to 15 min wait per series group (3 Anaadi groups) plus the How To Hero post; runs are 90+ min apart
+    timeout-minutes: 60  # up to 15 min wait per series group (3 Anaadi groups) plus the How To Hero post; runs can be 30 min apart, so a late one waits its turn (concurrency) and the engine plans for its own start time
     steps:
       - uses: actions/checkout@v4
       - run: sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg  # ffprobe measures a video when its videoRef has no length

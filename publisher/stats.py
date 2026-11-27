@@ -11,6 +11,7 @@ read named accounts (youtube:name): the main accounts are How To Hero's. Running
 Needs INBOX_URL, INBOX_TOKEN, SOCIAL_URL and SOCIAL_TOKEN.
 """
 import datetime as dt
+import json
 import os
 import sys
 
@@ -23,7 +24,10 @@ SOURCES = ['queue', 'news']
 # One run posts one video to every platform, so the platforms share these times. Each channel's own daily
 # "time" or "times" in publisher/channels.json is added, so its videos go out at that time.
 TIMES = sorted({t for r in RULES.values() for t in r.get('postTimesIST', [])}
-               | {t for c in CHANNELS.values() for t in (c.get('times') or [c['time']] if c.get('time') or c.get('times') else [])})
+               | {t for c in CHANNELS.values() for t in (c.get('times') or [c['time']] if c.get('time') or c.get('times') else [])}
+               # and every slot of the series engine (publisher/series.json), each weekday's time of a weekday slot
+               | {t for v in json.load(open(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'series.json')))['slots'].values()
+                  for t in (v.values() if isinstance(v, dict) else [v])})
 
 # Workflows here that the Inbox timer starts on time (IST), because GitHub's own schedule runs hours late.
 JOBS = [{'workflow': 'stats.yml', 'time': '06:53'}, {'workflow': 'learn.yml', 'time': '09:11', 'day': 'mon'}]

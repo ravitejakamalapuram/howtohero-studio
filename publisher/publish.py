@@ -722,6 +722,102 @@ def run_ig_series(name):
     return 1 if job['status'] == 'failed' else 0
 
 
+ENGINE_PLATFORMS = ('facebook', 'threads')  # lanes the series engine posts itself (the switch-over, stage 1)
+ENGINE_WAIT = 4 * 60  # per post; a job still running is picked up by the next run under the same key
+
+
+def engine_text(platform, item, data):
+    """An episode's Facebook or Threads text: its Instagram caption (ig_series_caption), fitted to this platform."""
+    cfg = IG_SERIES.get(str(data.get('channel') or '').strip().lower()) or {}
+    text, what = ig_series_caption(item, data, cfg), f"{item['id']} {platform} text"
+    if platform == 'threads':
+        return fit(cap_hashtags(text, limit('threads', 'hashtagsMax'), what), limit('threads', 'captionMax'), what, 'threads')
+    return fit(text, limit(platform, 'captionMax'), what)
+
+
+def engine_post(platform, account, item, data, cache):
+    """The publish body for one engine lane, or raises ValueError when this platform can't take the video."""
+    key = f"{item['id']}-{platform}-{account or 'main'}"
+    post = {'action': 'publish', 'platform': platform, 'key': key}
+    if account:
+        post['account'] = account
+    if platform_file(platform, item, data, cache) != item['driveId']:
+        raise ValueError(f"longer than {platform}'s {RULES[platform]['maxSeconds']} s")
+    if platform == 'facebook':
+        yt = ((data.get('meta') or {}).get('youtube') or {}) if isinstance(data.get('meta'), dict) else {}
+        title = re.sub(r'\s*#shorts\b', '', yt.get('title') or item.get('title') or '', flags=re.I).strip()
+        post.update(video={'driveFileId': item['driveId']}, title=fit(title, limit('facebook', 'titleMax'), f"{item['id']} Facebook title"),
+                    description=engine_text('facebook', item, data))
+        if data.get('thumb'):
+            post['thumbnail'] = {'driveFileId': data['thumb']}
+        return post
+    if platform == 'threads':
+        link = (f"https://github.com/{os.environ.get('GITHUB_REPOSITORY', 'x/x')}/releases/download/{IG_RELEASE}/{item['id']}-instagram.mp4"
+                if job_exists(key) else shared_video(item, data, cache).get('url'))
+        if not link:
+            raise ValueError('no public link for Threads (needs GITHUB_TOKEN)')
+        post.update(video={'url': link}, text=engine_text('threads', item, data))
+        return post
+    raise ValueError(f'the engine does not post to {platform} yet')
+
+
+def run_engine(now=None):
+    """Posts what the series engine (lanes.py, series.json) plans for the ENGINE_PLATFORMS lanes at this run.
+    Every other lane still goes through run_series, run_ig_series and run_channel. Returns 1 on a failed post."""
+    import lanes
+    now = now or dt.datetime.now(dt.timezone.utc)
+    cfg = lanes.load()
+    items = inbox({'action': 'list', 'status': 'approved,posted', 'type': 'video', 'limit': 1000})['items']
+    channels = inbox({'action': 'channelConfig'}).get('channels', {})
+    post_to = {a: c.get('postTo') or {} for a, c in channels.items()}
+    failed = 0
+    for row in lanes.plan(cfg, items, now, post_to, DEFAULT_APP):
+        p, account = row['platform'], row['account']
+        if p not in ENGINE_PLATFORMS or not row['id'] or cfg['series'][row['series']].get('platforms') == 'post_to':
+            continue  # a post_to series (How To Hero, Chinni Slokalu) still posts through run_channel
+        item = next(i for i in items if i['id'] == row['id'])
+        print(f"{row['series']} {p}: posting {item['id']} to account {account or 'main'} ({row['why']})")
+        try:
+            social(dict({'action': 'channel', 'platform': p}, **({'account': account} if account else {})))
+        except RuntimeError as e:  # not connected is a setup step, not a failed run
+            print(f'{row["series"]} {p}: account {account} not usable ({e}); it waits')
+            continue
+        data = dict(item['data'])
+        if DRY:
+            continue
+        try:
+            job = social(engine_post(p, account, item, data, {}))['job']
+        except (RuntimeError, OSError, ValueError, KeyError, subprocess.CalledProcessError) as e:
+            print(f"{row['series']} {p}: not started: {e}")
+            failed = 1
+            continue
+        deadline = time.time() + ENGINE_WAIT
+        while job['status'] in ('queued', 'running') and time.time() < deadline:
+            time.sleep(20)
+            job = social({'action': 'get', 'id': job['id']})['job']
+        fresh = inbox({'action': 'get', 'id': item['id']})['item']
+        fdata = dict(fresh['data'], **({'igDriveId': data['igDriveId']} if data.get('igDriveId') else {}))
+        if job['status'] == 'done':
+            url, stamp = (job.get('result') or {}).get('url'), dt.datetime.now(dt.timezone.utc).isoformat(timespec='seconds')
+            inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {'data': dict(
+                fdata, posted=dict(fdata.get('posted') or {}, **{p: url}), postedTimes=dict(fdata.get('postedTimes') or {}, **{p: stamp}))}})
+            print(f"{row['series']} {p}: posted {url}")
+            continue
+        print(f"{row['series']} {p}: {job['status']}: {job.get('error') or 'still running, the next run carries on'}")
+        if job['status'] == 'failed':
+            failed = 1
+            fails = dict(fdata.get('engineFails') or {})
+            fails[p] = fails.get(p, 0) + 1
+            inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {
+                'data': dict(fdata, engineFails=fails), 'note': f"Publisher: {p} failed: {job.get('error')}"}})
+            if fails[p] >= MAX_RUNS:
+                alert(f"alert-{item['id']}-{p}-{fails[p]}", f"{row['series']}: {item.get('title')} will not post on {p}",
+                      f"{p} failed {fails[p]} runs in a row: {job.get('error')}. Later episodes wait until it goes out.")
+            if job.get('id'):
+                social({'action': 'retry', 'id': job['id']})  # the next run picks the same job up again
+    return failed
+
+
 LATE_HOURS = 3  # a video still unposted this long after its slot means publish runs were missed
 
 
@@ -756,6 +852,7 @@ def late_alert(items):
 
 
 def run():
+    started = dt.datetime.now(dt.timezone.utc)  # the engine plans for the slot this run was started for
     try:
         sync_links()
     except (RuntimeError, OSError, KeyError) as e:  # never let this stop a post
@@ -783,6 +880,12 @@ def run():
             failed |= run_channel(app)
         except (RuntimeError, OSError, KeyError, ValueError) as e:  # one channel's problem never stops another's post
             print(f'{app}: {e}')
+            failed = 1
+    if not ITEM_ID:
+        try:  # last, so a slow post here never costs How To Hero its run; planned at the run's start time
+            failed |= run_engine(started)
+        except (RuntimeError, OSError, KeyError, ValueError, TypeError, StopIteration) as e:
+            print(f'series engine: {e}')
             failed = 1
     return failed
 
