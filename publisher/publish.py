@@ -773,8 +773,8 @@ def run_engine(now=None):
     failed = 0
     for row in lanes.plan(cfg, items, now, post_to, DEFAULT_APP):
         p, account = row['platform'], row['account']
-        if p not in ENGINE_PLATFORMS or not row['id']:
-            continue
+        if p not in ENGINE_PLATFORMS or not row['id'] or cfg['series'][row['series']].get('platforms') == 'post_to':
+            continue  # a post_to series (How To Hero, Chinni Slokalu) still posts through run_channel
         item = next(i for i in items if i['id'] == row['id'])
         print(f"{row['series']} {p}: posting {item['id']} to account {account or 'main'} ({row['why']})")
         try:
@@ -806,8 +806,13 @@ def run_engine(now=None):
         print(f"{row['series']} {p}: {job['status']}: {job.get('error') or 'still running, the next run carries on'}")
         if job['status'] == 'failed':
             failed = 1
+            fails = dict(fdata.get('engineFails') or {})
+            fails[p] = fails.get(p, 0) + 1
             inbox({'action': 'update', 'id': item['id'], 'ifVersion': fresh['version'], 'set': {
-                'data': fdata, 'note': f"Publisher: {p} failed: {job.get('error')}"}})
+                'data': dict(fdata, engineFails=fails), 'note': f"Publisher: {p} failed: {job.get('error')}"}})
+            if fails[p] >= MAX_RUNS:
+                alert(f"alert-{item['id']}-{p}-{fails[p]}", f"{row['series']}: {item.get('title')} will not post on {p}",
+                      f"{p} failed {fails[p]} runs in a row: {job.get('error')}. Later episodes wait until it goes out.")
             if job.get('id'):
                 social({'action': 'retry', 'id': job['id']})  # the next run picks the same job up again
     return failed
@@ -847,6 +852,7 @@ def late_alert(items):
 
 
 def run():
+    started = dt.datetime.now(dt.timezone.utc)  # the engine plans for the slot this run was started for
     try:
         sync_links()
     except (RuntimeError, OSError, KeyError) as e:  # never let this stop a post
@@ -868,17 +874,18 @@ def run():
             except (RuntimeError, OSError, KeyError, ValueError, TypeError) as e:  # never let it stop another channel's post
                 print(f'{name} instagram: {e}')
                 series_failed = 1
-        try:
-            series_failed |= run_engine()
-        except (RuntimeError, OSError, KeyError, ValueError, TypeError, StopIteration) as e:  # never let it stop another post
-            print(f'series engine: {e}')
-            series_failed = 1
     failed = series_failed
     for app in CHANNELS:
         try:
             failed |= run_channel(app)
         except (RuntimeError, OSError, KeyError, ValueError) as e:  # one channel's problem never stops another's post
             print(f'{app}: {e}')
+            failed = 1
+    if not ITEM_ID:
+        try:  # last, so a slow post here never costs How To Hero its run; planned at the run's start time
+            failed |= run_engine(started)
+        except (RuntimeError, OSError, KeyError, ValueError, TypeError, StopIteration) as e:
+            print(f'series engine: {e}')
             failed = 1
     return failed
 

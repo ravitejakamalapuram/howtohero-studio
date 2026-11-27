@@ -57,6 +57,18 @@ class Engine(unittest.TestCase):
         self.assertEqual(posted['ep-2']['threads'], 'https://x/threads')
         self.assertIn('threads', next(u for u in self.updates if u['id'] == 'ep-2')['set']['data']['postedTimes'])
 
+    def test_a_post_to_series_is_left_to_run_channel(self):
+        self.items = [{'id': 'h1', 'title': 'H', 'status': 'approved', 'driveId': 'd', 'version': 1,
+                       'slot': '2026-11-28T08:00:00+05:30', 'data': {'app': 'How To Hero', 'posted': {}}}]
+        early = dt.datetime(2026, 11, 28, 8, 5, tzinfo=publish.IST)
+        saved = publish.inbox
+        publish.inbox = lambda b: {'channels': {'How To Hero': {'postTo': {'facebook': '', 'threads': ''}}}} if b['action'] == 'channelConfig' else saved(b)
+        try:
+            self.assertEqual(publish.run_engine(early), 0)
+        finally:
+            publish.inbox = saved
+        self.assertEqual(self.sent, [])
+
     def test_nothing_outside_a_slot(self):
         self.assertEqual(publish.run_engine(dt.datetime(2026, 11, 28, 15, 30, tzinfo=publish.IST)), 0)
         self.assertEqual(self.sent, [])
