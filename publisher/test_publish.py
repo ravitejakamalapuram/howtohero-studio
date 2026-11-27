@@ -178,3 +178,40 @@ class InstagramSeries(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+class Lengths(unittest.TestCase):
+    def setUp(self):
+        self.saved = publish.inbox, publish.social
+
+    def tearDown(self):
+        publish.inbox, publish.social = self.saved
+
+    def test_length_comes_from_drive_without_a_download(self):
+        publish.social = lambda body: {'video': {'seconds': 150.2}} if body['action'] == 'video' else self.fail(body)
+        publish.inbox = lambda body: self.fail('no download expected')
+        self.assertEqual(publish.video_seconds({'id': 'sloka-x', 'driveId': 'd1'}, {}, {}), 150.2)
+        self.assertEqual(publish.video_seconds({'id': 'x', 'driveId': 'd1'}, {'videoRef': 'a.mp4 | 47.3 s | x'}, {}), 47.3)
+
+    def test_instagram_takes_a_long_reel_and_facebook_does_not(self):
+        publish.social = lambda body: {'video': {'seconds': 150.0}}
+        item = {'id': 'sloka-x', 'driveId': 'd1'}
+        self.assertEqual(publish.platform_file('instagram', item, {}, {}), 'd1')
+        self.assertIsNone(publish.platform_file('facebook', item, {}, {}))
+
+    def test_large_files_download_in_parts(self):
+        import base64
+        import tempfile
+        blob, calls = bytes(range(250)) * 3, []
+
+        def fake(body):
+            calls.append(body)
+            a = body['start']
+            b = min(a + 300, len(blob)) - 1
+            return {'size': len(blob), 'start': a, 'end': b, 'base64': base64.b64encode(blob[a:b + 1]).decode()}
+        publish.inbox = fake
+        with tempfile.TemporaryDirectory() as d:
+            path = os.path.join(d, 'v.mp4')
+            publish.inbox_file('sloka-x', path)
+            self.assertEqual(open(path, 'rb').read(), blob)
+        self.assertEqual([c['start'] for c in calls], [0, 300, 600])

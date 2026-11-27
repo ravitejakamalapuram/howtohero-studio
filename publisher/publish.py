@@ -194,18 +194,39 @@ def live_platforms():
     return live, down
 
 
+def inbox_file(item_id, path, drive_id=None):
+    """Writes an Inbox item's file (or another file its data names) to path, in parts of up to 20 MB, so any size works."""
+    base = {'action': 'download', 'id': item_id}
+    if drive_id:
+        base['driveId'] = drive_id
+    with open(path, 'wb') as fh:
+        start = 0
+        while True:
+            part = inbox(dict(base, start=start))
+            fh.write(base64.b64decode(part['base64']))
+            if 'end' not in part or part['end'] >= part['size'] - 1:  # an older Inbox sends the whole file at once
+                return
+            start = part['end'] + 1
+
+
 def video_seconds(item, data, cache):
-    """The video's length: from data.videoRef ("<file> | 47.3 s | ...") when the build wrote it, else measured."""
+    """The video's length: from data.videoRef ("<file> | 47.3 s | ...") when the build wrote it, else from Drive's
+    metadata through Social Media Publisher (no download), else measured with ffprobe."""
     m = re.search(r'\|\s*([\d.]+)\s*s\s*\|', str(data.get('videoRef') or ''))
     if m:
         return float(m.group(1))
     if 'seconds' not in cache:
-        with tempfile.TemporaryDirectory() as d:
-            src = os.path.join(d, 'in.mp4')
-            with open(src, 'wb') as fh:
-                fh.write(base64.b64decode(inbox({'action': 'download', 'id': item['id']})['base64']))
-            cache['seconds'] = float(subprocess.check_output(
-                ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src]).decode().strip())
+        try:
+            cache['seconds'] = social({'action': 'video', 'driveFileId': item['driveId']})['video']['seconds']
+        except Exception as e:  # an older publisher without the video action, or Drive busy
+            print(f"no length from Drive for {item['id']} ({e}); measuring it")
+            cache['seconds'] = None
+        if cache['seconds'] is None:
+            with tempfile.TemporaryDirectory() as d:
+                src = os.path.join(d, 'in.mp4')
+                inbox_file(item['id'], src)
+                cache['seconds'] = float(subprocess.check_output(
+                    ['ffprobe', '-v', 'error', '-show_entries', 'format=duration', '-of', 'csv=p=0', src]).decode().strip())
     return cache['seconds']
 
 
@@ -277,8 +298,7 @@ def instagram_video(item, data):
     name = f"{item['id']}-instagram.mp4"
     with tempfile.TemporaryDirectory() as d:
         src, out = os.path.join(d, 'in.mp4'), os.path.join(d, 'ig.mp4')
-        with open(src, 'wb') as fh:
-            fh.write(base64.b64decode(inbox({'action': 'download', 'id': item['id']})['base64']))
+        inbox_file(item['id'], src)
         subprocess.run(['ffmpeg', '-v', 'error', '-y', '-i', src, '-c:v', 'libx264', '-preset', 'fast', '-crf', '20',
                         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '128k', '-movflags', '+faststart', out], check=True)
         if not data.get('igDriveId'):
