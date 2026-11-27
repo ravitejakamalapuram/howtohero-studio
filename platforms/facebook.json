@@ -16,7 +16,7 @@
   "maxSeconds": 90,
   "versionSeconds": 87,
   "notes": [
-    "Page Reels take 3 to 90 s.",
+    "Page Reels take 3 to 90 s (Meta's limit; Social Media Publisher refuses longer ones). A longer video needs its own version of at most versionSeconds until the publisher can post long videos as normal Page videos.",
     "Posting times (IST) are the same 5 as Instagram (one publish run posts to every platform); see the reasoning in instagram.json. Page Reels have no daily cap that 5 posts comes near.",
     "Cover (26 Nov 2026): the publisher sets the video's thumbnail (data.thumb) as the Reel's cover after upload, through Facebook's video thumbnails call. If Facebook refuses it, the Reel keeps a frame Facebook picks, so the first frame still matters."
   ]
