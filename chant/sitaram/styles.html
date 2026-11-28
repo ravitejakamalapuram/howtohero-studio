@@ -1,0 +1,97 @@
+<!doctype html><meta charset="utf-8"><style>
+@font-face{font-family:Mukta;font-weight:800;src:url(fonts/mukta-devanagari-800-normal.woff2)}
+@font-face{font-family:Mukta;font-weight:600;src:url(fonts/mukta-devanagari-600-normal.woff2)}
+@font-face{font-family:MuktaL;font-weight:600;src:url(fonts/mukta-latin-600-normal.woff2)}
+@font-face{font-family:Rama;src:url(fonts/Ramabhadra.ttf)}
+html,body{margin:0;background:#000}canvas{display:block}</style>
+<canvas id=c width=1080 height=1920></canvas><script src=helpers.js></script><script>
+const c=document.getElementById('c'),g=c.getContext('2d');const N=108,GOLD='#E8B04A',CREAM='#F3E9D2';
+const ST=new URLSearchParams(location.search).get('s')||'A';
+// preview beats: 108 chants, 0.1 s apart from t=1; finale after
+const T0=1,DT=.1,LAST=T0+(N-1)*DT;
+const cnt=t=>t<T0?0:Math.min(N,Math.floor((t-T0)/DT)+1);
+const bt=i=>T0+i*DT;
+function txt(s,x,y,size,col,font,w,al='center',alpha=1,glow,rot=0){g.save();g.globalAlpha=alpha;g.translate(x,y);g.rotate(rot);g.font=`${w||800} ${size}px ${font}`;g.textAlign=al;g.fillStyle=col;if(glow){g.shadowColor=glow;g.shadowBlur=30}g.fillText(s,0,0);g.restore()}
+function pulse(t,n){return n?Math.max(0,1-(t-bt(n-1))*6):0}
+// ---------- A: kaleidoscope mandala (neon gold on violet)
+function A(t,n){const gr=g.createRadialGradient(540,960,50,540,960,1200);gr.addColorStop(0,'#2a0f4a');gr.addColorStop(1,'#07021a');g.fillStyle=gr;g.fillRect(0,0,1080,1920);
+ g.globalCompositeOperation='lighter';const p=n/N;
+ for(let L=0;L<5;L++){const rad=150+L*100,k=12+L*6,rot=t*(.15+L*.07)*(L%2?-1:1);for(let i=0;i<k;i++){const lit=(i/k)<p;const a=rot+i/k*Math.PI*2;g.save();g.translate(540,960);g.rotate(a);g.beginPath();g.moveTo(0,-rad+20);g.quadraticCurveTo(26+L*5,-rad-34,0,-rad-84);g.quadraticCurveTo(-26-L*5,-rad-34,0,-rad+20);g.fillStyle=lit?`hsla(${40+L*45},95%,${58+8*Math.sin(t*3+i)}%,.55)`:`hsla(${260+L*10},50%,40%,.22)`;g.fill();g.strokeStyle=lit?'rgba(255,230,160,.9)':'rgba(180,150,255,.25)';g.lineWidth=2;g.stroke();g.restore()}}
+ for(let i=0;i<N;i++){const a=-Math.PI/2+i/N*Math.PI*2,x=540+680*Math.cos(a)*.0+0,r=690;const X=540+r*Math.cos(a)*.78,Y=960+r*Math.sin(a)*.78;const lit=i<n;g.fillStyle=lit?'#fff2c0':'rgba(180,150,255,.35)';g.shadowColor=GOLD;g.shadowBlur=lit?24:0;g.beginPath();g.arc(X,Y,lit?9+10*Math.max(0,1-(t-bt(i))*3):6,0,7);g.fill();g.shadowBlur=0}
+ g.globalCompositeOperation='source-over';
+ const s=1+.18*pulse(t,n);g.save();g.translate(540,985);g.scale(s,s);txt(String(n),0,0,200,'#fff6d8','MuktaL',600,'center',1,'#ffb347');g.restore();txt('/ 108',540,1065,54,CREAM,'MuktaL',600,'center',.9);
+ txt('సీతారామ',540,230,150,GOLD,'Rama',400,'center',1,'#ff9d2e');txt('सीताराम',540,320,70,CREAM,'Mukta',800)}
+// ---------- B: Tanjore painting
+function B(t,n){g.fillStyle='#5a0f14';g.fillRect(0,0,1080,1920);
+ const fr=(m,w,col)=>{g.strokeStyle=col;g.lineWidth=w;g.strokeRect(m,m,1080-2*m,1920-2*m)};
+ const gg=g.createLinearGradient(0,0,1080,1920);gg.addColorStop(0,'#f6d27a');gg.addColorStop(.5,'#b8862b');gg.addColorStop(1,'#f6d27a');fr(26,26,gg);fr(70,4,'#f6d27a');
+ // arch interior
+ g.save();g.beginPath();g.moveTo(150,1700);g.lineTo(150,820);g.bezierCurveTo(150,380,540,260,540,260);g.bezierCurveTo(540,260,930,380,930,820);g.lineTo(930,1700);g.closePath();g.fillStyle='#0f5b52';g.fill();g.clip();
+ for(let i=0;i<14;i++){g.strokeStyle='rgba(246,210,122,.12)';g.lineWidth=3;g.beginPath();g.arc(540,1050,150+i*45,0,7);g.stroke()}
+ g.globalAlpha=ease(t/1);god(330,1560,t,{s:.9,skin:'#e8b690',bot:'#c0392b',top:'#f6d27a',pose:'sita',hair:'#1b1020',skirt:1,bindi:1,ph:1});god(750,1560,t,{s:.9,skin:'#e0b88c',bot:'#f6d27a',pose:'bow',crown:1,hair:'#1b1020',ph:2});god(540,1530,t,{s:1.0,skin:'#4f86c9',bot:'#f6d27a',pose:'bless',crown:1,hair:'#101020',bindi:1});g.save();g.translate(540,1700);g.scale(.8,.8);g.translate(-540,-1700);hanuman(540,1700,t);g.restore();g.globalAlpha=1;g.restore();
+ // gem border: 108 gems around the arch frame
+ for(let i=0;i<N;i++){const u=i/(N-1);let x,y;const per=u*3;if(u<.25){x=150;y=1700-u/.25*880}else if(u<.75){const a=Math.PI+(u-.25)/.5*Math.PI;x=540+390*Math.cos(a);y=820+(560)*Math.sin(a)*.98}else{x=930;y=820+(u-.75)/.25*880}
+  const lit=i<n;g.fillStyle=lit?(i%2?'#ff3355':'#fff2c0'):'#2b0a0e';g.shadowColor=lit?'#ffcf6b':'transparent';g.shadowBlur=lit?18:0;g.beginPath();g.arc(x,y,lit?12:8,0,7);g.fill();g.shadowBlur=0}
+ // medallion counter
+ g.fillStyle=gg;g.beginPath();g.arc(540,150,95,0,7);g.fill();g.fillStyle='#5a0f14';g.beginPath();g.arc(540,150,80,0,7);g.fill();txt(String(n),540,185,110,'#f6d27a','MuktaL',600);
+ txt('/ 108',540,1770,50,'#f6d27a','MuktaL',600);txt('సీతారామ',540,1850,90,'#f6d27a','Rama',400)}
+// ---------- C: paper-cut sunrise
+function C(t,n){const gr=g.createLinearGradient(0,0,0,1920);gr.addColorStop(0,'#ffcf8a');gr.addColorStop(.45,'#ff8a5c');gr.addColorStop(1,'#c2386b');g.fillStyle=gr;g.fillRect(0,0,1080,1920);
+ const p=n/N;
+ // sun with 108 rays
+ for(let i=0;i<N;i++){const a=-Math.PI/2+i/N*Math.PI*2,lit=i<n;g.strokeStyle=lit?'#fff3cf':'rgba(255,255,255,.18)';g.lineWidth=lit?9:4;g.lineCap='round';g.beginPath();g.moveTo(540+265*Math.cos(a),700+265*Math.sin(a));g.lineTo(540+(lit?340:300)*Math.cos(a),700+(lit?340:300)*Math.sin(a));g.stroke()}
+ g.fillStyle='#fff3cf';g.shadowColor='rgba(255,240,200,.9)';g.shadowBlur=60;g.beginPath();g.arc(540,700,235,0,7);g.fill();g.shadowBlur=0;
+ const s=1+.16*pulse(t,n);g.save();g.translate(540,740);g.scale(s,s);txt(String(n),0,0,230,'#c2386b','MuktaL',600);g.restore();txt('/ 108',540,820,50,'#c2386b','MuktaL',600,'center',.9);
+ // paper layers
+ const layer=(col,y,amp,sh,fn)=>{g.save();g.shadowColor='rgba(60,10,40,.55)';g.shadowBlur=sh;g.shadowOffsetY=10;g.fillStyle=col;g.beginPath();g.moveTo(0,1920);fn(y,amp);g.lineTo(1080,1920);g.closePath();g.fill();g.restore()};
+ layer('#e0637a',1230,50,18,(y,a)=>{for(let x=0;x<=1080;x+=20)g.lineTo(x,y+a*Math.sin(x/130+t*.3))});
+ layer('#b8426e',1360,60,22,(y,a)=>{for(let x=0;x<=1080;x+=20)g.lineTo(x,y+a*Math.sin(x/90+1+t*.4))});
+ // temple
+ layer('#7a2a5c',1420,0,26,(y,a)=>{g.lineTo(0,y);g.lineTo(300,y);g.lineTo(300,1300);g.lineTo(380,1300);g.lineTo(380,1230);g.lineTo(540,1090);g.lineTo(700,1230);g.lineTo(700,1300);g.lineTo(780,1300);g.lineTo(780,y);g.lineTo(1080,y)});
+ layer('#4a1648',1560,40,30,(y,a)=>{for(let x=0;x<=1080;x+=20)g.lineTo(x,y+a*Math.sin(x/70+2+t*.5))});
+ // reeds
+ g.save();g.shadowColor='rgba(0,0,0,.5)';g.shadowBlur=16;g.strokeStyle='#2a0c2e';g.lineWidth=7;for(let i=0;i<24;i++){const x=i<12?20+i*34:1060-(i-12)*34;g.beginPath();g.moveTo(x,1920);g.quadraticCurveTo(x+Math.sin(t*1.5+i)*14,1740-rnd(i)*120,x+Math.sin(t*1.5+i)*30,1640-rnd(i)*140);g.stroke()}g.restore();
+ txt('సీతారామ',540,1830,120,'#fff3cf','Rama',400,'center',1,'rgba(60,10,40,.7)');txt('सीताराम',540,200,100,'#fff3cf','Mukta',800,'center',1,'rgba(60,10,40,.6)')}
+// ---------- D: 108 diyas
+function D(t,n){g.fillStyle='#0b0503';g.fillRect(0,0,1080,1920);
+ txt('राम',540,1230,780,'#ff9a3c','Mukta',800,'center',.08);
+ const cols=9,rows=12,gx=100,gy=1710-0;const x0=540-4*108,y0=640;
+ for(let k=0;k<N;k++){const r=Math.floor(k/cols),cc=k%cols;const x=x0+cc*108+(r%2?54:0)-(r%2?0:0)*0,y=y0+r*88;const lit=k<n;
+  g.fillStyle='#8a4a1f';g.beginPath();g.ellipse(x,y+10,36,15,0,0,Math.PI);g.fill();g.fillStyle='#b5651d';g.beginPath();g.ellipse(x,y+8,36,11,0,0,7);g.fill();
+  if(lit){const f=1+.12*Math.sin(t*9+k*1.7),age=Math.max(0,Math.min(1,(t-bt(k))*4));const gr=g.createRadialGradient(x,y-12,2,x,y-12,70*f);gr.addColorStop(0,'rgba(255,200,90,.85)');gr.addColorStop(1,'rgba(255,120,20,0)');g.fillStyle=gr;g.beginPath();g.arc(x,y-12,70*f,0,7);g.fill();g.fillStyle='#fff3c0';g.beginPath();g.ellipse(x,y-14,6*age,16*age*f,0,0,7);g.fill();g.fillStyle='#ff9d2e';g.beginPath();g.ellipse(x,y-10,9*age,22*age*f,0,0,7);g.globalAlpha=.55;g.fill();g.globalAlpha=1}}
+ const s=1+.15*pulse(t,n);g.save();g.translate(540,420);g.scale(s,s);txt(String(n),0,0,230,'#ffd27a','MuktaL',600,'center',1,'#ff8a1f');g.restore();txt('/ 108 · दीप',540,500,50,CREAM,'Mukta',600);
+ txt('సీతారామ',540,160,110,GOLD,'Rama',400,'center',1,'#ff8a1f');
+ txt('సీతారామ',540,1830,90,GOLD,'Rama',400,'center',.9)}
+// ---------- E: lamps on the Sarayu river
+function E(t,n){const gr=g.createLinearGradient(0,0,0,1920);gr.addColorStop(0,'#030a1c');gr.addColorStop(.5,'#0c2a4a');gr.addColorStop(1,'#04131f');g.fillStyle=gr;g.fillRect(0,0,1080,1920);
+ for(let i=0;i<90;i++){g.fillStyle=`rgba(220,235,255,${.2+.5*Math.abs(Math.sin(t*.7+i))})`;g.beginPath();g.arc(rnd(i)*1080,rnd(i+3)*820,1+rnd(i+8)*1.5,0,7);g.fill()}
+ // moon
+ const mg=g.createRadialGradient(780,420,10,780,420,260);mg.addColorStop(0,'rgba(220,235,255,.6)');mg.addColorStop(1,'rgba(220,235,255,0)');g.fillStyle=mg;g.fillRect(500,150,560,560);g.fillStyle='#eef4ff';g.beginPath();g.arc(780,420,68,0,7);g.fill();
+ // ghats skyline
+ g.fillStyle='#050d1a';g.beginPath();g.moveTo(0,860);for(let x=0;x<=1080;x+=60){g.lineTo(x,860-(x%180==0?90:30));g.lineTo(x+30,860-(x%180==0?90:30))}g.lineTo(1080,860);g.lineTo(1080,1000);g.lineTo(0,1000);g.fill();
+ // river
+ const rg=g.createLinearGradient(0,860,0,1920);rg.addColorStop(0,'#10385c');rg.addColorStop(1,'#041525');g.fillStyle=rg;g.fillRect(0,860,1080,1060);
+ g.strokeStyle='rgba(180,220,255,.16)';g.lineWidth=3;for(let r=0;r<26;r++){const y=900+r*40;g.beginPath();for(let x=0;x<=1080;x+=24){const yy=y+Math.sin(x/70+t*1.2+r)*5*(1+r/12);x?g.lineTo(x,yy):g.moveTo(x,yy)}g.stroke()}
+ g.fillStyle='rgba(238,244,255,.22)';for(let r=0;r<12;r++){g.fillRect(780-60+Math.sin(t+r)*20+r*2,880+r*70,120-r*6,8)}
+ // lamps drift in from the bottom to the far bank, one per chant
+ for(let k=0;k<n;k++){const age=t-bt(k);const u=Math.min(1,age/9);const row=k%12,lane=(k*37)%100/100;const x=140+lane*800+Math.sin(age*1.1+k)*18;const y=1840-u*880*(0.55+0.45*(row%3)/2)-0*row;const sc=.5+.5*(y-860)/1000;
+  const gl=g.createRadialGradient(x,y,2,x,y,60*sc);gl.addColorStop(0,'rgba(255,200,90,.8)');gl.addColorStop(1,'rgba(255,140,30,0)');g.fillStyle=gl;g.beginPath();g.arc(x,y,60*sc,0,7);g.fill();g.fillStyle='#2d7a4a';g.beginPath();g.ellipse(x,y+4*sc,26*sc,10*sc,0,0,7);g.fill();g.fillStyle='#ffb347';g.beginPath();g.ellipse(x,y-6*sc,5*sc,14*sc*(1+.1*Math.sin(t*9+k)),0,0,7);g.fill()}
+ const s=1+.15*pulse(t,n);g.save();g.translate(300,520);g.scale(s,s);txt(String(n),0,0,210,'#e8f1ff','MuktaL',600,'center',1,'#7db6ff');g.restore();txt('/ 108',300,590,50,'#bcd4ff','MuktaL',600);
+ txt('సీతారామ',540,200,130,'#ffe3a1','Rama',400,'center',1,'#ffb347')}
+// ---------- F: likhit jaap notebook with red ink stamps
+function F(t,n){g.fillStyle='#f5ecd6';g.fillRect(0,0,1080,1920);
+ for(let i=0;i<4000;i++){g.fillStyle=`rgba(120,90,40,${rnd(i)*.05})`;g.fillRect(rnd(i+1)*1080,rnd(i+2)*1920,2,2)}
+ g.strokeStyle='rgba(70,110,170,.28)';g.lineWidth=2;const x0=70,y0=600,cw=104,ch=102;for(let r=0;r<=12;r++){g.beginPath();g.moveTo(x0,y0+r*ch);g.lineTo(x0+9*cw,y0+r*ch);g.stroke()}for(let c2=0;c2<=9;c2++){g.beginPath();g.moveTo(x0+c2*cw,y0);g.lineTo(x0+c2*cw,y0+12*ch);g.stroke()}
+ g.strokeStyle='rgba(200,50,60,.6)';g.lineWidth=4;g.strokeRect(x0-14,y0-14,9*cw+28,12*ch+28);
+ for(let k=0;k<n;k++){const r=Math.floor(k/9),cc=k%9,age=t-bt(k),a=Math.min(1,age*8);const sc=1+Math.max(0,.6*(1-age*8));const ox=(rnd(k)-.5)*6,oy=(rnd(k+7)-.5)*6;
+  g.save();g.translate(x0+cc*cw+cw/2+ox,y0+r*ch+ch/2+14+oy);g.rotate((rnd(k+3)-.5)*.14);g.scale(sc,sc);g.globalAlpha=a*(.78+rnd(k+5)*.2);g.font='800 54px Mukta';g.textAlign='center';g.fillStyle='#b3151f';g.shadowColor='rgba(179,21,31,.5)';g.shadowBlur=4;g.fillText('राम',0,0);g.restore()}
+ // header
+ txt('సీతారామ',540,200,150,'#b3151f','Rama',400,'center',1,undefined,-.02);txt('राम नाम लिखित जाप',540,300,70,'#4a2a1a','Mukta',800);txt('రామ నామ లిఖిత జపం · 108',540,375,46,'#4a2a1a','Rama',400);
+ // saffron stamp counter
+ const s=1+.2*pulse(t,n);g.save();g.translate(540,480);g.scale(s,s);g.fillStyle='#ff9d2e';g.beginPath();g.arc(0,0,86,0,7);g.fill();g.strokeStyle='#b3151f';g.lineWidth=6;g.beginPath();g.arc(0,0,76,0,7);g.stroke();txt(String(n),0,30,92,'#4a1010','MuktaL',600);g.restore();txt('/ 108',680,505,48,'#4a2a1a','MuktaL',600,'left');
+ txt('एक एक राम, एक एक पन्ना',540,1800,46,'#4a2a1a','Mukta',600,'center',.8)}
+const FN={A,B,C,D,E,F};
+window.seek=function(t){g.clearRect(0,0,1080,1920);const n=cnt(t);FN[ST](t,n);
+ if(t>=LAST+.1){const e=ease((t-LAST-.1)/1);g.fillStyle=`rgba(255,226,150,${.25*e})`;g.fillRect(0,0,1080,1920);txt('जय श्री राम',540,1700,90,'#ffffff','Mukta',800,'center',e,'rgba(0,0,0,.6)');}
+ if(t<.8)txt('',0,0,1)};
+</script>
