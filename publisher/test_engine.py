@@ -20,7 +20,8 @@ class Engine(unittest.TestCase):
     def setUp(self):
         self.items = [ep(1, {'youtube': 'y', 'instagram': 'i', 'threads': 't'}), ep(2, {'youtube': 'y', 'instagram': 'i'})]
         self.sent, self.updates = [], []
-        self.saved = publish.inbox, publish.social, publish.platform_file, publish.time.sleep, publish.shared_video
+        self.saved = publish.inbox, publish.social, publish.platform_file, publish.time.sleep, publish.shared_video, publish.video_seconds
+        publish.video_seconds = lambda item, data, cache: 45.0
         publish.platform_file = lambda p, item, data, cache: item['driveId']
         publish.time.sleep = lambda s: None
 
@@ -44,7 +45,7 @@ class Engine(unittest.TestCase):
         publish.inbox, publish.social = inbox, social
 
     def tearDown(self):
-        publish.inbox, publish.social, publish.platform_file, publish.time.sleep, publish.shared_video = self.saved
+        publish.inbox, publish.social, publish.platform_file, publish.time.sleep, publish.shared_video, publish.video_seconds = self.saved
 
     def test_posts_only_facebook_and_threads_lanes_in_episode_order(self):
         publish.shared_video = lambda item, data, cache: {'url': 'https://pub/v.mp4'}

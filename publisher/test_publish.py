@@ -35,8 +35,9 @@ class Extras(unittest.TestCase):
 class PostFor(unittest.TestCase):
     """The body sent to Social Media Publisher for one video, with the Drive and job lookups stubbed out."""
     def setUp(self):
-        self.saved = (publish.platform_file, publish.job_exists, publish.instagram_cover, publish.instagram_video)
+        self.saved = (publish.platform_file, publish.job_exists, publish.instagram_cover, publish.instagram_video, publish.video_seconds)
         publish.platform_file = lambda platform, item, data, cache: item['driveId']
+        publish.video_seconds = lambda item, data, cache: 45.0
         publish.job_exists = lambda key: True  # so Instagram keeps the Drive file and asks for no public link
         publish.instagram_cover = lambda item, data: None
         self.item = {'id': 'idea-gps', 'driveId': 'VID', 'title': 'GPS Never Sends Anything #shorts'}
@@ -44,7 +45,7 @@ class PostFor(unittest.TestCase):
                      'thumb': 'THUMB', 'kind': 'explainer'}
 
     def tearDown(self):
-        publish.platform_file, publish.job_exists, publish.instagram_cover, publish.instagram_video = self.saved
+        publish.platform_file, publish.job_exists, publish.instagram_cover, publish.instagram_video, publish.video_seconds = self.saved
 
     def test_youtube_gets_the_first_comment_and_a_playlist(self):
         post = publish.post_for('youtube', self.item, self.data, {})
@@ -193,11 +194,21 @@ class Lengths(unittest.TestCase):
         self.assertEqual(publish.video_seconds({'id': 'sloka-x', 'driveId': 'd1'}, {}, {}), 150.2)
         self.assertEqual(publish.video_seconds({'id': 'x', 'driveId': 'd1'}, {'videoRef': 'a.mp4 | 47.3 s | x'}, {}), 47.3)
 
-    def test_instagram_takes_a_long_reel_and_facebook_does_not(self):
+    def test_a_long_reel_goes_everywhere_and_facebook_gets_the_link(self):
         publish.social = lambda body: {'video': {'seconds': 150.0}}
         item = {'id': 'sloka-x', 'driveId': 'd1'}
         self.assertEqual(publish.platform_file('instagram', item, {}, {}), 'd1')
-        self.assertIsNone(publish.platform_file('facebook', item, {}, {}))
+        self.assertEqual(publish.platform_file('facebook', item, {}, {}), 'd1')
+        # A Facebook Reel version made by the build wins over posting the long video as a Page video.
+        self.assertEqual(publish.platform_file('facebook', item, {'versions': {'facebook': 'v1'}}, {}), 'v1')
+        saved = publish.shared_video, publish.job_exists
+        publish.shared_video = lambda item, data, cache: {'driveFileId': 'ig', 'url': 'https://x/sloka-x-instagram.mp4'}
+        publish.job_exists = lambda key: False
+        try:
+            self.assertEqual(publish.facebook_video(item, {}, {}, 'k', 'd1'), {'driveFileId': 'd1', 'url': 'https://x/sloka-x-instagram.mp4'})
+            self.assertEqual(publish.facebook_video(item, {'videoRef': 'a | 47.3 s | b'}, {}, 'k', 'd1'), {'driveFileId': 'd1'})
+        finally:
+            publish.shared_video, publish.job_exists = saved
 
     def test_large_files_download_in_parts(self):
         import base64
