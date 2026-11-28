@@ -148,33 +148,32 @@ def due_items():
     slot_unslotted([i for i in items if i.get('driveId')])
     # News goes out at the next run whatever its slot says: a story a day late has lost most of its reach.
     due = [i for i in items if i.get('driveId') and (POST_NOW or is_news(i) or when(i) is None or when(i) <= now)]
-    due = sorted(due, key=lambda i: (not is_news(i), -(created(i) or now).timestamp() if is_news(i) else 0, when(i) or now))
+    due = sorted(due, key=lambda i: (not is_news(i), -created(i).timestamp() if is_news(i) and created(i) else 0, when(i) or now))
     return due if POST_NOW else daily_limit(due, items, now)
 
 
-def created(i):
+def stamp(v):
+    """An ISO time as an aware datetime (a time without a zone counts as UTC), else None."""
     try:
-        return dt.datetime.fromisoformat(i['createdAt'])
-    except (KeyError, TypeError, ValueError):
+        t = dt.datetime.fromisoformat(v.replace('Z', '+00:00'))
+    except (AttributeError, TypeError, ValueError):
         return None
+    return t if t.tzinfo else t.replace(tzinfo=dt.timezone.utc)
+
+
+def created(i):
+    return stamp(i.get('createdAt'))
 
 
 def posted_at(i):
     data = i.get('data') if isinstance(i.get('data'), dict) else {}
-    try:
-        return dt.datetime.fromisoformat(data['postedAt'])
-    except (KeyError, TypeError, ValueError):
-        return None
+    return stamp(data.get('postedAt'))
 
 
-def slot_run(now):
-    """True when this run is one of the channel's own daily times (within SLOT_WINDOW after it)."""
+def times_passed(now):
+    """How many of the channel's daily times (IST) have passed today."""
     t = now.astimezone(IST)
-    for hm in daily_times(APP):
-        at = dt.datetime.combine(t.date(), dt.time.fromisoformat(hm), IST)
-        if dt.timedelta(0) <= t - at <= SLOT_WINDOW:
-            return True
-    return False
+    return sum(dt.datetime.combine(t.date(), dt.time.fromisoformat(hm), IST) <= t for hm in daily_times(APP))
 
 
 LAST_POST = {}  # {app: when that channel last put out a video}, for late_alert
@@ -182,28 +181,33 @@ LAST_POST = {}  # {app: when that channel last put out a video}, for late_alert
 
 def daily_limit(due, items, now):
     """At most as many new videos a day as the channel has daily times, at most NEWS_PER_DAY of them news (fresh first;
-    news older than NEWS_MAX_HOURS is moved out of the queue). Other videos go out only in the channel's own time runs,
-    since publish runs now happen at every series slot too. A video that already went out somewhere is always finished."""
-    posted = [i for i in inbox({'action': 'list', 'status': 'posted', 'type': 'video', 'limit': 1000})['items'] if mine(i)]
+    news older than NEWS_MAX_HOURS is moved out of the queue). Other videos go out one per daily time passed
+    today, since publish runs now happen at every series slot too. A video that already went out somewhere is always finished."""
+    posted = [i for i in inbox({'action': 'list', 'status': 'posted', 'type': 'video', 'limit': 1000, 'order': 'newest'})['items']
+              if mine(i)]
     times = [posted_at(i) for i in posted + items if posted_at(i)]
     LAST_POST[APP] = max(times) if times else None
     today = now.astimezone(IST).date()
     out_today = [i for i in posted + items if posted_at(i) and posted_at(i).astimezone(IST).date() == today]
     started = [i for i in due if posted_at(i)]
+    if not ITEM_ID:
+        late_alert(items)
     if len(out_today) >= len(daily_times(APP)):
         print(f'{len(out_today)} posted today, the daily most; only unfinished posts go on')
         return started
     news_left = NEWS_PER_DAY - sum(is_news(i) for i in out_today)
+    # Other videos keep to the channel's times: one per time passed today, so a late or missed run catches up at the next
+    other_left = times_passed(now) - sum(not is_news(i) for i in out_today)
     keep = []
     for i in due:
         if posted_at(i):
             keep.append(i)
         elif is_news(i):
-            if created(i) and now - created(i) > dt.timedelta(hours=NEWS_MAX_HOURS):
+            if created(i) and now - created(i) > dt.timedelta(hours=NEWS_MAX_HOURS) and EXPIRED not in (i.get('note') or ''):
                 expire_news(i)
             elif news_left > 0:
                 keep.append(i)
-        elif slot_run(now):
+        elif other_left > 0:
             keep.append(i)
     return keep
 
@@ -216,8 +220,8 @@ def expire_news(i):
     try:
         fresh = inbox({'action': 'get', 'id': i['id']})['item']
         inbox({'action': 'update', 'id': i['id'], 'ifVersion': fresh['version'], 'set': {
-            'status': 'ready', 'note': f'Publisher: not posted, the story is older than {NEWS_MAX_HOURS} hours '
-                                      f'(at most {NEWS_PER_DAY} news video a day). Approve it again to post it anyway.'}})
+            'status': 'ready', 'note': f'Publisher: {EXPIRED} {NEWS_MAX_HOURS} hours (at most {NEWS_PER_DAY} news '
+                                      f'video a day). Approve it again to post it anyway.'}})
         print(f"expired {i['id']}")
     except (RuntimeError, OSError, KeyError) as e:
         print(f"not expired {i['id']}: {e}")
@@ -915,7 +919,7 @@ def run_engine(now=None):
 LATE_HOURS = 24  # a channel with overdue videos that has put nothing out for this long is stuck
 NEWS_PER_DAY = 1  # owner choice 2026-11-27: How To Hero posts 3 a day, at most 1 of them news
 NEWS_MAX_HOURS = 72
-SLOT_WINDOW = dt.timedelta(minutes=50)
+EXPIRED = 'not posted, the story is older than'  # in the note of an expired news card; approving it again posts it
 
 
 def alert(alert_id, title, summary):
@@ -980,7 +984,7 @@ def run():
     for app in CHANNELS:
         try:
             failed |= run_channel(app)
-        except (RuntimeError, OSError, KeyError, ValueError) as e:  # one channel's problem never stops another's post
+        except (RuntimeError, OSError, KeyError, ValueError, TypeError) as e:  # one channel's problem never stops another's post
             print(f'{app}: {e}')
             failed = 1
     if not ITEM_ID:
@@ -1000,8 +1004,6 @@ def run_channel(app):
     if not items:
         print('nothing due')
         return 0
-    if not ITEM_ID:
-        late_alert(items)
     item = items[0]
     data = dict(item.get('data')) if isinstance(item.get('data'), dict) else {}
     platforms, down = live_platforms()

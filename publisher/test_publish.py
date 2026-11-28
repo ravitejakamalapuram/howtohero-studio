@@ -233,7 +233,8 @@ class DailyLimit(unittest.TestCase):
             return {'items': self.posted}
         if body['action'] == 'get':
             return {'item': {'id': body['id'], 'version': 1}}
-        self.updates.append(body)
+        if body['action'] == 'update':
+            self.updates.append(body)
         return {}
 
     def at(self, s):
@@ -258,10 +259,17 @@ class DailyLimit(unittest.TestCase):
         self.posted = [self.card('news-a', posted='2026-11-28T04:40:00+00:00')]  # 10:10 IST today
         self.assertEqual(self.limit([self.card('news-new', '2026-11-28T06:00:00+00:00')], '2026-11-28T11:05:00+05:30'), [])
 
-    def test_other_videos_only_in_the_channels_own_time_runs(self):
+    def test_other_videos_one_per_daily_time_passed(self):
+        self.posted = [self.card('video-1', posted='2026-11-28T02:58:00+00:00')]  # 08:28 IST
         due = [self.card('video-a')]
-        self.assertEqual(self.limit(due, '2026-11-28T10:05:00+05:30'), [])  # a series slot, not How To Hero's
-        self.assertEqual(self.limit(due, '2026-11-28T13:20:00+05:30'), ['video-a'])
+        self.assertEqual(self.limit(due, '2026-11-28T10:05:00+05:30'), [])  # 08:00 used, 13:00 not yet
+        self.assertEqual(self.limit(due, '2026-11-28T14:20:00+05:30'), ['video-a'])  # a late run still catches up
+
+    def test_expired_news_approved_again_is_not_expired_twice(self):
+        old = self.card('news-old', '2026-11-24T00:00:00+00:00')
+        old['note'] = 'Publisher: ' + publish.EXPIRED + ' 72 hours'
+        self.assertEqual(self.limit([old], '2026-11-28T10:05:00+05:30'), ['news-old'])
+        self.assertEqual(self.updates, [])
 
     def test_three_a_day_then_only_unfinished_posts(self):
         self.posted = [self.card(f'video-{n}', posted=f'2026-11-28T0{n}:00:00+00:00') for n in (1, 2, 3)]
