@@ -267,7 +267,7 @@ class DailyLimit(unittest.TestCase):
 
     def test_expired_news_approved_again_is_not_expired_twice(self):
         old = self.card('news-old', '2026-11-24T00:00:00+00:00')
-        old['note'] = 'Publisher: ' + publish.EXPIRED + ' 72 hours'
+        old['data']['newsExpired'] = True
         self.assertEqual(self.limit([old], '2026-11-28T10:05:00+05:30'), ['news-old'])
         self.assertEqual(self.updates, [])
 

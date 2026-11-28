@@ -203,7 +203,7 @@ def daily_limit(due, items, now):
         if posted_at(i):
             keep.append(i)
         elif is_news(i):
-            if created(i) and now - created(i) > dt.timedelta(hours=NEWS_MAX_HOURS) and EXPIRED not in (i.get('note') or ''):
+            if created(i) and now - created(i) > dt.timedelta(hours=NEWS_MAX_HOURS) and not (i.get('data') or {}).get('newsExpired'):
                 expire_news(i)
             elif news_left > 0:
                 keep.append(i)
@@ -220,7 +220,7 @@ def expire_news(i):
     try:
         fresh = inbox({'action': 'get', 'id': i['id']})['item']
         inbox({'action': 'update', 'id': i['id'], 'ifVersion': fresh['version'], 'set': {
-            'status': 'ready', 'note': f'Publisher: {EXPIRED} {NEWS_MAX_HOURS} hours (at most {NEWS_PER_DAY} news '
+            'status': 'ready', 'data': dict(fresh.get('data') or {}, newsExpired=True), 'note': f'Publisher: {EXPIRED} {NEWS_MAX_HOURS} hours (at most {NEWS_PER_DAY} news '
                                       f'video a day). Approve it again to post it anyway.'}})
         print(f"expired {i['id']}")
     except (RuntimeError, OSError, KeyError) as e:
@@ -919,7 +919,7 @@ def run_engine(now=None):
 LATE_HOURS = 24  # a channel with overdue videos that has put nothing out for this long is stuck
 NEWS_PER_DAY = 1  # owner choice 2026-11-27: How To Hero posts 3 a day, at most 1 of them news
 NEWS_MAX_HOURS = 72
-EXPIRED = 'not posted, the story is older than'  # in the note of an expired news card; approving it again posts it
+EXPIRED = 'not posted, the story is older than'  # expired cards also get data.newsExpired, so approving one again posts it
 
 
 def alert(alert_id, title, summary):
