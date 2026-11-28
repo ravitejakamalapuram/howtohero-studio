@@ -858,7 +858,7 @@ def engine_post(platform, account, item, data, cache):
     if account:
         post['account'] = account
     if platform_file(platform, item, data, cache) != item['driveId']:
-        raise ValueError(f"longer than {platform}'s {RULES[platform]['maxSeconds']} s")
+        raise ValueError(f"the engine posts only the full video, and {platform} needs its own version of this one")
     if platform == 'facebook':
         yt = ((data.get('meta') or {}).get('youtube') or {}) if isinstance(data.get('meta'), dict) else {}
         title = re.sub(r'\s*#shorts\b', '', yt.get('title') or item.get('title') or '', flags=re.I).strip()
@@ -1062,7 +1062,10 @@ def run_channel(app):
         time.sleep(30)
 
     # Instagram and Threads fetch the same copy: remove it once every one of them that posted this run is up.
-    fetchers = [jobs[p] for p in ('instagram', 'threads') if p in jobs and jobs[p].get('id')]  # a platform that never started fetches nothing
+    # A long Facebook video (posted as a Page video) fetches it too.
+    users = ('instagram', 'threads') + (('facebook',) if 'facebook' in jobs and platform_file('facebook', item, data, cache) == item['driveId']
+                                        and video_seconds(item, data, cache) > RULES['facebook']['reelSeconds'] else ())
+    fetchers = [jobs[p] for p in users if p in jobs and jobs[p].get('id')]  # a platform that never started fetches nothing
     if fetchers and all(j['status'] == 'done' for j in fetchers) and os.environ.get('GITHUB_TOKEN'):
         remove_public_link(f"{item['id']}-instagram.mp4")
     posted = dict(data.get('posted') or {})
