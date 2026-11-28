@@ -215,3 +215,77 @@ class Lengths(unittest.TestCase):
             publish.inbox_file('sloka-x', path)
             self.assertEqual(open(path, 'rb').read(), blob)
         self.assertEqual([c['start'] for c in calls], [0, 300, 600])
+
+
+class DailyLimit(unittest.TestCase):
+    """How To Hero: 3 new videos a day, at most 1 of them news; other videos only in the channel's own time runs."""
+
+    def setUp(self):
+        self.posted, self.updates = [], []
+        self._inbox, publish.inbox = publish.inbox, self.fake
+        publish.APP = publish.DEFAULT_APP
+
+    def tearDown(self):
+        publish.inbox = self._inbox
+
+    def fake(self, body):
+        if body['action'] == 'list':
+            return {'items': self.posted}
+        if body['action'] == 'get':
+            return {'item': {'id': body['id'], 'version': 1}}
+        if body['action'] == 'update':
+            self.updates.append(body)
+        return {}
+
+    def at(self, s):
+        return publish.dt.datetime.fromisoformat(s)
+
+    def card(self, id, created='2026-11-28T00:00:00+00:00', posted=None, slot='2026-11-27T08:00:00+05:30'):
+        c = {'id': id, 'createdAt': created, 'slot': slot, 'driveId': 'x', 'data': {}}
+        if id.startswith('news-'):
+            c['source'] = 'news'
+        if posted:
+            c['data']['postedAt'] = posted
+        return c
+
+    def limit(self, due, now):
+        return [i['id'] for i in publish.daily_limit(due, due, self.at(now))]
+
+    def test_one_news_a_day_freshest_first_and_old_news_expires(self):
+        due = [self.card('news-new', '2026-11-28T06:00:00+00:00'), self.card('news-old', '2026-11-24T00:00:00+00:00')]
+        self.assertEqual(self.limit(due, '2026-11-28T10:05:00+05:30'), ['news-new'])
+        self.assertEqual(self.updates[0]['id'], 'news-old')
+        self.assertEqual(self.updates[0]['set']['status'], 'ready')
+        self.posted = [self.card('news-a', posted='2026-11-28T04:40:00+00:00')]  # 10:10 IST today
+        self.assertEqual(self.limit([self.card('news-new', '2026-11-28T06:00:00+00:00')], '2026-11-28T11:05:00+05:30'), [])
+
+    def test_other_videos_one_per_daily_time_passed(self):
+        self.posted = [self.card('video-1', posted='2026-11-28T02:58:00+00:00')]  # 08:28 IST
+        due = [self.card('video-a')]
+        self.assertEqual(self.limit(due, '2026-11-28T10:05:00+05:30'), [])  # 08:00 used, 13:00 not yet
+        self.assertEqual(self.limit(due, '2026-11-28T14:20:00+05:30'), ['video-a'])  # a late run still catches up
+
+    def test_expired_news_approved_again_is_not_expired_twice(self):
+        old = self.card('news-old', '2026-11-24T00:00:00+00:00')
+        old['data']['newsExpired'] = True
+        self.assertEqual(self.limit([old], '2026-11-28T10:05:00+05:30'), ['news-old'])
+        self.assertEqual(self.updates, [])
+
+    def test_three_a_day_then_only_unfinished_posts(self):
+        self.posted = [self.card(f'video-{n}', posted=f'2026-11-28T0{n}:00:00+00:00') for n in (1, 2, 3)]
+        half = self.card('video-half', posted='2026-11-28T08:00:00+00:00')
+        due = [self.card('news-x', '2026-11-28T10:00:00+00:00'), half, self.card('video-b')]
+        self.assertEqual(self.limit(due, '2026-11-28T19:35:00+05:30'), ['video-half'])
+
+    def test_no_late_alert_while_the_channel_is_posting(self):
+        sent = []
+        self._alert, publish.alert = publish.alert, lambda *a: sent.append(a)
+        try:
+            publish.LAST_POST[publish.APP] = publish.dt.datetime.now(publish.dt.timezone.utc)
+            publish.late_alert([self.card('video-old', slot='2026-11-20T08:00:00+05:30')])
+            self.assertEqual(sent, [])
+            publish.LAST_POST[publish.APP] = publish.dt.datetime.now(publish.dt.timezone.utc) - publish.dt.timedelta(days=2)
+            publish.late_alert([self.card('video-old', slot='2026-11-20T08:00:00+05:30')])
+            self.assertEqual(len(sent), 1)
+        finally:
+            publish.alert = self._alert
