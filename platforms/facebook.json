@@ -13,10 +13,11 @@
     "title": "The YouTube title without \" #shorts\".",
     "text": "Like Instagram but without the @handle line and with at most 3 hashtags; Facebook reads it as a post, so the first line is a full sentence (it still holds the `search` phrase)."
   },
-  "maxSeconds": 90,
+  "maxSeconds": 14400,
+  "reelSeconds": 90,
   "versionSeconds": 87,
   "notes": [
-    "Page Reels take 3 to 90 s (Meta's limit; Social Media Publisher refuses longer ones). A longer video needs its own version of at most versionSeconds until the publisher can post long videos as normal Page videos.",
+    "Page Reels take 3 to 90 s (reelSeconds). A longer video goes up as a normal Page video (up to maxSeconds, 4 h): the publisher sends Facebook the same public link Instagram gets, and Social Media Publisher posts it through /{page-id}/videos. When the build made a Facebook version (data.versions.facebook), that Reel is posted instead, since Reels reach more people.",
     "Posting times (IST) are the same 5 as Instagram (one publish run posts to every platform); see the reasoning in instagram.json. Page Reels have no daily cap that 5 posts comes near.",
     "Cover (26 Nov 2026): the publisher sets the video's thumbnail (data.thumb) as the Reel's cover after upload, through Facebook's video thumbnails call. If Facebook refuses it, the Reel keeps a frame Facebook picks, so the first frame still matters."
   ]

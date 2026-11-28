@@ -312,10 +312,15 @@ def platform_file(platform, item, data, cache):
     """The Drive id this platform gets, or None when it needs its own version and has none yet. A video longer than
     the platform's maxSeconds (platforms/<name>.json) is never cut here: the video build makes a separate version
     (data.versions.<platform>) with its own hook, payoff and end card."""
-    limit = (RULES.get(platform) or {}).get('maxSeconds')
-    if not limit or item['id'].startswith('doc-') or video_seconds(item, data, cache) <= limit:
+    rules = RULES.get(platform) or {}
+    limit, version = rules.get('maxSeconds'), (data.get('versions') or {}).get(platform)
+    if item['id'].startswith('doc-'):
+        return item['driveId']
+    if version and rules.get('reelSeconds') and video_seconds(item, data, cache) > rules['reelSeconds']:
+        return version  # a short version made for this platform beats posting the long one as a plain video
+    if not limit or video_seconds(item, data, cache) <= limit:
         return item['driveId']  # the full video whenever it fits
-    return (data.get('versions') or {}).get(platform)
+    return version
 
 
 GH_API = 'https://api.github.com'
@@ -393,6 +398,18 @@ def instagram_video(item, data):
             print(f"instagram fetches its copy from {video['url']}")
         except (KeyError, OSError) as e:  # no GITHUB_TOKEN (a run outside Actions) or GitHub is down
             print(f'no public link for instagram ({e}); it gets the Drive file')
+    return video
+
+
+def facebook_video(item, data, cache, key, file_id):
+    """What Facebook gets: the Drive file, plus the public link when it is longer than a Reel (Facebook then posts
+    it as a normal Page video and fetches it from the link)."""
+    video = {'driveFileId': file_id}
+    if file_id == item['driveId'] and video_seconds(item, data, cache) > RULES['facebook']['reelSeconds']:
+        video['url'] = (f"https://github.com/{os.environ.get('GITHUB_REPOSITORY', 'x/x')}/releases/download/{IG_RELEASE}/{item['id']}-instagram.mp4"
+                        if job_exists(key) else shared_video(item, data, cache).get('url'))
+        if not video['url']:
+            raise ValueError('no public link for a long Facebook video (needs GITHUB_TOKEN)')
     return video
 
 
@@ -537,6 +554,7 @@ def post_for(platform, item, data, cache):
             post['collaborators'] = CHANNELS[APP]['collaborators']
         return post
     if platform == 'facebook':
+        video = facebook_video(item, data, cache, key, file_id)
         post = {'platform': platform, 'key': key, 'video': video, 'title': fit(title.replace('#shorts', '').strip(), limit('facebook', 'titleMax'), f"{item['id']} Facebook title"),
                 'description': fit(caption, limit('facebook', 'captionMax'), f"{item['id']} Facebook description")}
         if data.get('thumb'):  # the Reel's cover; a refused one is only a warning on the job
@@ -840,11 +858,11 @@ def engine_post(platform, account, item, data, cache):
     if account:
         post['account'] = account
     if platform_file(platform, item, data, cache) != item['driveId']:
-        raise ValueError(f"longer than {platform}'s {RULES[platform]['maxSeconds']} s")
+        raise ValueError(f"the engine posts only the full video, and {platform} needs its own version of this one")
     if platform == 'facebook':
         yt = ((data.get('meta') or {}).get('youtube') or {}) if isinstance(data.get('meta'), dict) else {}
         title = re.sub(r'\s*#shorts\b', '', yt.get('title') or item.get('title') or '', flags=re.I).strip()
-        post.update(video={'driveFileId': item['driveId']}, title=fit(title, limit('facebook', 'titleMax'), f"{item['id']} Facebook title"),
+        post.update(video=facebook_video(item, data, cache, key, item['driveId']), title=fit(title, limit('facebook', 'titleMax'), f"{item['id']} Facebook title"),
                     description=engine_text('facebook', item, data))
         if data.get('thumb'):
             post['thumbnail'] = {'driveFileId': data['thumb']}
@@ -1044,7 +1062,10 @@ def run_channel(app):
         time.sleep(30)
 
     # Instagram and Threads fetch the same copy: remove it once every one of them that posted this run is up.
-    fetchers = [jobs[p] for p in ('instagram', 'threads') if p in jobs and jobs[p].get('id')]  # a platform that never started fetches nothing
+    # A long Facebook video (posted as a Page video) fetches it too.
+    users = ('instagram', 'threads') + (('facebook',) if 'facebook' in jobs and platform_file('facebook', item, data, cache) == item['driveId']
+                                        and video_seconds(item, data, cache) > RULES['facebook']['reelSeconds'] else ())
+    fetchers = [jobs[p] for p in users if p in jobs and jobs[p].get('id')]  # a platform that never started fetches nothing
     if fetchers and all(j['status'] == 'done' for j in fetchers) and os.environ.get('GITHUB_TOKEN'):
         remove_public_link(f"{item['id']}-instagram.mp4")
     posted = dict(data.get('posted') or {})

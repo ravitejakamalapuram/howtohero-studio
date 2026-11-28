@@ -14,7 +14,7 @@ Every card has one `data.kind`. Pick the kind from the idea, not the other way r
 | `curiosity` | A big, relatable question about people, told as a story with evidence (see below). | Evergreen. | 75 |
 | `doc` | A 16:9 YouTube documentary, 8 minutes or more, built by hand, not by the build run (`series` "DOC"). | Evergreen. | 480 |
 
-Lengths come from `platforms/*.json`: the shortest upload limit is Facebook's 90 s (`maxSeconds`; Instagram takes 15 min, Threads 5 min, YouTube Shorts 3 min), so a video up to 87 s goes everywhere with one render. A longer one posts in full everywhere else but costs a second render for Facebook, so only give a card more time when the story needs it. Re-read the platform files each run; if a limit there changes, these lengths follow it.
+Lengths come from `platforms/*.json`: the shortest Reel limit is Facebook's 90 s (`reelSeconds`; Instagram takes 15 min, Threads 5 min, YouTube Shorts 3 min), so a video up to 87 s goes everywhere as a Reel with one render. A longer one still posts everywhere (on Facebook as a plain Page video, which reaches fewer people) unless the build makes a Facebook Reel version, so only give a card more time when the story needs it. Re-read the platform files each run; if a limit there changes, these lengths follow it.
 
 ### Curiosity stories (the new kind)
 
